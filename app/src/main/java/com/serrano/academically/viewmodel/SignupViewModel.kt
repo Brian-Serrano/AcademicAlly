@@ -10,6 +10,7 @@ import com.serrano.academically.utils.ValidationMessage
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serrano.academically.utils.updateUserAssessmentsAchievements
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +41,7 @@ class SignupViewModel @Inject constructor(
         courseId: Int,
         score: Int,
         items: Int,
-        eval: Float,
+        eval: Double,
         navigate: (String) -> Unit,
         error: (String) -> Unit
     ) {
@@ -60,6 +61,7 @@ class SignupViewModel @Inject constructor(
                                 courseAssessmentEvaluator = eval
                             )
                         )
+                        updateUserAssessmentsAchievements(score.toFloat() / items >= eval, userRepository, context, courseSkillRepository, score, vm.message.toInt())
                     }
                     UpdateUserPref.updateDataByLoggingIn(context, false, vm.message.toInt(), si.email, si.password)
                     updateInput(signupInput.value.copy(name = "", email = "", password = "", confirmPassword = "", error = ""))

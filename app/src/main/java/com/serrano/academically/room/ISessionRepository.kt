@@ -14,7 +14,7 @@ interface ISessionRepository {
 
     fun getStudentSessions(studentId: Int): Flow<List<SessionNotifications>>
 
-    suspend fun updateSession(startTime: LocalDateTime, endTime: LocalDateTime, location: String, sessionId: Int)
+    suspend fun updateSession(startTime: LocalDateTime, endTime: LocalDateTime, location: String, expireDate: LocalDateTime, sessionId: Int)
 
     suspend fun completeSession(sessionId: Int)
 }

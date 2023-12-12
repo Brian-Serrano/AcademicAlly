@@ -143,10 +143,11 @@ fun ChooseAssessmentMenu(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CustomSearchBar(
+                    placeHolder = "Choose Course",
                     searchInfo = search,
                     onQueryChange = { chooseAssessmentViewModel.updateSearch(search.copy(searchQuery = it)) },
                     onSearch = {
-                        chooseAssessmentViewModel.updateSearch(search.copy(isActive = false))
+                        chooseAssessmentViewModel.updateSearch(search.copy(searchQuery = it, isActive = false))
                         chooseAssessmentViewModel.search(it, context)
                     },
                     onActiveChange = { chooseAssessmentViewModel.updateSearch(search.copy(isActive = it)) },

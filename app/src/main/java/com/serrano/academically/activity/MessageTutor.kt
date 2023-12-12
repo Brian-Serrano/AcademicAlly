@@ -136,7 +136,8 @@ fun MessageTutor(
                                         message = message,
                                         navigate = {
                                             navController.navigateUp()
-                                        }
+                                        },
+                                        context = context
                                     )
                                 },
                                 modifier = Modifier.padding(15.dp)

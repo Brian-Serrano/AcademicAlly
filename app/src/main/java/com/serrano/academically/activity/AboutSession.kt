@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.utils.toMilitaryTime
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -94,7 +95,7 @@ fun AboutSession(
                     }
                     InfoCard(
                         title = "SCHEDULE",
-                        description = "Date: ${session.startTime.month} ${session.startTime.dayOfMonth}, ${session.startTime.year}\nTime: " + String.format("%02d:%02d - %02d:%02d", session.startTime.hour, session.startTime.minute, session.endTime.hour, session.endTime.minute)
+                        description = "Date: ${session.startTime.month} ${session.startTime.dayOfMonth}, ${session.startTime.year}\nTime: ${toMilitaryTime(listOf(session.startTime.hour, session.startTime.minute))} - ${toMilitaryTime(listOf(session.endTime.hour, session.endTime.minute))}"
                     )
                     InfoCard(title = "LOCATION", description = session.location)
 

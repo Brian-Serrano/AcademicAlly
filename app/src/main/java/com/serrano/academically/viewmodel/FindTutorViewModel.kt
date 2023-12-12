@@ -55,14 +55,25 @@ class FindTutorViewModel @Inject constructor(
         _filterState.value = newFilterState
     }
 
+    private suspend fun updateHistory(context: Context) {
+        updateSearch(searchInfo.value.copy(history = context.dataStore.data.first().searchTutorHistory))
+    }
+
     fun getData(context: Context, id: Int) {
         viewModelScope.launch {
             try {
+                // Fetch user/student courses id
                 val userCourses = courseSkillRepository
                     .getCourseSkillsOfUserNoRating(id, drawerData.value.role)
                     .first()
-                updateSearch(searchInfo.value.copy(history = context.dataStore.data.first().searchTutorHistory))
+
+                // Fetch search history from preferences
+                updateHistory(context)
+
+                // Fetch user drawer data
                 _drawerData.value = userRepository.getUserDataForDrawer(id).first()
+
+                // Enable checkboxes for user/student courses in filter dialog
                 _filterState.value = GetCourses
                     .getAllCourses(context)
                     .map { course ->
@@ -72,7 +83,10 @@ class FindTutorViewModel @Inject constructor(
                             userCourses.any { it == course[0].toInt() }
                         )
                     }
+
+                // Filter tutors base on filter options and search query
                 updateTutorMenu(filterState.value, searchInfo.value.searchQuery, context)
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {
@@ -84,13 +98,14 @@ class FindTutorViewModel @Inject constructor(
     fun updateTutorMenu(filterDialogStates: List<FilterDialogStates>, searchQuery: String, context: Context) {
         viewModelScope.launch {
             try {
+                // Filter tutors base on filter options and search query
                 _findTutorData.value = search(
                     data = filterDialogStates
                         .filter { it.isEnabled }
                         .map { it.id }
                         .flatMap { courseSkillRepository.getCourseSkillsForTutorByCourse(it).first() }
                         .groupBy { it.userId }
-                        .map { course -> FindTutorData(course.key, userRepository.getUserName(course.key).first(), course.value.map { GetCourses.getCourseNameById(it.courseId, context) }, course.value.map { (it.courseAssessmentScore.toFloat() / it.courseAssessmentItemsTotal) * 5 }) },
+                        .map { course -> FindTutorData(course.key, userRepository.getUserName(course.key).first(), course.value.map { GetCourses.getCourseNameById(it.courseId, context) }, course.value.map { (it.courseAssessmentScore.toDouble() / it.courseAssessmentItemsTotal) * 5 }) },
                     searchQuery = searchQuery,
                     context = context
                 )
@@ -102,10 +117,12 @@ class FindTutorViewModel @Inject constructor(
     }
 
     private suspend fun search(data: List<FindTutorData>, searchQuery: String, context: Context): List<FindTutorData> {
+        // Filter the tutors base on search query and add the search query in the preferences and re-fetch
         return if (searchQuery.isEmpty()) {
             data
         } else {
             UpdateUserPref.addSearchTutorHistory(context, searchQuery)
+            updateHistory(context)
             val regex = Regex(searchQuery, RegexOption.IGNORE_CASE)
             data.filter { regex.containsMatchIn(it.tutorName) }
         }

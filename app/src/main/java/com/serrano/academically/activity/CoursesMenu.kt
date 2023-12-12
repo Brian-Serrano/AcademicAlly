@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.utils.roundRating
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -73,7 +74,7 @@ fun CoursesMenu(
                     LazyColumn {
                         items(courseSkills.size) {
                             YellowCard(MaterialTheme.colorScheme.tertiary) {
-                                val rating: Float = (courseSkills[it].courseAssessmentScore.toFloat() / courseSkills[it].courseAssessmentItemsTotal) * 5
+                                val rating = roundRating((courseSkills[it].courseAssessmentScore.toDouble() / courseSkills[it].courseAssessmentItemsTotal) * 5)
                                 Text(
                                     text = courseDescriptions[it].first,
                                     style = MaterialTheme.typography.titleMedium,
@@ -82,7 +83,7 @@ fun CoursesMenu(
                                 )
                                 Text_1(courseDescriptions[it].second)
                                 Text_1("Rating: $rating")
-                                RatingBar(rating = rating, modifier = Modifier.padding(10.dp).height(20.dp))
+                                RatingBar(rating = rating.toFloat(), modifier = Modifier.padding(10.dp).height(20.dp))
                             }
                         }
                         item {

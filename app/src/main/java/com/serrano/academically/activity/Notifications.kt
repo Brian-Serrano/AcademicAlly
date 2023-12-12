@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.NavigateNext
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +46,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.room.Assignment
+import com.serrano.academically.utils.GetModules
+import com.serrano.academically.utils.toMilitaryTime
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
 
@@ -54,7 +59,7 @@ fun Notifications(
     userId: Int,
     navController: NavController,
     context: Context,
-    tabs: List<String> = listOf("REQUESTS", "SESSIONS"),
+    tabs: List<String> = listOf("REQUESTS", "SESSIONS", "TASKS"),
     notificationsViewModel: NotificationsViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -67,6 +72,7 @@ fun Notifications(
     val message by notificationsViewModel.message.collectAsState()
     val session by notificationsViewModel.session.collectAsState()
     val messageUsers by notificationsViewModel.messageUsers.collectAsState()
+    val assignment by notificationsViewModel.assignment.collectAsState()
 
     when (process) {
         ProcessState.Error -> ErrorComposable(navController)
@@ -117,6 +123,15 @@ fun Notifications(
                             sessions = session.groupBy { LocalDate.of(it.startTime.year, it.startTime.monthValue, it.startTime.dayOfMonth) },
                             onClick = { navController.navigate("AboutSession/${user.id}/$it") }
                         )
+                        2 -> Assignments(
+                            context = context,
+                            assignments = assignment,
+                            onClick = {
+                                if (user.role == "STUDENT") {
+
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -144,7 +159,9 @@ fun Requests(
                     imageVector = Icons.Filled.AccountCircle,
                     contentDescription = null,
                     tint = Color.DarkGray,
-                    modifier = Modifier.size(60.dp).padding(10.dp)
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(10.dp)
                 )
                 Column {
                     Text(
@@ -182,6 +199,56 @@ fun Sessions(
                         session = it,
                         sessionCourse = GetCourses.getCourseNameById(it.courseId, context),
                         onArrowClick = { onClick(it.sessionId) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Assignments(
+    context: Context,
+    assignments: List<Assignment>,
+    onClick: (Int) -> Unit
+) {
+    LazyColumn {
+        items(items = assignments) {
+            YellowCard(MaterialTheme.colorScheme.tertiary) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "${it.deadLine.month} ${it.deadLine.dayOfMonth}, ${it.deadLine.year} ${toMilitaryTime(listOf(it.deadLine.hour, it.deadLine.minute))}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black,
+                            modifier = Modifier.padding(start = 15.dp, top = 15.dp)
+                        )
+                        Text(
+                            text = GetCourses.getCourseNameById(it.courseId, context),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.Black,
+                            modifier = Modifier.padding(start = 15.dp)
+                        )
+                        Text(
+                            text = it.type,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.Black,
+                            modifier = Modifier.padding(start = 15.dp)
+                        )
+                        Text(
+                            text = GetModules.getModuleByCourseAndModuleId(it.courseId, it.moduleId, context),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.Black,
+                            modifier = Modifier.padding(start = 15.dp, bottom = 15.dp)
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Filled.ChevronRight,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(35.dp)
+                            .clickable { onClick(it.assignmentId) }
                     )
                 }
             }

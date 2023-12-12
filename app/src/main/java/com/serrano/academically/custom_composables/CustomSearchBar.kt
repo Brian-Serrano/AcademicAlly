@@ -1,5 +1,6 @@
 package com.serrano.academically.custom_composables
 
+import android.util.Log
 import com.serrano.academically.ui.theme.Strings
 import com.serrano.academically.utils.SearchInfo
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomSearchBar(
+    placeHolder: String,
     searchInfo: SearchInfo,
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
@@ -48,7 +52,7 @@ fun CustomSearchBar(
         onActiveChange = onActiveChange,
         placeholder = {
             Text(
-                text = Strings.chooseCourse,
+                text = placeHolder,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.DarkGray
             )
@@ -90,12 +94,26 @@ fun CustomSearchBar(
     ) {
         LazyColumn {
             items(items = searchInfo.history) {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black,
-                    modifier = Modifier.padding(10.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .clickable {
+                            onSearch(it)
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier.padding(end = 10.dp)
+                    )
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black
+                    )
+                }
             }
         }
     }

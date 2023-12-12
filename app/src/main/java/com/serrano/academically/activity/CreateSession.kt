@@ -97,7 +97,8 @@ fun CreateSession(
                                     navigate = {
                                         navController.navigateUp()
                                         navController.navigateUp()
-                                    }
+                                    },
+                                    context = context
                                 )
                             },
                             buttonText = "Create Session"

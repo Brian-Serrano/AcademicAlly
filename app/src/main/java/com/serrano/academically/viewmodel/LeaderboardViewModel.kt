@@ -41,13 +41,15 @@ class LeaderboardViewModel @Inject constructor(
     fun getData(id: Int) {
         viewModelScope.launch {
             try {
+                // Fetch drawer data
                 _userDrawer.value = userRepository.getUserDataForDrawer(id).first()
+
+                // Fetch the users that have top scores base on user role
                 _leaderboardsData.value = when (userDrawer.value.role) {
                     "STUDENT" -> {
                         listOf(
                             userRepository.getLeaderboardStudentPoints().first(),
                             userRepository.getLeaderboardStudentAssessmentPoints().first(),
-                            userRepository.getLeaderboardStudentBadgePoints().first(),
                             userRepository.getLeaderboardStudentRequestPoints().first(),
                             userRepository.getLeaderboardStudentSessionPoints().first()
                         )
@@ -56,7 +58,6 @@ class LeaderboardViewModel @Inject constructor(
                         listOf(
                             userRepository.getLeaderboardTutorPoints().first(),
                             userRepository.getLeaderboardTutorAssessmentPoints().first(),
-                            userRepository.getLeaderboardTutorBadgePoints().first(),
                             userRepository.getLeaderboardTutorRequestPoints().first(),
                             userRepository.getLeaderboardTutorSessionPoints().first()
                         )

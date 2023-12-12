@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.serrano.academically.custom_composables.Divider
+import com.serrano.academically.utils.roundRating
 import kotlinx.coroutines.CoroutineScope
 import kotlin.math.ceil
 
@@ -77,55 +78,52 @@ fun Analytics(
                 ) {
                     YellowCard(MaterialTheme.colorScheme.tertiary) {
                         Text_1(text = Strings.progressGraph)
+                        val names = listOf(
+                            "Total Points", "Assessment Points", "Request Points", "Session Points"
+                        )
                         when (user.role) {
                             "STUDENT" -> {
-                                RowData(name = "Total Points", value = user.studentPoints.toString())
-                                RowData(name = "Assessment Points", value = user.studentAssessmentPoints.toString())
-                                RowData(name = "Achievement Points", value = user.studentBadgePoints.toString())
-                                RowData(name = "Request Points", value = user.studentRequestPoints.toString())
-                                RowData(name = "Session Points", value = user.studentSessionPoints.toString())
                                 val points = listOf(
                                     user.studentPoints,
                                     user.studentAssessmentPoints,
-                                    user.studentBadgePoints,
                                     user.studentRequestPoints,
                                     user.studentSessionPoints
-                                )
-                                val yValuesMapper = ceil((points.max() * 1.5) / 5).toInt()
+                                ).map { roundRating(it) }
+                                points.forEachIndexed { idx, point ->
+                                    RowData(name = names[idx], value = point.toString())
+                                }
+                                val yValuesMapper = ceil((points.max() * 1.5) / 4).toInt()
                                 LineChart(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(300.dp)
                                         .padding(20.dp),
-                                    xValues = listOf(1, 2, 3, 4, 5),
+                                    xValues = listOf(1, 2, 3, 4),
                                     yValues = List(5) { yValuesMapper * it },
-                                    points = points,
+                                    points = points.map { it.toFloat() },
                                     paddingSpace = 20.dp,
                                     verticalStep = 5
                                 )
                             }
                             "TUTOR" -> {
-                                RowData(name = "Total Points", value = user.tutorPoints.toString())
-                                RowData(name = "Assessment Points", value = user.tutorAssessmentPoints.toString())
-                                RowData(name = "Achievement Points", value = user.tutorBadgePoints.toString())
-                                RowData(name = "Request Points", value = user.tutorRequestPoints.toString())
-                                RowData(name = "Session Points", value = user.tutorSessionPoints.toString())
                                 val points = listOf(
                                     user.tutorPoints,
                                     user.tutorAssessmentPoints,
-                                    user.tutorBadgePoints,
                                     user.tutorRequestPoints,
                                     user.tutorSessionPoints
-                                )
-                                val yValuesMapper = ceil((points.max() * 1.5) / 5).toInt()
+                                ).map { roundRating(it) }
+                                points.forEachIndexed { idx, point ->
+                                    RowData(name = names[idx], value = point.toString())
+                                }
+                                val yValuesMapper = ceil((points.max() * 1.5) / 4).toInt()
                                 LineChart(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(300.dp)
                                         .padding(20.dp),
-                                    xValues = listOf(1, 2, 3, 4, 5),
+                                    xValues = listOf(1, 2, 3, 4),
                                     yValues = List(5) { yValuesMapper * it },
-                                    points = points,
+                                    points = points.map { it.toFloat() },
                                     paddingSpace = 20.dp,
                                     verticalStep = 5
                                 )
@@ -138,21 +136,23 @@ fun Analytics(
                             "STUDENT" -> {
                                 RowData(name = "Sessions Completed", value = user.sessionsCompletedAsStudent.toString())
                                 RowData(name = "Requests Sent", value = user.requestsSent.toString())
-                                RowData(name = "Requests Accepted", value = user.requestsAccepted.toString())
-                                RowData(name = "Requests Denied", value = user.requestsDenied.toString())
+                                RowData(name = "Requests Accepted", value = user.acceptedRequests.toString())
+                                RowData(name = "Requests Denied", value = user.deniedRequests.toString())
+                                RowData(name = "Assignments Taken", value = user.assignmentsTaken.toString())
                                 RowData(name = "Assessments Taken", value = user.assessmentsTakenAsStudent.toString())
                             }
                             "TUTOR" -> {
                                 RowData(name = "Sessions Completed", value = user.sessionsCompletedAsTutor.toString())
                                 RowData(name = "Requests Received", value = user.requestsReceived.toString())
-                                RowData(name = "Accepted Student Requests", value = user.acceptedRequests.toString())
-                                RowData(name = "Denied Student Requests", value = user.deniedRequests.toString())
+                                RowData(name = "Accepted Student Requests", value = user.requestsAccepted.toString())
+                                RowData(name = "Denied Student Requests", value = user.requestsDenied.toString())
+                                RowData(name = "Assignments Created", value = user.assignmentsTaken.toString())
                                 RowData(name = "Assessments Taken", value = user.assessmentsTakenAsTutor.toString())
                             }
                         }
                     }
                     YellowCard(MaterialTheme.colorScheme.tertiary) {
-                        val avgRating = courses.map { (it.courseAssessmentScore.toFloat() / it.courseAssessmentItemsTotal) * 5 } .average()
+                        val avgRating = roundRating(courses.map { (it.courseAssessmentScore.toDouble() / it.courseAssessmentItemsTotal) * 5 } .average())
                         Text_1(text = "Overall Rating")
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -169,14 +169,14 @@ fun Analytics(
                         Text_1(text = "Courses Rating")
                         courses.forEachIndexed { idx, course ->
                             Divider()
-                            val rating = (course.courseAssessmentScore.toFloat() / course.courseAssessmentItemsTotal) * 5
+                            val rating = roundRating((course.courseAssessmentScore.toDouble() / course.courseAssessmentItemsTotal) * 5)
                             Text_1(text = courseName[idx])
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                RatingBar(rating = rating, modifier = Modifier
+                                RatingBar(rating = rating.toFloat(), modifier = Modifier
                                     .padding(10.dp)
                                     .height(20.dp))
                                 Text_1(text = "$rating")

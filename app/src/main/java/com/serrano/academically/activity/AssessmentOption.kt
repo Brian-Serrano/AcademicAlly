@@ -70,8 +70,6 @@ fun AssessmentOption(
     val process by assessmentOptionViewModel.processState.collectAsState()
     val course by assessmentOptionViewModel.course.collectAsState()
     val isDrawerShouldAvailable by assessmentOptionViewModel.isDrawerShouldAvailable.collectAsState()
-    val itemsDropdown by assessmentOptionViewModel.itemsDropdown.collectAsState()
-    val typeDropdown by assessmentOptionViewModel.typeDropdown.collectAsState()
 
     when (process) {
         ProcessState.Error -> ErrorComposable(navController)
@@ -98,10 +96,7 @@ fun AssessmentOption(
                             courseId = courseId,
                             navController = navController,
                             course = course,
-                            itemsDropdown = itemsDropdown,
-                            typeDropdown = typeDropdown,
-                            padding = it,
-                            assessmentOptionViewModel = assessmentOptionViewModel
+                            padding = it
                         )
                     }
                 }
@@ -118,10 +113,7 @@ fun AssessmentOption(
                         courseId = courseId,
                         navController = navController,
                         course = course,
-                        itemsDropdown = itemsDropdown,
-                        typeDropdown = typeDropdown,
-                        padding = it,
-                        assessmentOptionViewModel = assessmentOptionViewModel
+                        padding = it
                     )
                 }
             }
@@ -135,10 +127,7 @@ fun AssessmentOptionMenu(
     courseId: Int,
     navController: NavController,
     course: Pair<String, String>,
-    itemsDropdown: DropDownState,
-    typeDropdown: DropDownState,
     padding: PaddingValues,
-    assessmentOptionViewModel: AssessmentOptionViewModel
 ) {
     Column(
         modifier = Modifier
@@ -150,29 +139,15 @@ fun AssessmentOptionMenu(
             .verticalScroll(rememberScrollState())
     ) {
         YellowCard(MaterialTheme.colorScheme.tertiary) {
+            val items = listOf("5", "10", "15")
+            val type = listOf("Multiple Choice", "Identification", "True or False")
             Text_1(text = "Course: ${course.first}")
             Divider()
             Text_1(text = "Description: ${course.second}")
             Divider()
-            Text_1(text = "Items")
-            DropDown(
-                dropDownState = itemsDropdown,
-                onArrowClick = { assessmentOptionViewModel.updateItemsDropdown(itemsDropdown.copy(expanded = true)) },
-                onDismissRequest = { assessmentOptionViewModel.updateItemsDropdown(itemsDropdown.copy(expanded = false)) },
-                onItemSelect = { assessmentOptionViewModel.updateItemsDropdown(itemsDropdown.copy(selected = it, expanded = false)) }
-            )
-            Divider()
-            Text_1(text = "Type")
-            DropDown(
-                dropDownState = typeDropdown,
-                onArrowClick = { assessmentOptionViewModel.updateTypeDropdown(typeDropdown.copy(expanded = true)) },
-                onDismissRequest = { assessmentOptionViewModel.updateTypeDropdown(typeDropdown.copy(expanded = false)) },
-                onItemSelect = { assessmentOptionViewModel.updateTypeDropdown(typeDropdown.copy(selected = it, expanded = false)) }
-            )
-            Divider()
             Row {
                 GreenButton(
-                    action = { navController.navigate("Assessment/$id/$courseId/${itemsDropdown.selected}/${typeDropdown.selected}") },
+                    action = { navController.navigate("Assessment/$id/$courseId/${items.random()}/${type.random()}") },
                     text = "Start Assessment"
                 )
             }

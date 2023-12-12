@@ -47,8 +47,13 @@ class AboutSessionViewModel @Inject constructor(
     fun getData(userId: Int, sessionId: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch session
                 _sessionDetails.value = sessionRepository.getSession(sessionId).first()
+
+                // Fetch drawer data
                 _userData.value = userRepository.getUserDataForDrawer(userId).first()
+
+                // Fetch names for session ids
                 _sessionInfo.value = SessionInfo(
                     courseName = GetCourses.getCourseNameById(sessionDetails.value.courseId, context),
                     tutorName = userRepository.getUserName(sessionDetails.value.tutorId).first(),

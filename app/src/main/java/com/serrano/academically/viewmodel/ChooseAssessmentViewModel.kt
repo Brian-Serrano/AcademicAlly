@@ -51,8 +51,13 @@ class ChooseAssessmentViewModel @Inject constructor(
     fun getData(context: Context, id: Int) {
         viewModelScope.launch {
             try {
+                // Fetch all courses
                 _courses.value = GetCourses.getAllCourses(context)
+
+                // Fetch search history from preferences
                 updateHistory(context)
+
+                // Fetch and enable drawer data base on login state of user
                 if (id != 0) {
                     _drawerData.value = userRepository.getUserDataForDrawer(id).first()
                     _isDrawerShouldAvailable.value = true
@@ -68,6 +73,7 @@ class ChooseAssessmentViewModel @Inject constructor(
     fun search(searchQuery: String, context: Context) {
         viewModelScope.launch {
             try {
+                // Filter courses base on search query and add the search query to preferences and re-fetch
                 if (searchQuery.isEmpty()) {
                     _courses.value = GetCourses.getAllCourses(context)
                 }

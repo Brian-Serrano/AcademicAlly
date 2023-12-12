@@ -45,7 +45,7 @@ fun EditSessionMenu(
         input = sessionSettings.startTime,
         onInputChange = onStartTimeInputChange,
         modifier = Modifier.padding(15.dp),
-        supportingText = "Should be in HH:mm format"
+        supportingText = "Should be in hh:mm AM/PM format"
     )
     Text(
         text = "End Time",
@@ -57,7 +57,7 @@ fun EditSessionMenu(
         input = sessionSettings.endTime,
         onInputChange = onEndTimeInputChange,
         modifier = Modifier.padding(15.dp),
-        supportingText = "Should be in HH:mm format"
+        supportingText = "Should be in hh:mm AM/PM format"
     )
     Text(
         text = "Location",

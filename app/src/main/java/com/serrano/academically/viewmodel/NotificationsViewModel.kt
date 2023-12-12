@@ -11,6 +11,8 @@ import com.serrano.academically.utils.UserDrawerData
 import com.serrano.academically.utils.emptyUserDrawerData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serrano.academically.room.Assignment
+import com.serrano.academically.room.AssignmentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +26,8 @@ import javax.inject.Inject
 class NotificationsViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val messageRepository: MessageRepository,
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val assignmentRepository: AssignmentRepository
 ): ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
@@ -45,21 +48,31 @@ class NotificationsViewModel @Inject constructor(
     private val _messageUsers = MutableStateFlow<List<String>>(emptyList())
     val messageUsers: StateFlow<List<String>> = _messageUsers.asStateFlow()
 
+    private val _assignment = MutableStateFlow<List<Assignment>>(emptyList())
+    val assignment: StateFlow<List<Assignment>> = _assignment.asStateFlow()
+
     fun getData(id: Int) {
         viewModelScope.launch {
             try {
+                // Fetch drawer data
                 _userData.value = userRepository.getUserDataForDrawer(id).first()
+
+                // Fetch messages and sessions base on user role
                 when (userData.value.role) {
                     "STUDENT" -> {
                         _session.value = sessionRepository.getStudentSessions(id).first()
                         _message.value = messageRepository.getStudentMessages(id).first()
+                        _assignment.value = assignmentRepository.getStudentAssignments(id).first()
                     }
                     "TUTOR" -> {
                         _session.value = sessionRepository.getTutorSessions(id).first()
                         _message.value = messageRepository.getTutorMessages(id).first()
+                        _assignment.value = assignmentRepository.getTutorAssignments(id).first()
                     }
                 }
+                // Fetch users who send/receive messages
                 _messageUsers.value = message.value.map { userRepository.getUserName(if (userData.value.role == "STUDENT") it.tutorId else it.studentId).first() }
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {

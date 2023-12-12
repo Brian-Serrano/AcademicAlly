@@ -43,9 +43,11 @@ class AccountViewModel @Inject constructor(
     fun getData(id: Int) {
         viewModelScope.launch {
             try {
+                // Fetch user information and credentials and place in text fields
                 val info = userRepository.getUserInfoAndCredentials(id).first()
                 _userData.value = info
                 _accountFields.value = ManageAccountFields(info.name, info.degree, info.age.toString(), info.address, info.contactNumber, info.summary, info.educationalBackground, "", Color.Red)
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {
@@ -69,6 +71,7 @@ class AccountViewModel @Inject constructor(
     fun saveInfo(id: Int, accountFields: ManageAccountFields, showMessage: (ValidationMessage) -> Unit) {
         viewModelScope.launch {
             try {
+                // Validate and update user information
                 val result = validateUserInfo(accountFields, userRepository.getUserNames().first())
                 if (result.isValid) {
                     userRepository.updateUserInfo(
@@ -115,6 +118,7 @@ class AccountViewModel @Inject constructor(
     fun savePassword(id: Int, currentPassword: String, passwordFields: PasswordFields, showMessage: (ValidationMessage) -> Unit) {
         viewModelScope.launch {
             try {
+                // Validate and update user password
                 val result = validatePassword(currentPassword, passwordFields)
                 if (result.isValid) {
                     userRepository.updateUserPassword(passwordFields.newPassword, id)
@@ -139,6 +143,7 @@ class AccountViewModel @Inject constructor(
 
     fun switchRole(role: String, id: Int) {
         viewModelScope.launch {
+            // Switch user role
             userRepository.updateUserRole(if (role == "STUDENT") "TUTOR" else "STUDENT", id)
         }
     }

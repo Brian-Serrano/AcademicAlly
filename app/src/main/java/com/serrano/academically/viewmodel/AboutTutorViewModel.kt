@@ -44,11 +44,17 @@ class AboutTutorViewModel @Inject constructor(
     fun getData(userId: Int, tutorId: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch drawer data
                 _userData.value = userRepository.getUserDataForDrawer(userId).first()
+
+                // Fetch tutor information
                 _tutorInfo.value = userRepository.getUserInfo(tutorId).first()
+
+                // Fetch tutor courses
                 val courses = courseSkillRepository.getCourseSkillsOfUser(tutorId, "TUTOR").first()
                 _tutorCourses.value = courses
                 _courseNames.value = courses.map { GetCourses.getCourseNameById(it.courseId, context) }
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {

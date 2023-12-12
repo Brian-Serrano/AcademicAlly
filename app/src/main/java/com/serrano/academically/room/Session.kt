@@ -15,5 +15,6 @@ data class Session(
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
     val location: String,
+    val expireDate: LocalDateTime,
     val isComplete: Boolean = false
 )

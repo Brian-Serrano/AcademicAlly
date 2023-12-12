@@ -22,7 +22,7 @@ class CourseSkillRepository @Inject constructor(private val courseSkillDao: Cour
         taken: Int,
         score: Int,
         items: Int,
-        eval: Float,
+        eval: Double,
         courseSkillId: Int
     ) = courseSkillDao.updateCourseSkill(role, taken, score, items, eval, courseSkillId)
 }

@@ -56,9 +56,14 @@ class AssessmentViewModel @Inject constructor(
     fun getData(userId: Int, courseId: Int, items: Int, type: String, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch course chosen
                 _courseName.value = GetCourses.getCourseNameById(courseId, context)
+
+                // Fetch assessments base on users chosen course and option
                 _assessmentData.value = GetAssessments.getAssessments(courseId, items, type, context)
                 _assessmentAnswers.value = List(items) { "" }
+
+                // Fetch and enable drawer data base on user login state
                 if (userId != 0) {
                     _drawerData.value = userRepository.getUserDataForDrawer(userId).first()
                     _isDrawerShouldAvailable.value = true
@@ -74,8 +79,8 @@ class AssessmentViewModel @Inject constructor(
     fun evaluateAnswers(type: String): AssessmentResult {
         var totalScore = 0
         val items = assessmentData.value.size
+        val answerIdx = if (type == "Multiple Choice") 6 else 2
         for (idx in assessmentData.value.indices) {
-            val answerIdx = if (type == "Multiple Choice") 6 else 2
             if (assessmentData.value[idx][answerIdx].lowercase() == assessmentAnswers.value[idx].lowercase()) {
                 totalScore += 1
             }
@@ -84,9 +89,9 @@ class AssessmentViewModel @Inject constructor(
             score = totalScore,
             items = items,
             evaluator = when (type) {
-                "Multiple Choice" -> 0.75F
-                "Identification" -> 0.6F
-                else -> 0.9F
+                "Multiple Choice" -> 0.075 * items
+                "Identification" -> 0.06 * items
+                else -> 0.09 * items
             }
         )
     }

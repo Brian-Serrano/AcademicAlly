@@ -25,6 +25,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -90,6 +93,12 @@ fun Login(
                 .size(350.dp)
                 .offset(y = 244.dp)
         )
+        Icon(
+            imageVector = Icons.Default.ArrowBackIosNew,
+            contentDescription = null,
+            tint = Color.Black,
+            modifier = Modifier.align(Alignment.TopStart).padding(30.dp).clickable { navController.navigateUp() }
+        )
         Column(
             verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -151,7 +160,9 @@ fun Login(
                         { navController.navigate(it) },
                         { loginViewModel.updateInput(loginInput.copy(email = "", password = "", error = it)) })
                 },
-                modifier = Modifier.padding(horizontal = 30.dp).fillMaxWidth()
+                modifier = Modifier
+                    .padding(horizontal = 30.dp)
+                    .fillMaxWidth()
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,

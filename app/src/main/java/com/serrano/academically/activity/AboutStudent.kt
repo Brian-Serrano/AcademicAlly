@@ -112,7 +112,7 @@ fun AboutStudent(
                                     BlackButton(
                                         text = Strings.reject,
                                         action = {
-                                            aboutStudentViewModel.respond("REJECT", messageId) { navController.navigateUp() }
+                                            aboutStudentViewModel.respond(message.studentId, message.tutorId, "REJECT", messageId, context) { navController.navigateUp() }
                                         },
                                         style = MaterialTheme.typography.labelMedium,
                                         modifier = Modifier

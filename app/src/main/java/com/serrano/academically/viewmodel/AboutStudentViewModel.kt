@@ -1,6 +1,7 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import android.widget.Toast
 import com.serrano.academically.room.Message
 import com.serrano.academically.room.MessageRepository
 import com.serrano.academically.room.Session
@@ -19,6 +20,8 @@ import com.serrano.academically.utils.emptyUserDrawerData
 import com.serrano.academically.utils.emptyUserInfo
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serrano.academically.utils.AchievementProgress
+import com.serrano.academically.utils.GetAchievements
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,13 +57,21 @@ class AboutStudentViewModel @Inject constructor(
     fun getData(userId: Int, messageId: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch message
                 _messageDetails.value = messageRepository.getMessage(messageId).first()
+
+                // Fetch names for message ids
                 _messageInfo.value = MessageCourse(
                     courseName = GetCourses.getCourseNameById(messageDetails.value.courseId, context),
                     moduleName = GetModules.getModuleByCourseAndModuleId(messageDetails.value.courseId, messageDetails.value.moduleId, context)
                 )
+
+                // Fetch drawer data
                 _userData.value = userRepository.getUserDataForDrawer(userId).first()
+
+                // Fetch the other user information
                 _userInfo.value = userRepository.getUserInfo(if (userData.value.role == "STUDENT") messageDetails.value.tutorId else messageDetails.value.studentId).first()
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {
@@ -69,10 +80,37 @@ class AboutStudentViewModel @Inject constructor(
         }
     }
 
-    fun respond(status: String, messageId: Int, navigate: () -> Unit) {
+    fun respond(studentId: Int, tutorId: Int, status: String, messageId: Int, context: Context, navigate: () -> Unit) {
         viewModelScope.launch {
             try {
+                // Update message to be REJECTED
                 messageRepository.updateMessageStatus(status, messageId)
+
+                // Update student and tutor denied requests
+                userRepository.updateStudentDeniedRequests(studentId)
+                userRepository.updateTutorDeniedRequests(tutorId)
+
+                // Update tutor denied requests achievement
+                val achievementProgressTutor = userRepository.getBadgeProgressAsTutor(tutorId).first().achievement
+                val computedProgressTutor = AchievementProgress.computeAchievementProgress(
+                    userRepository.getTutorDeniedRequests(tutorId).first().toDouble(),
+                    listOf(1, 3, 10),
+                    listOf(4, 5, 6),
+                    achievementProgressTutor
+                )
+                userRepository.updateTutorBadgeProgress(computedProgressTutor, tutorId)
+
+                // Show toast message if an achievement is completed
+                AchievementProgress.checkCompletedAchievements(
+                    achievementProgressTutor, computedProgressTutor
+                ) {
+                    Toast.makeText(
+                        context,
+                        GetAchievements.getAchievements(0, context)[it][0],
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
                 navigate()
             }
             catch (e: Exception) {

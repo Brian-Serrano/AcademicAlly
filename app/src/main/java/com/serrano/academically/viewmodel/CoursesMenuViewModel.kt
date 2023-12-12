@@ -40,7 +40,10 @@ class CoursesMenuViewModel @Inject constructor(
     fun getData(id: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch user drawer data
                 _user.value = userRepository.getUserDataForDrawer(id).first()
+
+                // Fetch user courses base on role
                 val course = courseSkillRepository.getCourseSkillsOfUser(id, user.value.role).first()
                 _courseSkills.value = course
                 _courseDescriptions.value = course.map { GetCourses.getCourseAndDescription(it.courseId, context) }

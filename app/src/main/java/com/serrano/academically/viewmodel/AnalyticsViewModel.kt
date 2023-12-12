@@ -43,10 +43,14 @@ class AnalyticsViewModel @Inject constructor(
     fun getData(id: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch user statistics
                 _userData.value = userRepository.getAnalyticsData(id).first()
+
+                // Fetch user courses base on role
                 val course = courseSkillRepository.getCourseSkillsOfUser(id, userData.value.role).first()
                 _userCourses.value = course
                 _courseName.value = course.map { GetCourses.getCourseNameById(it.courseId, context) }
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {

@@ -1,5 +1,6 @@
 package com.serrano.academically.activity
 
+import android.content.Context
 import com.serrano.academically.R
 import com.serrano.academically.ui.theme.Strings
 import com.serrano.academically.custom_composables.CircularProgressBar
@@ -34,8 +35,9 @@ fun AssessmentResult(
     courseId: Int,
     score: Int,
     items: Int,
-    eval: Float,
+    eval: Double,
     eligibility: String,
+    context: Context,
     navController: NavController,
     assessmentResultViewModel: AssessmentResultViewModel = hiltViewModel()
 ) {
@@ -102,7 +104,8 @@ fun AssessmentResult(
                             score = score,
                             items = items,
                             evaluator = eval,
-                            navigate = { navController.navigate("Dashboard/$id") }
+                            navigate = { navController.navigate("Dashboard/$id") },
+                            context = context
                         )
                     },
                     text = "CONTINUE",

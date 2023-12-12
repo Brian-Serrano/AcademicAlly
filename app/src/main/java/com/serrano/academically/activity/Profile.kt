@@ -47,10 +47,10 @@ fun Profile(
     tabs: List<String> = listOf("AS STUDENT", "AS TUTOR"),
     statisticNames: List<List<String>> = listOf(
         listOf(
-            "Points", "Assessment Points", "Badge Points", "Request Points", "Session Points", "Sessions Completed", "Requests Sent", "Requests Denied", "Requests Accepted", "Assessments Taken", "Badges Earned"
+            "Points", "Assessment Points", "Request Points", "Session Points", "Sessions Completed", "Requests Sent", "Requests Denied", "Requests Accepted", "Assignments Taken", "Assessments Taken", "Badges Earned"
         ),
         listOf(
-            "Points", "Assessment Points", "Badge Points", "Request Points", "Session Points", "Sessions Completed", "Requests Received", "Requests Denied", "Requests Accepted", "Assessments Taken", "Badges Earned"
+            "Points", "Assessment Points", "Request Points", "Session Points", "Sessions Completed", "Requests Received", "Requests Denied", "Requests Accepted", "Assignments Created", "Assessments Taken", "Badges Earned"
         )
     ),
     profileViewModel: ProfileViewModel = hiltViewModel()

@@ -60,4 +60,14 @@ class Module {
     fun provideCourseSkillRepository(
         courseSkillDao: CourseSkillDao
     ): ICourseSkillRepository = CourseSkillRepository(courseSkillDao)
+
+    @Provides
+    fun provideAssignmentDao(
+        database: Database
+    ) = database.assignmentDao()
+
+    @Provides
+    fun provideAssignmentRepository(
+        assignmentDao: AssignmentDao
+    ): IAssignmentRepository = AssignmentRepository(assignmentDao)
 }

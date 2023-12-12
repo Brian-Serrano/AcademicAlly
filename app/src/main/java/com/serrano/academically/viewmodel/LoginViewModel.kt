@@ -34,6 +34,7 @@ class LoginViewModel @Inject constructor(
     fun validateUserLoginAsynchronously(context: Context, role: String, li: LoginInput, navigate: (String) -> Unit, error: (String) -> Unit) {
         viewModelScope.launch {
             try {
+                // Validate and login user
                 val vm = validateUserLogin(role, li)
                 if (vm.isValid) {
                     UpdateUserPref.updateDataByLoggingIn(context, li.remember, vm.message.toInt(), li.email, li.password)

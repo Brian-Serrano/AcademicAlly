@@ -35,24 +35,13 @@ class AssessmentOptionViewModel @Inject constructor(
     private val _isDrawerShouldAvailable = MutableStateFlow(false)
     val isDrawerShouldAvailable: StateFlow<Boolean> = _isDrawerShouldAvailable.asStateFlow()
 
-    private val _itemsDropdown = MutableStateFlow(DropDownState(listOf("5", "10", "15"), "5", false))
-    val itemsDropdown: StateFlow<DropDownState> = _itemsDropdown.asStateFlow()
-
-    private val _typeDropdown = MutableStateFlow(DropDownState(listOf("Multiple Choice", "Identification", "True or False"), "Multiple Choice", false))
-    val typeDropdown: StateFlow<DropDownState> = _typeDropdown.asStateFlow()
-
-    fun updateItemsDropdown(newState: DropDownState) {
-        _itemsDropdown.value = newState
-    }
-
-    fun updateTypeDropdown(newState: DropDownState) {
-        _typeDropdown.value = newState
-    }
-
     fun getData(userId: Int, courseId: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch chosen course
                 _course.value = GetCourses.getCourseAndDescription(courseId, context)
+
+                // Fetch and enable drawer data base on user login state
                 if (userId != 0) {
                     _drawerData.value = userRepository.getUserDataForDrawer(userId).first()
                     _isDrawerShouldAvailable.value = true

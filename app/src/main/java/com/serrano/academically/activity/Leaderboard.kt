@@ -2,7 +2,7 @@ package com.serrano.academically.activity
 
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.FiveButtons
+import com.serrano.academically.custom_composables.FourButtons
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.YellowCard
 import com.serrano.academically.ui.theme.Strings
@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.utils.roundRating
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -75,14 +76,13 @@ fun Leaderboard(
                         .padding(it)
                 ) {
                     YellowCard(MaterialTheme.colorScheme.secondary) {
-                        FiveButtons(
-                            texts = listOf("ALL", "ASSESSMENTS", "BADGES", "REQUESTS", "SESSIONS"),
+                        FourButtons(
+                            texts = listOf("ALL", "ASSESSMENTS", "REQUESTS", "SESSIONS"),
                             actions = listOf(
                                 { leaderboardViewModel.updateTabIndex(0) },
                                 { leaderboardViewModel.updateTabIndex(1) },
                                 { leaderboardViewModel.updateTabIndex(2) },
-                                { leaderboardViewModel.updateTabIndex(3) },
-                                { leaderboardViewModel.updateTabIndex(4) }
+                                { leaderboardViewModel.updateTabIndex(3) }
                             )
                         )
                     }
@@ -117,7 +117,7 @@ fun Leaderboard(
                                         modifier = Modifier.weight(1f)
                                     )
                                     Text(
-                                        text = leaderboard[tab][it].points.toString(),
+                                        text = roundRating(leaderboard[tab][it].points).toString(),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                 }

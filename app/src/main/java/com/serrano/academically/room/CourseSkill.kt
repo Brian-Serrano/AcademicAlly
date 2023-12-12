@@ -13,5 +13,5 @@ data class CourseSkill(
     val courseAssessmentTaken: Int,
     val courseAssessmentScore: Int,
     val courseAssessmentItemsTotal: Int,
-    val courseAssessmentEvaluator: Float
+    val courseAssessmentEvaluator: Double
 )

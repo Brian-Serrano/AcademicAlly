@@ -17,13 +17,23 @@ class MyTypeConverter {
     }
 
     @TypeConverter
-    fun fromStringToListOfFloat(string: String): List<Float> {
-        return string.split(",").map { it.toFloat() }
+    fun fromStringToListOfDouble(string: String): List<Double> {
+        return string.split(",").map { it.toDouble() }
     }
 
     @TypeConverter
-    fun fromListOfFloatToString(floatList: List<Float>): String {
-        return floatList.joinToString(separator = ",")
+    fun fromListOfDoubleToString(doubleList: List<Double>): String {
+        return doubleList.joinToString(separator = ",")
+    }
+
+    @TypeConverter
+    fun fromStringToListOfInt(string: String): List<Int> {
+        return string.split(",").map { it.toInt() }
+    }
+
+    @TypeConverter
+    fun fromListOfIntToString(intList: List<Int>): String {
+        return intList.joinToString(separator = ",")
     }
 
 }

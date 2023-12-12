@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.utils.roundRating
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -107,7 +108,7 @@ fun Achievements(
                                             .padding(vertical = 15.dp)
                                             .fillMaxWidth()
                                             .height(10.dp), cornerRadius = 35.dp, thumbRadius = 1.dp, thumbOffset = 1.5.dp,
-                                        progress = achievementProgress[it] / 100,
+                                        progress = roundRating(achievementProgress[it] / 100).toFloat(),
                                         progressBarColor = Color.Cyan
                                     )
                                 }

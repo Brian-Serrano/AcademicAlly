@@ -44,7 +44,7 @@ data class SearchInfo(
 data class AssessmentResult(
     var score: Int,
     var items: Int,
-    var evaluator: Float
+    var evaluator: Double
 )
 
 data class DropDownState(
@@ -60,6 +60,36 @@ data class SessionSettings(
     var location: String,
     var error: String
 )
+
+data class DeadlineField(
+    var date: String,
+    var time: String,
+    var error: String
+)
+
+interface AssessmentType {
+    var id: Int
+    var question: String
+}
+
+data class MultipleChoiceFields(
+    override var id: Int,
+    override var question: String,
+    var choices: List<String>,
+    var answer: DropDownState
+): AssessmentType
+
+data class IdentificationFields(
+    override var id: Int,
+    override var question: String,
+    var answer: String
+): AssessmentType
+
+data class TrueOrFalseFields(
+    override var id: Int,
+    override var question: String,
+    var answer: DropDownState
+): AssessmentType
 
 data class ManageAccountFields(
     val name: String,
@@ -85,7 +115,7 @@ data class FindTutorData(
     var tutorId: Int,
     var tutorName: String,
     var courses: List<String>,
-    var rating: List<Float>
+    var rating: List<Double>
 )
 
 data class FilterDialogStates(
@@ -96,7 +126,7 @@ data class FilterDialogStates(
 
 data class RoomIsDumb(
     val id: Int,
-    val achievement: List<Float>
+    val achievement: List<Double>
 )
 
 data class UserDrawerData(
@@ -141,35 +171,35 @@ data class AnalyticsData(
     val email: String,
     val degree: String,
 
-    val studentPoints: Float,
-    val studentAssessmentPoints: Float,
-    val studentBadgePoints: Float,
-    val studentRequestPoints: Float,
-    val studentSessionPoints: Float,
+    val studentPoints: Double,
+    val studentAssessmentPoints: Double,
+    val studentRequestPoints: Double,
+    val studentSessionPoints: Double,
     val sessionsCompletedAsStudent: Int,
     val requestsSent: Int,
     val deniedRequests: Int,
     val acceptedRequests: Int,
+    val assignmentsTaken: Int,
     val assessmentsTakenAsStudent: Int,
-    val badgeProgressAsStudent: List<Float>,
+    val badgeProgressAsStudent: List<Double>,
 
-    val tutorPoints: Float,
-    val tutorAssessmentPoints: Float,
-    val tutorBadgePoints: Float,
-    val tutorRequestPoints: Float,
-    val tutorSessionPoints: Float,
+    val tutorPoints: Double,
+    val tutorAssessmentPoints: Double,
+    val tutorRequestPoints: Double,
+    val tutorSessionPoints: Double,
     val sessionsCompletedAsTutor: Int,
     val requestsAccepted: Int,
     val requestsDenied: Int,
     val requestsReceived: Int,
+    val assignmentsCreated: Int,
     val assessmentsTakenAsTutor: Int,
-    val badgeProgressAsTutor: List<Float>
+    val badgeProgressAsTutor: List<Double>
 )
 
 data class LeaderboardData(
     val id: Int,
     val name: String,
-    val points: Float
+    val points: Double
 )
 
 data class SessionInfo(

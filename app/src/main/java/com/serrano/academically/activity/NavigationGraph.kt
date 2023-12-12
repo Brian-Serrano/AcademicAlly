@@ -46,7 +46,7 @@ fun NavigationGraph(
                 courseId = it.arguments?.getInt("courseId") ?: 0,
                 score = it.arguments?.getInt("score") ?: 0,
                 items = it.arguments?.getInt("items") ?: 5,
-                eval = it.arguments?.getFloat("eval") ?: 0F
+                eval = it.arguments?.getFloat("eval")?.toDouble() ?: 0.0
             )
         }
         composable(
@@ -123,8 +123,9 @@ fun NavigationGraph(
                 courseId = it.arguments?.getInt("courseId") ?: 0,
                 score = it.arguments?.getInt("score") ?: 0,
                 items = it.arguments?.getInt("items") ?: 5,
-                eval = it.arguments?.getFloat("eval") ?: 0F,
+                eval = it.arguments?.getFloat("eval")?.toDouble() ?: 0.0,
                 eligibility = it.arguments?.getString("eligibility") ?: "STUDENT",
+                context = context,
                 navController = navController
             )
         }
@@ -343,6 +344,44 @@ fun NavigationGraph(
                 userId = it.arguments?.getInt("id") ?: 0,
                 navController = navController,
                 context = context
+            )
+        }
+        composable(
+            route = "AssignmentOption/{id}/{sessionId}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType },
+                navArgument("sessionId") { type = NavType.IntType }
+            )
+        ) {
+            AssignmentOption(
+                scope = scope,
+                drawerState = drawerState,
+                navController = navController,
+                userId = it.arguments?.getInt("id") ?: 0,
+                sessionId = it.arguments?.getInt("sessionId") ?: 0,
+                context = context
+            )
+        }
+        composable(
+            route = "CreateAssignment/{id}/{sessionId}/{items}/{type}/{deadline}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType },
+                navArgument("sessionId") { type = NavType.IntType },
+                navArgument("items") { type = NavType.StringType },
+                navArgument("type") { type = NavType.StringType },
+                navArgument("deadline") { type = NavType.StringType }
+            )
+        ) {
+            CreateAssignment(
+                scope = scope,
+                drawerState = drawerState,
+                navController = navController,
+                context = context,
+                userId = it.arguments?.getInt("id") ?: 0,
+                sessionId = it.arguments?.getInt("sessionId") ?: 0,
+                items = it.arguments?.getString("items") ?: "5",
+                type = it.arguments?.getString("type") ?: "Multiple Choice",
+                deadline = it.arguments?.getString("deadline") ?: ""
             )
         }
     }

@@ -64,7 +64,7 @@ interface UserDao {
     suspend fun updateUserRole(role: String, id: Int)
 
     // Usage Analytics
-    @Query("SELECT id, name, role, email, degree, studentPoints, studentAssessmentPoints, studentBadgePoints, studentRequestPoints, studentSessionPoints, sessionsCompletedAsStudent, requestsSent, deniedRequests, acceptedRequests, assessmentsTakenAsStudent, badgeProgressAsStudent, tutorPoints, tutorAssessmentPoints, tutorBadgePoints, tutorRequestPoints, tutorSessionPoints, sessionsCompletedAsTutor, requestsAccepted, requestsDenied, requestsReceived, assessmentsTakenAsTutor, badgeProgressAsTutor FROM User WHERE id = :id")
+    @Query("SELECT id, name, role, email, degree, studentPoints, studentAssessmentPoints, studentRequestPoints, studentSessionPoints, sessionsCompletedAsStudent, requestsSent, deniedRequests, acceptedRequests, assignmentsTaken, assessmentsTakenAsStudent, badgeProgressAsStudent, tutorPoints, tutorAssessmentPoints, tutorRequestPoints, tutorSessionPoints, sessionsCompletedAsTutor, requestsAccepted, requestsDenied, requestsReceived, assignmentsCreated, assessmentsTakenAsTutor, badgeProgressAsTutor FROM User WHERE id = :id")
     fun getAnalyticsData(id: Int): Flow<AnalyticsData>
 
     // Usage Leaderboards
@@ -82,14 +82,6 @@ interface UserDao {
     // Usage Leaderboards
     @Query("SELECT id, name, tutorAssessmentPoints AS points FROM User ORDER BY tutorAssessmentPoints DESC LIMIT 20")
     fun getLeaderboardTutorAssessmentPoints(): Flow<List<LeaderboardData>>
-
-    // Usage Leaderboards
-    @Query("SELECT id, name, studentBadgePoints AS points FROM User ORDER BY studentBadgePoints DESC LIMIT 20")
-    fun getLeaderboardStudentBadgePoints(): Flow<List<LeaderboardData>>
-
-    // Usage Leaderboards
-    @Query("SELECT id, name, tutorBadgePoints AS points FROM User ORDER BY tutorBadgePoints DESC LIMIT 20")
-    fun getLeaderboardTutorBadgePoints(): Flow<List<LeaderboardData>>
 
     // Usage Leaderboards
     @Query("SELECT id, name, studentRequestPoints AS points FROM User ORDER BY studentRequestPoints DESC LIMIT 20")
@@ -114,4 +106,84 @@ interface UserDao {
     // Usage Achievements
     @Query("SELECT id, badgeProgressAsTutor AS achievement FROM User WHERE id = :id")
     fun getBadgeProgressAsTutor(id: Int): Flow<RoomIsDumb>
+
+    // Usage EditSession For Statistics
+    @Query("UPDATE User SET sessionsCompletedAsStudent = sessionsCompletedAsStudent + 1, studentSessionPoints = studentSessionPoints + :points, studentPoints = studentPoints + :points WHERE id = :id")
+    suspend fun updateStudentCompletedSessions(points: Double, id: Int)
+
+    // Usage EditSession For Statistics
+    @Query("UPDATE User SET sessionsCompletedAsTutor = sessionsCompletedAsTutor + 1, tutorSessionPoints = tutorSessionPoints + :points, tutorPoints = tutorPoints + :points WHERE id = :id")
+    suspend fun updateTutorCompletedSessions(points: Double, id: Int)
+
+    // Usage MessageTutor For Statistics
+    @Query("UPDATE User SET requestsSent = requestsSent + 1, studentRequestPoints = studentRequestPoints + :points, studentPoints = studentPoints + :points WHERE id = :id")
+    suspend fun updateStudentRequests(points: Double, id: Int)
+
+    // Usage MessageTutor For Statistics
+    @Query("UPDATE User SET requestsReceived = requestsReceived + 1, tutorRequestPoints = tutorRequestPoints + :points, tutorPoints = tutorPoints + :points WHERE id = :id")
+    suspend fun updateTutorRequests(points: Double, id: Int)
+
+    // Usage AboutStudent For Statistics
+    @Query("UPDATE User SET deniedRequests = deniedRequests + 1 WHERE id = :id")
+    suspend fun updateStudentDeniedRequests(id: Int)
+
+    // Usage AboutStudent For Statistics
+    @Query("UPDATE User SET requestsDenied = requestsDenied + 1 WHERE id = :id")
+    suspend fun updateTutorDeniedRequests(id: Int)
+
+    // Usage CreateSession For Statistics
+    @Query("UPDATE User SET acceptedRequests = acceptedRequests + 1, studentRequestPoints = studentRequestPoints + :points, studentPoints = studentPoints + :points WHERE id = :id")
+    suspend fun updateStudentAcceptedRequests(points: Double, id: Int)
+
+    // Usage CreateSession For Statistics
+    @Query("UPDATE User SET requestsAccepted = requestsAccepted + 1, tutorRequestPoints = tutorRequestPoints + :points, tutorPoints = tutorPoints + :points WHERE id = :id")
+    suspend fun updateTutorAcceptedRequests(points: Double, id: Int)
+
+    // Usage Signup, AssessmentResult For Statistics
+    @Query("UPDATE User SET assessmentsTakenAsStudent = assessmentsTakenAsStudent + 1, studentAssessmentPoints = studentAssessmentPoints + :points, studentPoints = studentPoints + :points WHERE id = :id")
+    suspend fun updateStudentAssessments(points: Double, id: Int)
+
+    // Usage Signup, AssessmentResult For Statistics
+    @Query("UPDATE User SET assessmentsTakenAsTutor = assessmentsTakenAsTutor + 1, tutorAssessmentPoints = tutorAssessmentPoints + :points, tutorPoints = tutorPoints + :points WHERE id = :id")
+    suspend fun updateTutorAssessments(points: Double, id: Int)
+
+    // Usage MessageTutor, EditSession, CreateSession, Signup, AssessmentResult
+    @Query("UPDATE User SET badgeProgressAsStudent = :badgeProgress WHERE id = :id")
+    suspend fun updateStudentBadgeProgress(badgeProgress: List<Double>, id: Int)
+
+    // Usage MessageTutor, EditSession, CreateSession, Signup, AssessmentResult, AboutStudent
+    @Query("UPDATE User SET badgeProgressAsTutor = :badgeProgress WHERE id = :id")
+    suspend fun updateTutorBadgeProgress(badgeProgress: List<Double>, id: Int)
+
+    // Usage MessageTutor
+    @Query("SELECT requestsSent FROM User WHERE id = :id")
+    fun getStudentSentRequests(id: Int): Flow<Int>
+
+    // Usage CreateSession
+    @Query("SELECT acceptedRequests FROM User WHERE id = :id")
+    fun getStudentAcceptedRequests(id: Int): Flow<Int>
+
+    // Usage EditSession
+    @Query("SELECT sessionsCompletedAsStudent FROM User WHERE id = :id")
+    fun getStudentCompletedSessions(id: Int): Flow<Int>
+
+    // Usage CreateSession
+    @Query("SELECT requestsAccepted FROM User WHERE id = :id")
+    fun getTutorAcceptedRequests(id: Int): Flow<Int>
+
+    // Usage AboutStudent
+    @Query("SELECT requestsDenied FROM User WHERE id = :id")
+    fun getTutorDeniedRequests(id: Int): Flow<Int>
+
+    // Usage EditSession
+    @Query("SELECT sessionsCompletedAsTutor FROM User WHERE id = :id")
+    fun getTutorCompletedSessions(id: Int): Flow<Int>
+
+    // Usage MessageTutor, EditSession, CreateSession, Signup, AssessmentResult
+    @Query("SELECT studentPoints FROM User WHERE id = :id")
+    fun getStudentPoints(id: Int): Flow<Double>
+
+    // Usage MessageTutor, EditSession, CreateSession, Signup, AssessmentResult
+    @Query("SELECT tutorPoints FROM User WHERE id = :id")
+    fun getTutorPoints(id: Int): Flow<Double>
 }

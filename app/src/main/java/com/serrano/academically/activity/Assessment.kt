@@ -101,7 +101,7 @@ fun Assessment(
         }
         else {
             val result = assessmentViewModel.evaluateAnswers(type)
-            val eligibility = if (result.score.toFloat() / result.items >= result.evaluator) "TUTOR" else "STUDENT"
+            val eligibility = if (result.score.toDouble() / result.items >= result.evaluator) "TUTOR" else "STUDENT"
             navController.navigate("AssessmentResult/$id/$courseId/${result.score}/${result.items}/${result.evaluator}/$eligibility")
         }
     }
@@ -204,7 +204,7 @@ fun AssessmentMenu(
                 progressBarColor = Color.Cyan
             )
             Text(
-                text = Strings.progress,
+                text = "Item",
                 style = MaterialTheme.typography.labelMedium
             )
             Column(

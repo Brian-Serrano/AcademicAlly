@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.serrano.academically.custom_composables.Divider
+import com.serrano.academically.utils.roundRating
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -103,7 +104,7 @@ fun AboutTutor(
                                 }
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                val avgRating = tutorCourses.map { (it.courseAssessmentScore.toFloat() / it.courseAssessmentItemsTotal) * 5 } .average()
+                                val avgRating = roundRating(tutorCourses.map { (it.courseAssessmentScore.toDouble() / it.courseAssessmentItemsTotal) * 5 } .average())
                                 RatingBar(rating = avgRating.toFloat(), modifier = Modifier
                                     .padding(10.dp)
                                     .height(20.dp))
@@ -124,14 +125,14 @@ fun AboutTutor(
                         Text_1(text = "Course Ratings")
                         tutorCourses.forEachIndexed { idx, course ->
                             Divider()
-                            val rating = (course.courseAssessmentScore.toFloat() / course.courseAssessmentItemsTotal) * 5
+                            val rating = roundRating((course.courseAssessmentScore.toDouble() / course.courseAssessmentItemsTotal) * 5)
                             Text_1(text = courseNames[idx])
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                RatingBar(rating = rating, modifier = Modifier
+                                RatingBar(rating = rating.toFloat(), modifier = Modifier
                                     .padding(10.dp)
                                     .height(20.dp))
                                 Text_1(text = "$rating")

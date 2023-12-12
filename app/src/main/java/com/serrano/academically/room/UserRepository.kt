@@ -54,10 +54,6 @@ class UserRepository @Inject constructor(private val userDao: UserDao): IUserRep
 
     override fun getLeaderboardTutorAssessmentPoints(): Flow<List<LeaderboardData>> = userDao.getLeaderboardTutorAssessmentPoints()
 
-    override fun getLeaderboardStudentBadgePoints(): Flow<List<LeaderboardData>> = userDao.getLeaderboardStudentBadgePoints()
-
-    override fun getLeaderboardTutorBadgePoints(): Flow<List<LeaderboardData>> = userDao.getLeaderboardTutorBadgePoints()
-
     override fun getLeaderboardStudentRequestPoints(): Flow<List<LeaderboardData>> = userDao.getLeaderboardStudentRequestPoints()
 
     override fun getLeaderboardTutorRequestPoints(): Flow<List<LeaderboardData>> = userDao.getLeaderboardTutorRequestPoints()
@@ -69,4 +65,44 @@ class UserRepository @Inject constructor(private val userDao: UserDao): IUserRep
     override fun getBadgeProgressAsStudent(id: Int): Flow<RoomIsDumb> = userDao.getBadgeProgressAsStudent(id)
 
     override fun getBadgeProgressAsTutor(id: Int): Flow<RoomIsDumb> = userDao.getBadgeProgressAsTutor(id)
+
+    override suspend fun updateStudentCompletedSessions(points: Double, id: Int) = userDao.updateStudentCompletedSessions(points, id)
+
+    override suspend fun updateTutorCompletedSessions(points: Double, id: Int) = userDao.updateTutorCompletedSessions(points, id)
+
+    override suspend fun updateStudentRequests(points: Double, id: Int) = userDao.updateStudentRequests(points, id)
+
+    override suspend fun updateTutorRequests(points: Double, id: Int) = userDao.updateTutorRequests(points, id)
+
+    override suspend fun updateStudentDeniedRequests(id: Int) = userDao.updateStudentDeniedRequests(id)
+
+    override suspend fun updateTutorDeniedRequests(id: Int) = userDao.updateTutorDeniedRequests(id)
+
+    override suspend fun updateStudentAcceptedRequests(points: Double, id: Int) = userDao.updateStudentAcceptedRequests(points, id)
+
+    override suspend fun updateTutorAcceptedRequests(points: Double, id: Int) = userDao.updateTutorAcceptedRequests(points, id)
+
+    override suspend fun updateStudentAssessments(points: Double, id: Int) = userDao.updateStudentAssessments(points, id)
+
+    override suspend fun updateTutorAssessments(points: Double, id: Int) = userDao.updateTutorAssessments(points, id)
+
+    override suspend fun updateStudentBadgeProgress(badgeProgress: List<Double>, id: Int) = userDao.updateStudentBadgeProgress(badgeProgress, id)
+
+    override suspend fun updateTutorBadgeProgress(badgeProgress: List<Double>, id: Int) = userDao.updateTutorBadgeProgress(badgeProgress, id)
+
+    override fun getStudentSentRequests(id: Int): Flow<Int> = userDao.getStudentSentRequests(id)
+
+    override fun getStudentAcceptedRequests(id: Int): Flow<Int> = userDao.getStudentAcceptedRequests(id)
+
+    override fun getStudentCompletedSessions(id: Int): Flow<Int> = userDao.getStudentCompletedSessions(id)
+
+    override fun getTutorAcceptedRequests(id: Int): Flow<Int> = userDao.getTutorAcceptedRequests(id)
+
+    override fun getTutorDeniedRequests(id: Int): Flow<Int> = userDao.getTutorDeniedRequests(id)
+
+    override fun getTutorCompletedSessions(id: Int): Flow<Int> = userDao.getTutorCompletedSessions(id)
+
+    override fun getStudentPoints(id: Int): Flow<Double> = userDao.getStudentPoints(id)
+
+    override fun getTutorPoints(id: Int): Flow<Double> = userDao.getTutorPoints(id)
 }

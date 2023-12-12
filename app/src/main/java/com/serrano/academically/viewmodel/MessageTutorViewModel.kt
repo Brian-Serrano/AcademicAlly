@@ -1,6 +1,7 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import android.widget.Toast
 import com.serrano.academically.room.CourseSkillRepository
 import com.serrano.academically.room.Message
 import com.serrano.academically.room.MessageRepository
@@ -13,14 +14,15 @@ import com.serrano.academically.utils.UserDrawerData
 import com.serrano.academically.utils.emptyUserDrawerData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serrano.academically.utils.AchievementProgress
+import com.serrano.academically.utils.GetAchievements
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,16 +56,26 @@ class MessageTutorViewModel @Inject constructor(
     fun getData(userId: Int, tutorId: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch all courses and modules
                 courses = GetCourses.getAllCourses(context).map { it[1] }
                 modules = GetModules.getAllModules(context)
+
+                // Fetch drawer data
                 _drawerData.value = userRepository.getUserDataForDrawer(userId).first()
+
+                // Fetch tutor name
                 _tutorName.value = userRepository.getUserName(tutorId).first()
+
+                // Fetch tutor courses and place on dropdown
                 val courseNames = courseSkillRepository.getCourseSkillsOfUserNoRating(tutorId, "TUTOR").first().map { courses[it - 1] }
                 val selectedCourse = courseNames[0]
                 _coursesDropdown.value = DropDownState(courseNames, selectedCourse, false)
+
+                // Fetch the modules base on selected course and place in dropdown
                 val moduleNames = modules[0].drop(1)
                 val selectedModule = moduleNames[0]
                 _modulesDropdown.value = DropDownState(moduleNames, selectedModule, false)
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {
@@ -92,18 +104,60 @@ class MessageTutorViewModel @Inject constructor(
         updateModulesDropdown(DropDownState(moduleNames, selectedModule, false))
     }
 
-    fun sendRequest(course: DropDownState, module: DropDownState, studentId: Int, tutorId: Int, message: String, navigate: () -> Unit) {
+    fun sendRequest(course: DropDownState, module: DropDownState, studentId: Int, tutorId: Int, message: String, navigate: () -> Unit, context: Context) {
         viewModelScope.launch {
             try {
+                // Save message
                 messageRepository.addMessage(
                     Message(
                         courseId = courses.indexOf(course.selected) + 1,
                         moduleId = module.dropDownItems.indexOf(module.selected) + 1,
                         studentId = studentId,
                         tutorId = tutorId,
-                        studentMessage = message
+                        studentMessage = message,
+                        expireDate = LocalDateTime.now().plusDays(28)
                     )
                 )
+
+                // Update student and tutor sent request data and points
+                userRepository.updateStudentRequests(0.1, studentId)
+                userRepository.updateTutorRequests(0.1, tutorId)
+
+                // Update points and sent request achievement of student
+                val achievementProgressStudent = userRepository.getBadgeProgressAsStudent(studentId).first().achievement
+                val computedProgressStudent = AchievementProgress.computeAchievementProgress(
+                    userRepository.getStudentPoints(studentId).first(),
+                    listOf(10, 25, 50, 100, 200),
+                    listOf(7, 8, 9, 10, 11),
+                    AchievementProgress.computeAchievementProgress(
+                        userRepository.getStudentSentRequests(studentId).first().toDouble(),
+                        listOf(1, 5, 10, 20),
+                        listOf(0, 1, 2, 3),
+                        achievementProgressStudent)
+                )
+                userRepository.updateStudentBadgeProgress(computedProgressStudent, studentId)
+
+                // Show toast message if an achievement is completed
+                AchievementProgress.checkCompletedAchievements(
+                    achievementProgressStudent, computedProgressStudent
+                ) {
+                    Toast.makeText(
+                        context,
+                        GetAchievements.getAchievements(1, context)[it][0],
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                // Update points achievement of tutor
+                val achievementProgressTutor = userRepository.getBadgeProgressAsTutor(tutorId).first().achievement
+                val computedProgressTutor = AchievementProgress.computeAchievementProgress(
+                    userRepository.getTutorPoints(tutorId).first(),
+                    listOf(10, 25, 50, 100, 200),
+                    listOf(7, 8, 9, 10, 11),
+                    achievementProgressTutor
+                )
+                userRepository.updateTutorBadgeProgress(computedProgressTutor, tutorId)
+
                 navigate()
             }
             catch (e: Exception) {

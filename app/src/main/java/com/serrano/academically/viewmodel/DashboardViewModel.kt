@@ -41,13 +41,16 @@ class DashboardViewModel @Inject constructor(
     fun getData(id: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch user drawer data
                 _user.value = userRepository.getUserDataForDrawer(id).first()
+
+                // Fetch user courses base on role
                 _courseSkills.value = courseSkillRepository.getThreeCourseSkillsOfUserNoRating(id, user.value.role).first().map { GetCourses.getCourseAndDescription(it, context) }
+
                 _processState.value = ProcessState.Success
             }
             catch (e: Exception) {
                 e.printStackTrace()
-                Log.d("Err", "$id")
                 _processState.value = ProcessState.Error
             }
         }

@@ -32,20 +32,23 @@ class AchievementsViewModel @Inject constructor(
     private val _achievements = MutableStateFlow<List<List<String>>>(emptyList())
     val achievements: StateFlow<List<List<String>>> = _achievements.asStateFlow()
 
-    private val _achievementsProgress = MutableStateFlow<List<Float>>(emptyList())
-    val achievementsProgress: StateFlow<List<Float>> = _achievementsProgress.asStateFlow()
+    private val _achievementsProgress = MutableStateFlow<List<Double>>(emptyList())
+    val achievementsProgress: StateFlow<List<Double>> = _achievementsProgress.asStateFlow()
 
     fun getData(id: Int, context: Context) {
         viewModelScope.launch {
             try {
+                // Fetch drawer data
                 _userData.value = userRepository.getUserDataForDrawer(id).first()
+
+                // Fetch achievements and progress base on user role
                 when (userData.value.role) {
                     "STUDENT" -> {
-                        _achievements.value = GetAchievements.getAchievements(0, context)
+                        _achievements.value = GetAchievements.getAchievements(1, context)
                         _achievementsProgress.value = userRepository.getBadgeProgressAsStudent(id).first().achievement
                     }
                     "TUTOR" -> {
-                        _achievements.value = GetAchievements.getAchievements(1, context)
+                        _achievements.value = GetAchievements.getAchievements(0, context)
                         _achievementsProgress.value = userRepository.getBadgeProgressAsTutor(id).first().achievement
                     }
                 }

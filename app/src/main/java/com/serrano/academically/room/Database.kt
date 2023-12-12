@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [User::class, Session::class, Message::class, CourseSkill::class], version = 1, exportSchema = false)
+@Database(entities = [User::class, Session::class, Message::class, CourseSkill::class, Assignment::class], version = 1, exportSchema = false)
 @TypeConverters(value = [MyTypeConverter::class])
 abstract class Database : RoomDatabase() {
 
@@ -13,4 +13,5 @@ abstract class Database : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
     abstract fun messageDao(): MessageDao
     abstract fun courseSkillDao(): CourseSkillDao
+    abstract fun assignmentDao(): AssignmentDao
 }

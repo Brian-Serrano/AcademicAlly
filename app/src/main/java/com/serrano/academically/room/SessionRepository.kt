@@ -19,8 +19,9 @@ class SessionRepository @Inject constructor(private val sessionDao: SessionDao):
         startTime: LocalDateTime,
         endTime: LocalDateTime,
         location: String,
+        expireDate: LocalDateTime,
         sessionId: Int
-    ) = sessionDao.updateSession(startTime, endTime, location, sessionId)
+    ) = sessionDao.updateSession(startTime, endTime, location, expireDate, sessionId)
 
     override suspend fun completeSession(sessionId: Int) = sessionDao.completeSession(sessionId)
 }

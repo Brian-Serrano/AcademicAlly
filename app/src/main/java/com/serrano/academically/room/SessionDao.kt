@@ -28,8 +28,8 @@ interface SessionDao {
     fun getStudentSessions(studentId: Int): Flow<List<SessionNotifications>>
 
     // Usage EditSession
-    @Query("UPDATE Session SET startTime = :startTime, endTime = :endTime, location = :location WHERE sessionId = :sessionId")
-    suspend fun updateSession(startTime: LocalDateTime, endTime: LocalDateTime, location: String, sessionId: Int)
+    @Query("UPDATE Session SET startTime = :startTime, endTime = :endTime, location = :location, expireDate = :expireDate WHERE sessionId = :sessionId")
+    suspend fun updateSession(startTime: LocalDateTime, endTime: LocalDateTime, location: String, expireDate: LocalDateTime, sessionId: Int)
 
     // Usage EditSession
     @Query("UPDATE Session SET isComplete = 1 WHERE sessionId = :sessionId")

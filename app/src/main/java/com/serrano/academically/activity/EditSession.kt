@@ -10,6 +10,7 @@ import com.serrano.academically.viewmodel.EditSessionViewModel
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,9 +28,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.custom_composables.ConfirmDialog
 import com.serrano.academically.ui.theme.Strings
 import kotlinx.coroutines.CoroutineScope
 
@@ -50,6 +53,8 @@ fun EditSession(
     val user by editSessionViewModel.drawerData.collectAsState()
     val process by editSessionViewModel.processState.collectAsState()
     val sessionSettings by editSessionViewModel.sessionSettings.collectAsState()
+    val dialogOpen by editSessionViewModel.isFilterDialogOpen.collectAsState()
+    val session by editSessionViewModel.session.collectAsState()
 
     when (process) {
         ProcessState.Error -> ErrorComposable(navController)
@@ -63,28 +68,43 @@ fun EditSession(
                 navController = navController,
                 context = context
             ) { values ->
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.primary)
                         .padding(values)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.Center
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary
-                        ),
-                        shape = RoundedCornerShape(16.dp)
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            BlackButton(
-                                text = "COMPLETE SESSION",
-                                action = {
-                                    editSessionViewModel.completeSession(
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(15.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiary
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                BlackButton(
+                                    text = "COMPLETE SESSION",
+                                    action = {
+                                        editSessionViewModel.toggleDialog(true)
+                                    },
+                                    modifier = Modifier.padding(15.dp)
+                                )
+                            }
+                            EditSessionMenu(
+                                sessionSettings = sessionSettings,
+                                onDateInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(date = it)) },
+                                onStartTimeInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(startTime = it)) },
+                                onEndTimeInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(endTime = it)) },
+                                onLocationInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(location = it)) },
+                                onButtonClick = {
+                                    editSessionViewModel.updateSession(
+                                        settings = sessionSettings,
                                         sessionId = sessionId,
                                         navigate = {
                                             navController.navigateUp()
@@ -92,26 +112,28 @@ fun EditSession(
                                         }
                                     )
                                 },
-                                modifier = Modifier.padding(15.dp)
+                                buttonText = "Update Session"
                             )
                         }
-                        EditSessionMenu(
-                            sessionSettings = sessionSettings,
-                            onDateInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(date = it)) },
-                            onStartTimeInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(startTime = it)) },
-                            onEndTimeInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(endTime = it)) },
-                            onLocationInputChange = { editSessionViewModel.updateSessionSettings(sessionSettings.copy(location = it)) },
-                            onButtonClick = {
-                                editSessionViewModel.updateSession(
-                                    settings = sessionSettings,
-                                    sessionId = sessionId,
-                                    navigate = {
-                                        navController.navigateUp()
-                                        navController.navigateUp()
-                                    }
-                                )
+                    }
+                    if (dialogOpen) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0x55000000))
+                        )
+                        ConfirmDialog(
+                            text = "Do you want to complete the session?",
+                            onDismissRequest = {
+                                editSessionViewModel.toggleDialog(false)
                             },
-                            buttonText = "Update Session"
+                            onClickingYes = {
+                                editSessionViewModel.toggleDialog(false)
+                                navController.navigate("AssignmentOption/$userId/${session.sessionId}")
+                            },
+                            onClickingNo = {
+                                editSessionViewModel.toggleDialog(false)
+                            }
                         )
                     }
                 }

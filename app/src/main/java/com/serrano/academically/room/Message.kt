@@ -2,6 +2,7 @@ package com.serrano.academically.room
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDateTime
 
 @Entity
 data class Message(
@@ -12,5 +13,6 @@ data class Message(
     val studentId: Int,
     val tutorId: Int,
     val studentMessage: String,
+    val expireDate: LocalDateTime,
     val status: String = "WAITING"
 )

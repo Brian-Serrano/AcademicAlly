@@ -44,10 +44,6 @@ interface IUserRepository {
 
     fun getLeaderboardTutorAssessmentPoints(): Flow<List<LeaderboardData>>
 
-    fun getLeaderboardStudentBadgePoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardTutorBadgePoints(): Flow<List<LeaderboardData>>
-
     fun getLeaderboardStudentRequestPoints(): Flow<List<LeaderboardData>>
 
     fun getLeaderboardTutorRequestPoints(): Flow<List<LeaderboardData>>
@@ -59,4 +55,44 @@ interface IUserRepository {
     fun getBadgeProgressAsStudent(id: Int): Flow<RoomIsDumb>
 
     fun getBadgeProgressAsTutor(id: Int): Flow<RoomIsDumb>
+
+    suspend fun updateStudentCompletedSessions(points: Double, id: Int)
+
+    suspend fun updateTutorCompletedSessions(points: Double, id: Int)
+
+    suspend fun updateStudentRequests(points: Double, id: Int)
+
+    suspend fun updateTutorRequests(points: Double, id: Int)
+
+    suspend fun updateStudentDeniedRequests(id: Int)
+
+    suspend fun updateTutorDeniedRequests(id: Int)
+
+    suspend fun updateStudentAcceptedRequests(points: Double, id: Int)
+
+    suspend fun updateTutorAcceptedRequests(points: Double, id: Int)
+
+    suspend fun updateStudentAssessments(points: Double, id: Int)
+
+    suspend fun updateTutorAssessments(points: Double, id: Int)
+
+    suspend fun updateStudentBadgeProgress(badgeProgress: List<Double>, id: Int)
+
+    suspend fun updateTutorBadgeProgress(badgeProgress: List<Double>, id: Int)
+
+    fun getStudentSentRequests(id: Int): Flow<Int>
+
+    fun getStudentAcceptedRequests(id: Int): Flow<Int>
+
+    fun getStudentCompletedSessions(id: Int): Flow<Int>
+
+    fun getTutorAcceptedRequests(id: Int): Flow<Int>
+
+    fun getTutorDeniedRequests(id: Int): Flow<Int>
+
+    fun getTutorCompletedSessions(id: Int): Flow<Int>
+
+    fun getStudentPoints(id: Int): Flow<Double>
+
+    fun getTutorPoints(id: Int): Flow<Double>
 }

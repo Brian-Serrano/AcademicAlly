@@ -1,5 +1,6 @@
 package com.serrano.academically.utils
 
+import com.serrano.academically.room.Assignment
 import com.serrano.academically.room.Message
 import com.serrano.academically.room.Session
 import com.serrano.academically.room.User
@@ -12,7 +13,7 @@ fun emptyUser(): User {
 }
 
 fun emptySession(): Session {
-    return Session(courseId = 0, sessionId = 0, tutorId = 0, studentId = 0, moduleId = 0, startTime = LocalDateTime.MIN, endTime = LocalDateTime.MIN, location = "Laoag")
+    return Session(courseId = 0, sessionId = 0, tutorId = 0, studentId = 0, moduleId = 0, startTime = LocalDateTime.MIN, endTime = LocalDateTime.MIN, location = "Laoag", expireDate = LocalDateTime.MIN)
 }
 
 fun emptyUserDrawerData(): UserDrawerData {
@@ -24,7 +25,7 @@ fun emptySessionInfo(): SessionInfo {
 }
 
 fun emptyMessage(): Message {
-    return Message(courseId = 0, moduleId = 0, studentId = 0, tutorId = 0, studentMessage = "NA")
+    return Message(courseId = 0, moduleId = 0, studentId = 0, tutorId = 0, studentMessage = "NA", expireDate = LocalDateTime.MIN)
 }
 
 fun emptyMessageCourse(): MessageCourse {
@@ -46,27 +47,31 @@ fun emptyAnalyticsData(): AnalyticsData {
         role = "STUDENT",
         email = "test@gmail.com",
         degree = "BSCS",
-        studentPoints = 0F,
-        studentAssessmentPoints = 0F,
-        studentBadgePoints = 0F,
-        studentRequestPoints = 0F,
-        studentSessionPoints = 0F,
+        studentPoints = 0.0,
+        studentAssessmentPoints = 0.0,
+        studentRequestPoints = 0.0,
+        studentSessionPoints = 0.0,
         sessionsCompletedAsStudent = 0,
         requestsSent = 0,
         deniedRequests = 0,
         acceptedRequests = 0,
+        assignmentsTaken = 0,
         assessmentsTakenAsStudent = 0,
-        badgeProgressAsStudent = List(20) { 0F },
-        tutorPoints = 0F,
-        tutorAssessmentPoints = 0F,
-        tutorBadgePoints = 0F,
-        tutorRequestPoints = 0F,
-        tutorSessionPoints = 0F,
+        badgeProgressAsStudent = List(19) { 0.0 },
+        tutorPoints = 0.0,
+        tutorAssessmentPoints = 0.0,
+        tutorRequestPoints = 0.0,
+        tutorSessionPoints = 0.0,
         sessionsCompletedAsTutor = 0,
         requestsAccepted = 0,
         requestsDenied = 0,
         requestsReceived = 0,
+        assignmentsCreated = 0,
         assessmentsTakenAsTutor = 0,
-        badgeProgressAsTutor = List(22) { 0F }
+        badgeProgressAsTutor = List(19) { 0.0 }
     )
+}
+
+fun emptyAssignment(): Assignment {
+    return Assignment(studentId = 0, tutorId = 0, courseId = 0, moduleId = 0, assessmentIds = emptyList(), type = "Multiple Choice", deadLine = LocalDateTime.MIN)
 }

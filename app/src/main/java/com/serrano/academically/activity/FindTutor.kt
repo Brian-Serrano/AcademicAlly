@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.utils.roundRating
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -90,11 +91,12 @@ fun FindTutor(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             CustomSearchBar(
+                                placeHolder = "Search Tutor",
                                 searchInfo = search,
                                 onQueryChange = { findTutorViewModel.updateSearch(search.copy(searchQuery = it)) },
                                 onSearch = {
-                                    findTutorViewModel.updateSearch(search.copy(isActive = false))
-                                    findTutorViewModel.updateTutorMenu(filterState, search.searchQuery, context)
+                                    findTutorViewModel.updateSearch(search.copy(searchQuery = it, isActive = false))
+                                    findTutorViewModel.updateTutorMenu(filterState, it, context)
                                 },
                                 onActiveChange = { findTutorViewModel.updateSearch(search.copy(isActive = it)) },
                                 onTrailingIconClick = {
@@ -113,7 +115,7 @@ fun FindTutor(
                             items(items = tutors) {
                                 YellowCard(MaterialTheme.colorScheme.tertiary) {
                                     Column {
-                                        val avgRating = it.rating.average()
+                                        val avgRating = roundRating(it.rating.average())
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Icon(
                                                 imageVector = Icons.Filled.AccountCircle,
@@ -150,7 +152,7 @@ fun FindTutor(
                     }
                     if (dialogOpen) {
                         Box(
-                            modifier = Modifier.fillMaxSize().background(Color(0x33000000))
+                            modifier = Modifier.fillMaxSize().background(Color(0x55000000))
                         )
                         FilterDialog(
                             courseNames = filterState,
