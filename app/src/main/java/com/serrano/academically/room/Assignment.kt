@@ -8,13 +8,14 @@ import java.time.LocalDateTime
 data class Assignment(
     @PrimaryKey(autoGenerate = true)
     val assignmentId: Int = 0,
-    val studentId: Int,
-    val tutorId: Int,
-    val courseId: Int,
-    val moduleId: Int,
-    val assessmentIds: List<Int>,
-    val type: String,
-    val deadLine: LocalDateTime,
+    val studentId: Int = 0,
+    val tutorId: Int = 0,
+    val courseId: Int = 0,
+    val moduleId: Int = 0,
+    val data: String = "",
+    val type: String = "Multiple Choice",
+    val deadLine: LocalDateTime = LocalDateTime.MIN,
     val studentScore: Int = 0,
-    val status: String = "UNCOMPLETED"
+    val status: String = "UNCOMPLETED",
+    val studentViewed: Boolean = false
 )

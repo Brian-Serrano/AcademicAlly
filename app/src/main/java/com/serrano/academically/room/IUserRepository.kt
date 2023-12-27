@@ -2,6 +2,7 @@ package com.serrano.academically.room
 
 import com.serrano.academically.utils.AnalyticsData
 import com.serrano.academically.utils.LeaderboardData
+import com.serrano.academically.utils.Rating
 import com.serrano.academically.utils.RoomIsDumb
 import com.serrano.academically.utils.UserDrawerData
 import com.serrano.academically.utils.UserInfo
@@ -28,29 +29,22 @@ interface IUserRepository {
 
     fun getUserInfoAndCredentials(id: Int): Flow<UserInfoAndCredentials>
 
-    suspend fun updateUserInfo(name: String, age: Int, degree: String, address: String, contactNumber: String, summary: String, educationalBackground: String, id: Int)
+    suspend fun updateUserInfo(
+        name: String,
+        age: Int,
+        degree: String,
+        address: String,
+        contactNumber: String,
+        summary: String,
+        educationalBackground: String,
+        id: Int
+    )
 
     suspend fun updateUserPassword(password: String, id: Int)
 
     suspend fun updateUserRole(role: String, id: Int)
 
     fun getAnalyticsData(id: Int): Flow<AnalyticsData>
-
-    fun getLeaderboardStudentPoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardTutorPoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardStudentAssessmentPoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardTutorAssessmentPoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardStudentRequestPoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardTutorRequestPoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardStudentSessionPoints(): Flow<List<LeaderboardData>>
-
-    fun getLeaderboardTutorSessionPoints(): Flow<List<LeaderboardData>>
 
     fun getBadgeProgressAsStudent(id: Int): Flow<RoomIsDumb>
 
@@ -95,4 +89,36 @@ interface IUserRepository {
     fun getStudentPoints(id: Int): Flow<Double>
 
     fun getTutorPoints(id: Int): Flow<Double>
+
+    suspend fun updateStudentAssignments(points: Double, id: Int)
+
+    suspend fun updateTutorAssignments(points: Double, id: Int)
+
+    fun getStudentAssignments(id: Int): Flow<Int>
+
+    fun getTutorAssignments(id: Int): Flow<Int>
+
+    fun getStudentRating(id: Int): Flow<Rating>
+
+    fun getTutorRating(id: Int): Flow<Rating>
+
+    fun getStudentLeaderboard(): Flow<List<LeaderboardData>>
+
+    fun getTutorLeaderboard(): Flow<List<LeaderboardData>>
+
+    suspend fun updateStudentRating(rating: Double, id: Int)
+
+    suspend fun updateStudentRates(id: Int)
+
+    suspend fun updateTutorRating(rating: Double, id: Int)
+
+    suspend fun updateTutorRates(id: Int)
+
+    fun getStudentRatingNumber(id: Int): Flow<Int>
+
+    fun getTutorRatingNumber(id: Int): Flow<Int>
+
+    fun getStudentRates(id: Int): Flow<Int>
+
+    fun getTutorRates(id: Int): Flow<Int>
 }

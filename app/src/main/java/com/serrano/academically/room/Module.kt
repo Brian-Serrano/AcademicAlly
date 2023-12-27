@@ -19,7 +19,7 @@ class Module {
         context,
         Database::class.java,
         "database"
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 
     @Provides
     fun provideUserDao(

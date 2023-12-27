@@ -1,13 +1,12 @@
 package com.serrano.academically.custom_composables
 
-import com.serrano.academically.room.User
-import com.serrano.academically.utils.UserDrawerData
 import android.content.Context
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
+import com.serrano.academically.utils.UserDrawerData
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -18,6 +17,7 @@ fun DrawerAndScaffold(
     topBarText: String,
     navController: NavController,
     context: Context,
+    selected: String,
     content: @Composable (PaddingValues) -> Unit
 ) {
     Drawer(
@@ -25,7 +25,8 @@ fun DrawerAndScaffold(
         drawerState = drawerState,
         user = user,
         navController = navController,
-        context = context
+        context = context,
+        selected = selected
     ) {
         Scaffold(
             topBar = TopBar(

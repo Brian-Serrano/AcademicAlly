@@ -1,20 +1,7 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.custom_composables.BlackButton
-import com.serrano.academically.custom_composables.CustomSearchBar
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.FilterDialog
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.RatingBar
-import com.serrano.academically.custom_composables.Text_1
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.FindTutorViewModel
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +18,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,10 +27,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.serrano.academically.utils.roundRating
+import com.serrano.academically.custom_composables.BlackButton
+import com.serrano.academically.custom_composables.CustomSearchBar
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.FilterDialog
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.RatingBar
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.FindTutorViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -66,8 +65,24 @@ fun FindTutor(
     val filterState by findTutorViewModel.filterState.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = Strings.searchTutor,
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = Strings.searchTutor,
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -75,35 +90,52 @@ fun FindTutor(
                 user = user,
                 topBarText = Strings.searchTutor,
                 navController = navController,
-                context = context
+                context = context,
+                selected = "FindTutor"
             ) { values ->
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(values)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.primary)
+                        .padding(values)
                 ) {
                     Column {
-                        Row(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(20.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            contentAlignment = Alignment.Center
                         ) {
                             CustomSearchBar(
                                 placeHolder = "Search Tutor",
                                 searchInfo = search,
-                                onQueryChange = { findTutorViewModel.updateSearch(search.copy(searchQuery = it)) },
-                                onSearch = {
-                                    findTutorViewModel.updateSearch(search.copy(searchQuery = it, isActive = false))
-                                    findTutorViewModel.updateTutorMenu(filterState, it, context)
+                                onQueryChange = {
+                                    findTutorViewModel.updateSearch(
+                                        search.copy(
+                                            searchQuery = it
+                                        )
+                                    )
                                 },
-                                onActiveChange = { findTutorViewModel.updateSearch(search.copy(isActive = it)) },
+                                onSearch = {
+                                    findTutorViewModel.updateSearch(
+                                        search.copy(
+                                            searchQuery = it,
+                                            isActive = false
+                                        )
+                                    )
+                                    findTutorViewModel.updateMenu(filterState, it, context, userId)
+                                },
+                                onActiveChange = {
+                                    findTutorViewModel.updateSearch(
+                                        search.copy(
+                                            isActive = it
+                                        )
+                                    )
+                                },
                                 onTrailingIconClick = {
                                     if (search.searchQuery.isEmpty()) {
                                         findTutorViewModel.updateSearch(search.copy(isActive = false))
-                                    }
-                                    else {
+                                    } else {
                                         findTutorViewModel.updateSearch(search.copy(searchQuery = ""))
                                     }
                                 },
@@ -113,9 +145,12 @@ fun FindTutor(
                         }
                         LazyColumn {
                             items(items = tutors) {
-                                YellowCard(MaterialTheme.colorScheme.tertiary) {
+                                YellowCard {
                                     Column {
-                                        val avgRating = roundRating(it.rating.average())
+                                        val avgRating =
+                                            HelperFunctions.roundRating(it.rating.average())
+                                        val performance =
+                                            HelperFunctions.roundRating((if (it.performance.number > 0) it.performance.rating / it.performance.number else 0.0) * 5)
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Icon(
                                                 imageVector = Icons.Filled.AccountCircle,
@@ -126,22 +161,41 @@ fun FindTutor(
                                                     .size(80.dp)
                                             )
                                             Column {
-                                                Text_1(text = "Name: ${it.tutorName}")
-                                                Text_1(text = "Courses: ${it.courses.joinToString(limit = 5)}")
-                                                Text_1(text = "Rating: $avgRating")
+                                                Text(
+                                                    text = "Name: ${it.tutorName}",
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    modifier = Modifier.padding(10.dp)
+                                                )
+                                                Text(
+                                                    text = "Courses: ${it.courses.joinToString(limit = 5)}",
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    modifier = Modifier.padding(10.dp)
+                                                )
+                                                Text(
+                                                    text = "Course Rating: $avgRating",
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    modifier = Modifier.padding(10.dp)
+                                                )
+                                                Text(
+                                                    text = "Performance Rating: $performance",
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    modifier = Modifier.padding(10.dp)
+                                                )
                                             }
                                         }
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            RatingBar(rating = avgRating.toFloat(), modifier = Modifier
-                                                .padding(10.dp)
-                                                .height(20.dp))
+                                            RatingBar(
+                                                rating = HelperFunctions.roundRating((avgRating + performance) / 2)
+                                                    .toFloat(), modifier = Modifier
+                                                    .padding(10.dp)
+                                                    .height(20.dp)
+                                            )
                                             BlackButton(
                                                 text = Strings.viewTutor,
                                                 action = { navController.navigate("AboutTutor/${user.id}/${it.tutorId}") },
                                                 style = MaterialTheme.typography.labelMedium,
                                                 modifier = Modifier
                                                     .width(200.dp)
-                                                    .height(65.dp)
                                                     .padding(10.dp)
                                             )
                                         }
@@ -152,12 +206,15 @@ fun FindTutor(
                     }
                     if (dialogOpen) {
                         Box(
-                            modifier = Modifier.fillMaxSize().background(Color(0x55000000))
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0x55000000))
                         )
                         FilterDialog(
                             courseNames = filterState,
-                            searchQuery = search.searchQuery,
+                            search = search,
                             context = context,
+                            id = userId,
                             findTutorViewModel = findTutorViewModel
                         )
                     }

@@ -1,16 +1,7 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.SimpleProgressIndicator
-import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAnim
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.AchievementsViewModel
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
@@ -37,7 +27,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.serrano.academically.utils.roundRating
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAnim
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.AchievementsViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -59,8 +57,24 @@ fun Achievements(
     val achievementProgress by achievementsViewModel.achievementsProgress.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = Strings.achievements,
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = Strings.achievements,
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -68,7 +82,8 @@ fun Achievements(
                 user = user,
                 topBarText = Strings.achievements,
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Badge"
             ) { values ->
                 Box(
                     modifier = Modifier
@@ -88,7 +103,9 @@ fun Achievements(
                                     imageVector = Icons.Filled.AccountCircle,
                                     contentDescription = null,
                                     tint = Color.DarkGray,
-                                    modifier = Modifier.size(60.dp).padding(10.dp)
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .padding(10.dp)
                                 )
                                 Column {
                                     Text(
@@ -107,8 +124,12 @@ fun Achievements(
                                         modifier = Modifier
                                             .padding(vertical = 15.dp)
                                             .fillMaxWidth()
-                                            .height(10.dp), cornerRadius = 35.dp, thumbRadius = 1.dp, thumbOffset = 1.5.dp,
-                                        progress = roundRating(achievementProgress[it] / 100).toFloat(),
+                                            .height(10.dp),
+                                        cornerRadius = 35.dp,
+                                        thumbRadius = 1.dp,
+                                        thumbOffset = 1.5.dp,
+                                        progress = HelperFunctions.roundRating(achievementProgress[it] / 100)
+                                            .toFloat(),
                                         progressBarColor = Color.Cyan
                                     )
                                 }

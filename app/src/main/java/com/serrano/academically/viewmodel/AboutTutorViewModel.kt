@@ -1,17 +1,16 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.serrano.academically.room.CourseSkill
 import com.serrano.academically.room.CourseSkillRepository
 import com.serrano.academically.room.UserRepository
 import com.serrano.academically.utils.GetCourses
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Rating
 import com.serrano.academically.utils.UserDrawerData
 import com.serrano.academically.utils.UserInfo
-import com.serrano.academically.utils.emptyUserDrawerData
-import com.serrano.academically.utils.emptyUserInfo
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,22 +23,22 @@ import javax.inject.Inject
 class AboutTutorViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val courseSkillRepository: CourseSkillRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _userData = MutableStateFlow(emptyUserDrawerData())
+    private val _userData = MutableStateFlow(UserDrawerData())
     val userData: StateFlow<UserDrawerData> = _userData.asStateFlow()
 
-    private val _tutorInfo = MutableStateFlow(emptyUserInfo())
+    private val _tutorInfo = MutableStateFlow(UserInfo())
     val tutorInfo: StateFlow<UserInfo> = _tutorInfo.asStateFlow()
 
-    private val _tutorCourses = MutableStateFlow<List<CourseSkill>>(emptyList())
-    val tutorCourses: StateFlow<List<CourseSkill>> = _tutorCourses.asStateFlow()
+    private val _tutorRating = MutableStateFlow(Rating())
+    val tutorRating: StateFlow<Rating> = _tutorRating.asStateFlow()
 
-    private val _courseNames = MutableStateFlow<List<String>>(emptyList())
-    val courseNames: StateFlow<List<String>> = _courseNames.asStateFlow()
+    private val _tutorCourses = MutableStateFlow<List<Pair<CourseSkill, String>>>(emptyList())
+    val tutorCourses: StateFlow<List<Pair<CourseSkill, String>>> = _tutorCourses.asStateFlow()
 
     fun getData(userId: Int, tutorId: Int, context: Context) {
         viewModelScope.launch {
@@ -50,14 +49,17 @@ class AboutTutorViewModel @Inject constructor(
                 // Fetch tutor information
                 _tutorInfo.value = userRepository.getUserInfo(tutorId).first()
 
+                // Fetch tutor performance rating
+                _tutorRating.value = userRepository.getTutorRating(tutorId).first()
+
                 // Fetch tutor courses
-                val courses = courseSkillRepository.getCourseSkillsOfUser(tutorId, "TUTOR").first()
-                _tutorCourses.value = courses
-                _courseNames.value = courses.map { GetCourses.getCourseNameById(it.courseId, context) }
+                _tutorCourses.value = courseSkillRepository
+                    .getCourseSkillsOfUser(tutorId, "TUTOR")
+                    .first()
+                    .map { Pair(it, GetCourses.getCourseNameById(it.courseId, context)) }
 
                 _processState.value = ProcessState.Success
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 _processState.value = ProcessState.Error
             }
         }

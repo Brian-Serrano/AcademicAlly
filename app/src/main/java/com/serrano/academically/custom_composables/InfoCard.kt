@@ -1,10 +1,12 @@
 package com.serrano.academically.custom_composables
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -12,13 +14,17 @@ fun InfoCard(
     title: String,
     description: String
 ) {
-    YellowCard(MaterialTheme.colorScheme.tertiary) {
+    YellowCard {
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(10.dp)
         )
-        Divider()
-        Text_1(text = description)
+        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+        Text(
+            text = description,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(10.dp)
+        )
     }
 }

@@ -1,10 +1,8 @@
 package com.serrano.academically.utils
 
 import android.content.Context
-import com.serrano.academically.ui.theme.Strings
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.WorkbookFactory
-import java.io.File
 
 object GetAssessments {
 
@@ -89,26 +87,31 @@ object GetAssessments {
         "Ethics.xlsx"
     )
 
-    fun getAssessments(courseId: Int, items: Int, type: String, context: Context): List<List<String>> {
+    fun getAssessments(
+        courseId: Int,
+        items: Int,
+        type: String,
+        context: Context
+    ): List<List<String>> {
         return WorkbookFactory
             .create(
                 context.assets.open(assessmentFileNames[courseId - 1])
             )
             .getSheetAt(
-            when (type) {
-                "Multiple Choice" -> 0
-                "Identification" -> 1
-                else -> 2
-            }
-        ).shuffled().take(items).map { row ->
-            row.map {
-                when (it.cellType) {
-                    CellType.STRING -> it.stringCellValue.trim()
-                    CellType.NUMERIC -> "${it.numericCellValue.toInt()}"
-                    CellType.BOOLEAN -> "${it.booleanCellValue}"
-                    else -> throw IllegalArgumentException()
+                when (type) {
+                    "Multiple Choice" -> 0
+                    "Identification" -> 1
+                    else -> 2
+                }
+            ).shuffled().take(items).map { row ->
+                row.map {
+                    when (it.cellType) {
+                        CellType.STRING -> it.stringCellValue.trim()
+                        CellType.NUMERIC -> "${it.numericCellValue.toInt()}"
+                        CellType.BOOLEAN -> "${it.booleanCellValue}"
+                        else -> throw IllegalArgumentException()
+                    }
                 }
             }
-        }
     }
 }

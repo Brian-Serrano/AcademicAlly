@@ -17,9 +17,7 @@ object UserPrefSerializer : Serializer<UserPref> {
                 deserializer = UserPref.serializer(),
                 string = input.readBytes().decodeToString()
             )
-        }
-        catch (se: SerializationException) {
-            se.printStackTrace()
+        } catch (se: SerializationException) {
             defaultValue
         }
     }

@@ -15,7 +15,7 @@ class DiagonalBackground : Shape {
         density: Density
     ): Outline {
         return Outline.Generic(Path().apply {
-            moveTo(0f,  size.height / 2 + 100)
+            moveTo(0f, size.height / 2 + 100)
             lineTo(0f, size.height)
             lineTo(size.width, size.height)
             lineTo(size.width, size.height / 2)

@@ -1,11 +1,15 @@
 package com.serrano.academically.room
 
-import com.serrano.academically.utils.MyTypeConverter
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.serrano.academically.utils.MyTypeConverter
 
-@Database(entities = [User::class, Session::class, Message::class, CourseSkill::class, Assignment::class], version = 1, exportSchema = false)
+@Database(
+    entities = [User::class, Session::class, Message::class, CourseSkill::class, Assignment::class],
+    version = 2,
+    exportSchema = false
+)
 @TypeConverters(value = [MyTypeConverter::class])
 abstract class Database : RoomDatabase() {
 

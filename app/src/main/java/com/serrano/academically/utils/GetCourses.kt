@@ -1,12 +1,8 @@
 package com.serrano.academically.utils
 
 import android.content.Context
-import android.util.Log
-import androidx.compose.ui.graphics.Path
-import com.serrano.academically.ui.theme.Strings
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.WorkbookFactory
-import java.io.File
 
 object GetCourses {
 

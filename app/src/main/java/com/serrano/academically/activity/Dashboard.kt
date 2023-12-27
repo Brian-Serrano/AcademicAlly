@@ -1,16 +1,5 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.BlackButton
-import com.serrano.academically.custom_composables.DashboardTopBar
-import com.serrano.academically.custom_composables.Drawer
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.ui.theme.montserrat
-import com.serrano.academically.utils.DashboardIcons
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.DashboardViewModel
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +19,7 @@ import androidx.compose.material.icons.filled.BrowseGallery
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,8 +40,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.custom_composables.BlackButton
+import com.serrano.academically.custom_composables.CircularProgressBar
+import com.serrano.academically.custom_composables.CoursesList
+import com.serrano.academically.custom_composables.DashboardTopBar
+import com.serrano.academically.custom_composables.DashboardTopBarNoDrawer
+import com.serrano.academically.custom_composables.Drawer
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.ui.theme.montserrat
+import com.serrano.academically.utils.DashboardIcons
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.DashboardViewModel
 import kotlinx.coroutines.CoroutineScope
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
     scope: CoroutineScope,
@@ -67,10 +73,22 @@ fun Dashboard(
     val user by dashboardViewModel.user.collectAsState()
     val course by dashboardViewModel.courseSkills.collectAsState()
     val process by dashboardViewModel.processState.collectAsState()
+    val ratings by dashboardViewModel.ratings.collectAsState()
+    val animationPlayed by dashboardViewModel.animationPlayed.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            DashboardTopBarNoDrawer {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            DashboardTopBarNoDrawer {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             val icons = if (user.role == "STUDENT") arrayOf(
                 DashboardIcons("Leaderboard/${user.id}", "Leaderboard", Icons.Filled.Leaderboard),
@@ -82,12 +100,18 @@ fun Dashboard(
                 DashboardIcons("Analytics/${user.id}", "Analytics", Icons.Filled.Analytics),
                 DashboardIcons("Notifications/${user.id}", "Sessions", Icons.Filled.BrowseGallery)
             )
+
+            LaunchedEffect(Unit) {
+                dashboardViewModel.playAnimation()
+            }
+
             Drawer(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Dashboard"
             ) {
                 Scaffold(
                     topBar = DashboardTopBar(
@@ -129,8 +153,8 @@ fun Dashboard(
                                     modifier = Modifier
                                         .padding(10.dp)
                                         .size(105.dp)
-                                        .clip(MaterialTheme.shapes.small)
-                                        .background(MaterialTheme.colorScheme.secondary),
+                                        .clip(MaterialTheme.shapes.extraSmall)
+                                        .background(MaterialTheme.colorScheme.tertiary),
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.SpaceBetween
                                 ) {
@@ -157,25 +181,70 @@ fun Dashboard(
                         }
                         LazyColumn {
                             item {
-                                YellowCard(MaterialTheme.colorScheme.secondary) {
-                                    Text(
-                                        text = "Your courses",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        modifier = Modifier.padding(20.dp)
-                                    )
-                                    course.forEach {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(220.dp)
+                                            .weight(1f)
+                                            .padding(20.dp)
+                                            .clip(MaterialTheme.shapes.extraSmall)
+                                            .background(MaterialTheme.colorScheme.tertiary),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
                                         Text(
-                                            text = it.first,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            modifier = Modifier.padding(20.dp)
-                                        )
-                                        Text(
-                                            text = it.second,
+                                            text = "Knowledge",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier.padding(20.dp)
+                                            modifier = Modifier
+                                                .padding(10.dp)
+                                                .padding(bottom = 15.dp)
+                                        )
+                                        CircularProgressBar(
+                                            percentage = ratings.first.toFloat(),
+                                            color = MaterialTheme.colorScheme.surfaceVariant,
+                                            radius = 40.dp,
+                                            animationPlayed = animationPlayed
                                         )
                                     }
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(220.dp)
+                                            .weight(1f)
+                                            .padding(20.dp)
+                                            .clip(MaterialTheme.shapes.extraSmall)
+                                            .background(MaterialTheme.colorScheme.tertiary),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "Performance",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier
+                                                .padding(10.dp)
+                                                .padding(bottom = 15.dp)
+                                        )
+                                        CircularProgressBar(
+                                            percentage = ratings.second.toFloat(),
+                                            color = MaterialTheme.colorScheme.surfaceVariant,
+                                            radius = 40.dp,
+                                            animationPlayed = animationPlayed
+                                        )
+                                    }
+                                }
+                            }
+                            item {
+                                YellowCard {
+                                    CoursesList(course)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
                                         BlackButton(
                                             text = Strings.showAllCourses,
                                             action = { navController.navigate("CoursesMenu/${user.id}") },

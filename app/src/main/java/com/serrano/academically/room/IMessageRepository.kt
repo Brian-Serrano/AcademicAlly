@@ -9,9 +9,13 @@ interface IMessageRepository {
 
     fun getMessage(messageId: Int): Flow<Message>
 
-    fun getStudentMessages(studentId: Int): Flow<List<MessageNotifications>>
+    fun getStudentMessages(status: String, studentId: Int): Flow<List<MessageNotifications>>
 
-    fun getTutorMessages(tutorId: Int): Flow<List<MessageNotifications>>
+    fun getTutorMessages(status: String, tutorId: Int): Flow<List<MessageNotifications>>
 
     suspend fun updateMessageStatus(status: String, messageId: Int)
+
+    suspend fun updateTutorView(messageId: Int)
+
+    fun checkIfStudentAlreadyMessageThatTutor(studentId: Int, tutorId: Int): Flow<List<Int>>
 }

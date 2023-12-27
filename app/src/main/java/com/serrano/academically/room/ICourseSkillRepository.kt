@@ -16,6 +16,6 @@ interface ICourseSkillRepository {
 
     fun getCourseSkill(courseId: Int, userId: Int): Flow<List<CourseSkill>>
 
-    suspend fun updateCourseSkill(role: String, taken: Int, score: Int, items: Int, eval: Double, courseSkillId: Int)
+    suspend fun updateCourseSkill(role: String, taken: Int, rating: Double, courseSkillId: Int)
 
 }

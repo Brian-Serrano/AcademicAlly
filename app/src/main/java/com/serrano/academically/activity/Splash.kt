@@ -1,9 +1,5 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.R
-import com.serrano.academically.datastore.UserPref
-import com.serrano.academically.datastore.dataStore
-import com.serrano.academically.ui.theme.Strings
 import android.content.Context
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -12,12 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +27,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.serrano.academically.R
+import com.serrano.academically.datastore.UserPref
+import com.serrano.academically.datastore.dataStore
+import com.serrano.academically.ui.theme.Strings
 import kotlinx.coroutines.delay
 
 @Composable
@@ -46,7 +43,8 @@ fun Splash(
     var startAnimation by remember { mutableStateOf(false) }
     val alphaAnimation = animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(3000)
+        animationSpec = tween(3000),
+        label = ""
     )
     LaunchedEffect(key1 = true) {
 
@@ -71,17 +69,21 @@ fun Splash(
         Image(
             painter = painterResource(id = R.drawable.brushstroke),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.size(450.dp)
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxWidth()
         )
         Image(
             painter = painterResource(id = R.drawable.splash_screen_vector),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.size(500.dp).offset(y = 300.dp)
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
         )
         Column(
-            modifier = Modifier.fillMaxHeight().width(375.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
         ) {
             Text(

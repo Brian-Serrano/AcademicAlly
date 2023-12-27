@@ -1,55 +1,38 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.custom_composables.Divider
-import com.serrano.academically.custom_composables.Drawer
-import com.serrano.academically.custom_composables.DropDown
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.GreenButton
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.Text_1
-import com.serrano.academically.custom_composables.TopBarNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.utils.DropDownState
-import com.serrano.academically.utils.GetCourses
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.AssessmentOptionViewModel
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.custom_composables.Drawer
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.GreenButton
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.AssessmentOptionViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -70,10 +53,34 @@ fun AssessmentOption(
     val process by assessmentOptionViewModel.processState.collectAsState()
     val course by assessmentOptionViewModel.course.collectAsState()
     val isDrawerShouldAvailable by assessmentOptionViewModel.isDrawerShouldAvailable.collectAsState()
+    val startEnabled by assessmentOptionViewModel.startButtonEnabled.collectAsState()
+
+    val onClick = {
+        assessmentOptionViewModel.saveAssessmentType(
+            context = context,
+            navigate = { item, type -> navController.navigate("Assessment/$id/$courseId/$item/$type") }
+        )
+    }
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = Strings.startAssess,
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = Strings.startAssess,
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             if (isDrawerShouldAvailable) {
                 Drawer(
@@ -81,7 +88,8 @@ fun AssessmentOption(
                     drawerState = drawerState,
                     user = user,
                     navController = navController,
-                    context = context
+                    context = context,
+                    selected = "Assessment"
                 ) {
                     Scaffold(
                         topBar = TopBar(
@@ -92,28 +100,23 @@ fun AssessmentOption(
                         )
                     ) {
                         AssessmentOptionMenu(
-                            id = id,
-                            courseId = courseId,
-                            navController = navController,
                             course = course,
-                            padding = it
+                            padding = it,
+                            enabled = startEnabled,
+                            onClick = onClick
                         )
                     }
                 }
-            }
-            else {
-                Scaffold(
-                    topBar = TopBarNoDrawer(
-                        text = Strings.startAssess,
-                        navController = navController
-                    )
+            } else {
+                ScaffoldNoDrawer(
+                    text = Strings.startAssess,
+                    navController = navController
                 ) {
                     AssessmentOptionMenu(
-                        id = id,
-                        courseId = courseId,
-                        navController = navController,
                         course = course,
-                        padding = it
+                        padding = it,
+                        enabled = startEnabled,
+                        onClick = onClick
                     )
                 }
             }
@@ -123,11 +126,10 @@ fun AssessmentOption(
 
 @Composable
 fun AssessmentOptionMenu(
-    id: Int,
-    courseId: Int,
-    navController: NavController,
     course: Pair<String, String>,
     padding: PaddingValues,
+    enabled: Boolean,
+    onClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -138,17 +140,24 @@ fun AssessmentOptionMenu(
             .padding(padding)
             .verticalScroll(rememberScrollState())
     ) {
-        YellowCard(MaterialTheme.colorScheme.tertiary) {
-            val items = listOf("5", "10", "15")
-            val type = listOf("Multiple Choice", "Identification", "True or False")
-            Text_1(text = "Course: ${course.first}")
-            Divider()
-            Text_1(text = "Description: ${course.second}")
-            Divider()
+        YellowCard {
+            Text(
+                text = "Course: ${course.first}",
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(10.dp)
+            )
+            HorizontalDivider(color = Color.Black, thickness = 2.dp)
+            Text(
+                text = "Description: ${course.second}",
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(10.dp)
+            )
+            HorizontalDivider(color = Color.Black, thickness = 2.dp)
             Row {
                 GreenButton(
-                    action = { navController.navigate("Assessment/$id/$courseId/${items.random()}/${type.random()}") },
-                    text = "Start Assessment"
+                    action = onClick,
+                    text = "Start Assessment",
+                    enabled = enabled
                 )
             }
         }

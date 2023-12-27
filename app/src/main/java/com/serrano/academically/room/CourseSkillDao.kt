@@ -13,15 +13,15 @@ interface CourseSkillDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addCourseSkill(courseSkill: CourseSkill)
 
-    // Usage CoursesMenu, Analytics
+    // Usage CoursesMenu, Analytics, Dashboard
     @Query("SELECT * FROM CourseSkill WHERE userId = :userId AND role = :role")
     fun getCourseSkillsOfUser(userId: Int, role: String): Flow<List<CourseSkill>>
 
-    // Usage Dashboard, Profile
+    // Usage Profile
     @Query("SELECT courseId FROM CourseSkill WHERE userId = :userId AND role = :role LIMIT 3")
     fun getThreeCourseSkillsOfUserNoRating(userId: Int, role: String): Flow<List<Int>>
 
-    // Usage MessageTutor, FindTutor, Signup, AssessmentResult
+    // Usage MessageTutor, FindTutor, Signup, Assessment
     @Query("SELECT courseId FROM CourseSkill WHERE userId = :userId AND role = :role")
     fun getCourseSkillsOfUserNoRating(userId: Int, role: String): Flow<List<Int>>
 
@@ -29,11 +29,11 @@ interface CourseSkillDao {
     @Query("SELECT * FROM CourseSkill WHERE courseId = :courseId AND role = 'TUTOR'")
     fun getCourseSkillsForTutorByCourse(courseId: Int): Flow<List<CourseSkill>>
 
-    // Usage AssessmentResult
+    // Usage Assessment
     @Query("SELECT * FROM CourseSkill WHERE courseId = :courseId AND userId = :userId")
     fun getCourseSkill(courseId: Int, userId: Int): Flow<List<CourseSkill>>
 
-    // Usage AssessmentResult
-    @Query("UPDATE CourseSkill SET role = :role, courseAssessmentTaken = :taken, courseAssessmentScore = :score, courseAssessmentItemsTotal = :items, courseAssessmentEvaluator = :eval WHERE courseSkillId = :courseSkillId")
-    suspend fun updateCourseSkill(role: String, taken: Int, score: Int, items: Int, eval: Double, courseSkillId: Int)
+    // Usage Assessment
+    @Query("UPDATE CourseSkill SET role = :role, assessmentTaken = :taken, assessmentRating = :rating WHERE courseSkillId = :courseSkillId")
+    suspend fun updateCourseSkill(role: String, taken: Int, rating: Double, courseSkillId: Int)
 }

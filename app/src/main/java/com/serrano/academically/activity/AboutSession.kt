@@ -1,15 +1,5 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.BlackButton
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.InfoCard
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.Text_1
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.AboutSessionViewModel
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,25 +10,30 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.serrano.academically.utils.toMilitaryTime
+import com.serrano.academically.custom_composables.BlackButton
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.InfoCard
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.AboutSessionViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -56,13 +51,28 @@ fun AboutSession(
     }
 
     val session by aboutSessionViewModel.sessionDetails.collectAsState()
-    val session2 by aboutSessionViewModel.sessionInfo.collectAsState()
     val user by aboutSessionViewModel.userData.collectAsState()
     val process by aboutSessionViewModel.processState.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = Strings.aboutSession,
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = Strings.aboutSession,
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -70,7 +80,8 @@ fun AboutSession(
                 user = user,
                 topBarText = Strings.aboutSession,
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Notifications"
             ) {
                 Column(
                     modifier = Modifier
@@ -79,29 +90,52 @@ fun AboutSession(
                         .padding(it)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    YellowCard(MaterialTheme.colorScheme.tertiary) {
-                        Text_1(text = session2.courseName)
+                    YellowCard {
+                        Text(
+                            text = session.second.courseName,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
                         Box(
                             modifier = Modifier
                                 .clickable {
-                                    navController.navigate("Profile/${user.id}/${ if (user.role == "STUDENT") session.tutorId else session.studentId }")
+                                    navController.navigate("Profile/${user.id}/${if (user.role == "STUDENT") session.first.tutorId else session.first.studentId}")
                                 }
                         ) {
-                            Text_1(
-                                text = if (user.role == "STUDENT") "Tutor: ${session2.tutorName}" else "Student: ${session2.studentName}"
+                            Text(
+                                text = if (user.role == "STUDENT") "Tutor: ${session.second.tutorName}" else "Student: ${session.second.studentName}",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
                             )
                         }
-                        Text_1(text = "Module: ${session2.moduleName}")
+                        Text(
+                            text = "Module: ${session.second.moduleName}",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
                     }
                     InfoCard(
                         title = "SCHEDULE",
-                        description = "Date: ${session.startTime.month} ${session.startTime.dayOfMonth}, ${session.startTime.year}\nTime: ${toMilitaryTime(listOf(session.startTime.hour, session.startTime.minute))} - ${toMilitaryTime(listOf(session.endTime.hour, session.endTime.minute))}"
+                        description = "Date: ${HelperFunctions.formatDate(session.first.startTime)}\n" +
+                                "Time: ${
+                                    HelperFunctions.formatTime(
+                                        session.first.startTime,
+                                        session.first.endTime
+                                    )
+                                }"
                     )
-                    InfoCard(title = "LOCATION", description = session.location)
+                    InfoCard(title = "LOCATION", description = session.first.location)
 
                     if (user.role == "TUTOR") {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            BlackButton(text = "EDIT", action = { navController.navigate("EditSession/$userId/$sessionId") }, modifier = Modifier.padding(15.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            BlackButton(
+                                text = "EDIT",
+                                action = { navController.navigate("EditSession/$userId/$sessionId") },
+                                modifier = Modifier.padding(15.dp)
+                            )
                         }
                     }
                 }

@@ -1,6 +1,7 @@
 package com.serrano.academically.activity
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,16 +33,16 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.GreenButton
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.QuizInfo
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAnim
 import com.serrano.academically.custom_composables.YellowCard
 import com.serrano.academically.utils.AssessmentType
-import com.serrano.academically.utils.GetCourses
-import com.serrano.academically.utils.GetModules
+import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.IdentificationFields
 import com.serrano.academically.utils.MultipleChoiceFields
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.TrueOrFalseFields
-import com.serrano.academically.utils.toMilitaryTime
 import com.serrano.academically.viewmodel.CreateAssignmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDateTime
@@ -57,10 +58,11 @@ fun CreateAssignment(
     items: String,
     type: String,
     deadline: String,
+    rate: Int,
     createAssignmentViewModel: CreateAssignmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        createAssignmentViewModel.getData(userId, sessionId, items.toInt(), type)
+        createAssignmentViewModel.getData(userId, sessionId, items.toInt(), type, context)
     }
 
     val process by createAssignmentViewModel.processState.collectAsState()
@@ -71,21 +73,40 @@ fun CreateAssignment(
     val dialogOpen by createAssignmentViewModel.isFilterDialogOpen.collectAsState()
 
     val onBackButtonClick = {
-        if(item > 0) {
+        if (item > 0) {
             createAssignmentViewModel.moveItem(false)
         }
     }
     val onNextButtonClick = {
-        if(item < assessmentFields.size - 1) {
+        if (item < assessmentFields.size - 1) {
             createAssignmentViewModel.moveItem(true)
         }
     }
-    val onFieldEdit = { quiz: AssessmentType -> createAssignmentViewModel.updateFields(assessmentFields.map { if (quiz.id == it.id) quiz else it }) }
+    val onFieldEdit =
+        { quiz: AssessmentType -> createAssignmentViewModel.updateFields(assessmentFields.map { if (quiz.id == it.id) quiz else it }) }
     val onSaveButtonClick = { createAssignmentViewModel.toggleDialog(true) }
 
+    val deadlineLocalDate = LocalDateTime.parse(deadline)
+
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = "EDIT ASSIGNMENT",
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = "EDIT ASSIGNMENT",
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -93,7 +114,8 @@ fun CreateAssignment(
                 user = user,
                 topBarText = "EDIT ASSIGNMENT",
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Assessment"
             ) { paddingValues ->
                 Box(
                     modifier = Modifier
@@ -105,19 +127,31 @@ fun CreateAssignment(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val deadlineLocalDate = LocalDateTime.parse(deadline)
                         LazyRow {
-                            item { QuizInfo(name = "Course", value = GetCourses.getCourseNameById(session.courseId, context)) }
+                            item { QuizInfo(name = "Course", value = session.second.courseName) }
                             item { QuizInfo(name = "Items", value = items) }
                             item { QuizInfo(name = "Type", value = type) }
-                            item { QuizInfo(name = "Module", value = GetModules.getModuleByCourseAndModuleId(session.courseId, session.moduleId, context)) }
-                            item { QuizInfo(name = "Deadline", value = "${deadlineLocalDate.month} ${deadlineLocalDate.dayOfMonth}, ${deadlineLocalDate.year} ${toMilitaryTime(listOf(deadlineLocalDate.hour, deadlineLocalDate.minute))}") }
+                            item { QuizInfo(name = "Module", value = session.second.moduleName) }
+                            item {
+                                QuizInfo(
+                                    name = "Deadline",
+                                    value = "${HelperFunctions.formatDate(deadlineLocalDate)} ${
+                                        HelperFunctions.toMilitaryTime(
+                                            deadlineLocalDate.hour,
+                                            deadlineLocalDate.minute
+                                        )
+                                    }"
+                                )
+                            }
                         }
                         SimpleProgressIndicatorWithAnim(
                             modifier = Modifier
                                 .padding(15.dp)
                                 .fillMaxWidth()
-                                .height(10.dp), cornerRadius = 35.dp, thumbRadius = 1.dp, thumbOffset = 1.5.dp,
+                                .height(10.dp),
+                            cornerRadius = 35.dp,
+                            thumbRadius = 1.dp,
+                            thumbOffset = 1.5.dp,
                             progress = item / items.toFloat(),
                             progressBarColor = Color.Cyan
                         )
@@ -134,10 +168,12 @@ fun CreateAssignment(
                                     assessmentFields = assessmentFields[item] as MultipleChoiceFields,
                                     onFieldEdit = onFieldEdit
                                 )
+
                                 "Identification" -> IdentificationEditor(
                                     assessmentFields = assessmentFields[item] as IdentificationFields,
                                     onFieldEdit = onFieldEdit
                                 )
+
                                 "True or False" -> TrueOrFalseEditor(
                                     assessmentFields = assessmentFields[item] as TrueOrFalseFields,
                                     onFieldEdit = onFieldEdit
@@ -174,6 +210,30 @@ fun CreateAssignment(
                             },
                             onClickingYes = {
                                 createAssignmentViewModel.toggleDialog(false)
+                                createAssignmentViewModel.completeSessionAndSaveAssignment(
+                                    studentId = session.first.studentId,
+                                    tutorId = session.first.tutorId,
+                                    sessionId = session.first.sessionId,
+                                    rate = rate,
+                                    courseId = session.first.courseId,
+                                    moduleId = session.first.moduleId,
+                                    type = type,
+                                    deadLine = deadlineLocalDate,
+                                    navigate = {
+                                        Toast.makeText(
+                                            context,
+                                            "Assignment Created and Session Completed!",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        navController.navigateUp()
+                                        navController.navigateUp()
+                                        navController.navigateUp()
+                                        navController.navigateUp()
+                                    },
+                                    context = context,
+                                    assessment = assessmentFields,
+                                    name = user.name
+                                )
                             },
                             onClickingNo = {
                                 createAssignmentViewModel.toggleDialog(false)
@@ -192,7 +252,7 @@ fun MultipleChoiceEditor(
     onFieldEdit: (MultipleChoiceFields) -> Unit,
     choices: List<String> = listOf("A", "B", "C", "D")
 ) {
-    YellowCard(MaterialTheme.colorScheme.tertiary) {
+    YellowCard {
         Text(
             text = "Question #${assessmentFields.id + 1}",
             style = MaterialTheme.typography.labelMedium,
@@ -202,7 +262,8 @@ fun MultipleChoiceEditor(
             inputName = "Question",
             input = assessmentFields.question,
             onInputChange = { onFieldEdit(assessmentFields.copy(question = it)) },
-            modifier = Modifier.padding(all = 20.dp)
+            modifier = Modifier.padding(all = 20.dp),
+            supportingText = "More than 15 characters"
         )
         choices.forEachIndexed { index, choice ->
             Text(
@@ -222,7 +283,8 @@ fun MultipleChoiceEditor(
                         )
                     )
                 },
-                modifier = Modifier.padding(all = 20.dp)
+                modifier = Modifier.padding(all = 20.dp),
+                supportingText = "Not empty"
             )
         }
         Text(
@@ -232,9 +294,34 @@ fun MultipleChoiceEditor(
         )
         DropDown(
             dropDownState = assessmentFields.answer,
-            onArrowClick = { onFieldEdit(assessmentFields.copy(answer = assessmentFields.answer.copy(expanded = true))) },
-            onDismissRequest = { onFieldEdit(assessmentFields.copy(answer = assessmentFields.answer.copy(expanded = false))) },
-            onItemSelect = { onFieldEdit(assessmentFields.copy(answer = assessmentFields.answer.copy(selected = it, expanded = false))) }
+            onArrowClick = {
+                onFieldEdit(
+                    assessmentFields.copy(
+                        answer = assessmentFields.answer.copy(
+                            expanded = true
+                        )
+                    )
+                )
+            },
+            onDismissRequest = {
+                onFieldEdit(
+                    assessmentFields.copy(
+                        answer = assessmentFields.answer.copy(
+                            expanded = false
+                        )
+                    )
+                )
+            },
+            onItemSelect = {
+                onFieldEdit(
+                    assessmentFields.copy(
+                        answer = assessmentFields.answer.copy(
+                            selected = it,
+                            expanded = false
+                        )
+                    )
+                )
+            }
         )
     }
 }
@@ -244,7 +331,7 @@ fun IdentificationEditor(
     assessmentFields: IdentificationFields,
     onFieldEdit: (IdentificationFields) -> Unit
 ) {
-    YellowCard(MaterialTheme.colorScheme.tertiary) {
+    YellowCard {
         Text(
             text = "Question #${assessmentFields.id + 1}",
             style = MaterialTheme.typography.labelMedium,
@@ -254,7 +341,8 @@ fun IdentificationEditor(
             inputName = "Question",
             input = assessmentFields.question,
             onInputChange = { onFieldEdit(assessmentFields.copy(question = it)) },
-            modifier = Modifier.padding(all = 20.dp)
+            modifier = Modifier.padding(all = 20.dp),
+            supportingText = "More than 15 characters"
         )
         Text(
             text = "Answer",
@@ -265,7 +353,8 @@ fun IdentificationEditor(
             inputName = "Answer",
             input = assessmentFields.answer,
             onInputChange = { onFieldEdit(assessmentFields.copy(answer = it)) },
-            modifier = Modifier.padding(all = 20.dp)
+            modifier = Modifier.padding(all = 20.dp),
+            supportingText = "Not empty"
         )
     }
 }
@@ -275,7 +364,7 @@ fun TrueOrFalseEditor(
     assessmentFields: TrueOrFalseFields,
     onFieldEdit: (TrueOrFalseFields) -> Unit
 ) {
-    YellowCard(MaterialTheme.colorScheme.tertiary) {
+    YellowCard {
         Text(
             text = "Question #${assessmentFields.id + 1}",
             style = MaterialTheme.typography.labelMedium,
@@ -285,7 +374,8 @@ fun TrueOrFalseEditor(
             inputName = "Question",
             input = assessmentFields.question,
             onInputChange = { onFieldEdit(assessmentFields.copy(question = it)) },
-            modifier = Modifier.padding(all = 20.dp)
+            modifier = Modifier.padding(all = 20.dp),
+            supportingText = "More than 15 characters"
         )
         Text(
             text = "Answer",
@@ -294,9 +384,34 @@ fun TrueOrFalseEditor(
         )
         DropDown(
             dropDownState = assessmentFields.answer,
-            onArrowClick = { onFieldEdit(assessmentFields.copy(answer = assessmentFields.answer.copy(expanded = true))) },
-            onDismissRequest = { onFieldEdit(assessmentFields.copy(answer = assessmentFields.answer.copy(expanded = false))) },
-            onItemSelect = { onFieldEdit(assessmentFields.copy(answer = assessmentFields.answer.copy(selected = it, expanded = false))) }
+            onArrowClick = {
+                onFieldEdit(
+                    assessmentFields.copy(
+                        answer = assessmentFields.answer.copy(
+                            expanded = true
+                        )
+                    )
+                )
+            },
+            onDismissRequest = {
+                onFieldEdit(
+                    assessmentFields.copy(
+                        answer = assessmentFields.answer.copy(
+                            expanded = false
+                        )
+                    )
+                )
+            },
+            onItemSelect = {
+                onFieldEdit(
+                    assessmentFields.copy(
+                        answer = assessmentFields.answer.copy(
+                            selected = it,
+                            expanded = false
+                        )
+                    )
+                )
+            }
         )
     }
 }

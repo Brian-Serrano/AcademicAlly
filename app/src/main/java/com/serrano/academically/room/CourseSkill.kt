@@ -10,8 +10,6 @@ data class CourseSkill(
     val courseId: Int,
     val userId: Int,
     val role: String,
-    val courseAssessmentTaken: Int,
-    val courseAssessmentScore: Int,
-    val courseAssessmentItemsTotal: Int,
-    val courseAssessmentEvaluator: Double
+    val assessmentTaken: Int,
+    val assessmentRating: Double
 )

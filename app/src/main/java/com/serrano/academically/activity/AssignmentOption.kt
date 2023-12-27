@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,17 +21,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.serrano.academically.custom_composables.Divider
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.DropDown
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.GreenButton
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.LoginTextField
-import com.serrano.academically.custom_composables.Text_1
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.utils.GetCourses
-import com.serrano.academically.utils.GetModules
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AssignmentOptionViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -42,11 +40,12 @@ fun AssignmentOption(
     navController: NavController,
     userId: Int,
     sessionId: Int,
+    rate: Int,
     context: Context,
     assignmentOptionViewModel: AssignmentOptionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        assignmentOptionViewModel.getData(userId, sessionId)
+        assignmentOptionViewModel.getData(userId, sessionId, context)
     }
 
     val process by assignmentOptionViewModel.processState.collectAsState()
@@ -57,8 +56,24 @@ fun AssignmentOption(
     val session by assignmentOptionViewModel.sessionInfo.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = "EDIT ASSIGNMENT",
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = "EDIT ASSIGNMENT",
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -66,7 +81,8 @@ fun AssignmentOption(
                 user = user,
                 topBarText = "EDIT ASSIGNMENT",
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Assessment"
             ) { paddingValues ->
                 Column(
                     modifier = Modifier
@@ -77,47 +93,111 @@ fun AssignmentOption(
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    YellowCard(MaterialTheme.colorScheme.tertiary) {
-                        Text_1(text = "Course: ${GetCourses.getCourseNameById(session.courseId, context)}")
-                        Divider()
-                        Text_1(text = "Module: ${GetModules.getModuleByCourseAndModuleId(session.courseId, session.moduleId, context)}")
-                        Divider()
-                        Text_1(text = "If you cancel making assignment, the session will remain uncompleted.")
-                        Divider()
-                        Text_1(text = "Items")
+                    YellowCard {
+                        Text(
+                            text = "Course: ${session.second.courseName}",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        Text(
+                            text = "Module: ${session.second.moduleName}",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        Text(
+                            text = "If you cancel making assignment, the session will remain uncompleted and the student you rate will be discarded.",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        Text(
+                            text = "Items",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
                         DropDown(
                             dropDownState = itemsDropdown,
-                            onArrowClick = { assignmentOptionViewModel.updateItemsDropdown(itemsDropdown.copy(expanded = true)) },
-                            onDismissRequest = { assignmentOptionViewModel.updateItemsDropdown(itemsDropdown.copy(expanded = false)) },
-                            onItemSelect = { assignmentOptionViewModel.updateItemsDropdown(itemsDropdown.copy(selected = it, expanded = false)) }
+                            onArrowClick = {
+                                assignmentOptionViewModel.updateItemsDropdown(
+                                    itemsDropdown.copy(expanded = true)
+                                )
+                            },
+                            onDismissRequest = {
+                                assignmentOptionViewModel.updateItemsDropdown(
+                                    itemsDropdown.copy(expanded = false)
+                                )
+                            },
+                            onItemSelect = {
+                                assignmentOptionViewModel.updateItemsDropdown(
+                                    itemsDropdown.copy(selected = it, expanded = false)
+                                )
+                            }
                         )
-                        Divider()
-                        Text_1(text = "Type")
+                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        Text(
+                            text = "Type",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
                         DropDown(
                             dropDownState = typeDropdown,
-                            onArrowClick = { assignmentOptionViewModel.updateTypeDropdown(typeDropdown.copy(expanded = true)) },
-                            onDismissRequest = { assignmentOptionViewModel.updateTypeDropdown(typeDropdown.copy(expanded = false)) },
-                            onItemSelect = { assignmentOptionViewModel.updateTypeDropdown(typeDropdown.copy(selected = it, expanded = false)) }
+                            onArrowClick = {
+                                assignmentOptionViewModel.updateTypeDropdown(
+                                    typeDropdown.copy(expanded = true)
+                                )
+                            },
+                            onDismissRequest = {
+                                assignmentOptionViewModel.updateTypeDropdown(
+                                    typeDropdown.copy(expanded = false)
+                                )
+                            },
+                            onItemSelect = {
+                                assignmentOptionViewModel.updateTypeDropdown(
+                                    typeDropdown.copy(selected = it, expanded = false)
+                                )
+                            }
                         )
-                        Divider()
-                        Text_1(text = "Deadline Date")
+                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        Text(
+                            text = "Deadline Date",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
                         LoginTextField(
                             inputName = "Date",
                             input = deadline.date,
-                            onInputChange = { assignmentOptionViewModel.updateDeadline(deadline.copy(date = it)) },
+                            onInputChange = {
+                                assignmentOptionViewModel.updateDeadline(
+                                    deadline.copy(
+                                        date = it
+                                    )
+                                )
+                            },
                             modifier = Modifier.padding(10.dp),
                             supportingText = "Should be in dd/MM/yyyy format"
                         )
-                        Divider()
-                        Text_1(text = "Deadline Time")
+                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        Text(
+                            text = "Deadline Time",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(10.dp)
+                        )
                         LoginTextField(
                             inputName = "Time",
                             input = deadline.time,
-                            onInputChange = { assignmentOptionViewModel.updateDeadline(deadline.copy(time = it)) },
+                            onInputChange = {
+                                assignmentOptionViewModel.updateDeadline(
+                                    deadline.copy(
+                                        time = it
+                                    )
+                                )
+                            },
                             modifier = Modifier.padding(10.dp),
                             supportingText = "Should be in hh:mm AM/PM format"
                         )
-                        Divider()
+                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
                         Text(
                             text = deadline.error,
                             color = Color.Red
@@ -127,7 +207,7 @@ fun AssignmentOption(
                                 action = {
                                     assignmentOptionViewModel.validateDeadlineFormatAndNavigate(
                                         deadlineField = deadline,
-                                        navigate = { navController.navigate("CreateAssignment/$userId/$sessionId/${itemsDropdown.selected}/${typeDropdown.selected}/$it") }
+                                        navigate = { navController.navigate("CreateAssignment/$userId/$sessionId/${itemsDropdown.selected}/${typeDropdown.selected}/$it/$rate") }
                                     )
                                 },
                                 text = "Create Assignment"

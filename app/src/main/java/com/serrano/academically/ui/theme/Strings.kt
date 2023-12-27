@@ -30,7 +30,8 @@ object Strings {
 
     const val splashSchoolName = "STI COLLEGE LAOAG, BSCS-3"
     const val splashProjectName = "ACADEMIC\nALLY"
-    const val splashProjectDesc = "IMPROVING ACADEMIC PERFORMANCE\nTHROUGH STUDENT-TO-STUDENT TUTORING"
+    const val splashProjectDesc =
+        "IMPROVING ACADEMIC PERFORMANCE\nTHROUGH STUDENT-TO-STUDENT TUTORING"
     const val signIn = "SIGN IN"
     const val createAccount = "CREATE ACCOUNT"
     const val student = "AS A STUDENT"
@@ -65,5 +66,6 @@ object Strings {
             "sed vulputate. Viverra ipsum nunc " +
             "aliquet bibendum enim facilisis."
 
-    const val pathToExcelFiles = "C:\\Users\\brian\\AndroidStudioProjects\\AcademicAlly\\app\\src\\main\\java\\com\\serrano\\academically\\excel"
+    const val pathToExcelFiles =
+        "C:\\Users\\brian\\AndroidStudioProjects\\AcademicAlly\\app\\src\\main\\java\\com\\serrano\\academically\\excel"
 }

@@ -1,23 +1,14 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.EditSessionMenu
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.CreateSessionViewModel
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -25,9 +16,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.EditSessionMenu
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.CreateSessionViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -37,23 +35,38 @@ fun CreateSession(
     context: Context,
     navController: NavController,
     userId: Int,
-    studentId: Int,
-    courseId: Int,
-    moduleId: Int,
     messageId: Int,
     createSessionViewModel: CreateSessionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        createSessionViewModel.getData(userId)
+        createSessionViewModel.getData(userId, messageId)
     }
 
     val user by createSessionViewModel.drawerData.collectAsState()
     val sessionSettings by createSessionViewModel.sessionSettings.collectAsState()
     val process by createSessionViewModel.processState.collectAsState()
+    val message by createSessionViewModel.messageInfo.collectAsState()
+    val enabled by createSessionViewModel.buttonEnabled.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = "CREATE SESSION",
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = "CREATE SESSION",
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -61,7 +74,8 @@ fun CreateSession(
                 user = user,
                 topBarText = "CREATE SESSION",
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Notifications"
             ) { values ->
                 Column(
                     modifier = Modifier
@@ -71,37 +85,51 @@ fun CreateSession(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
+                    YellowCard {
                         EditSessionMenu(
                             sessionSettings = sessionSettings,
-                            onDateInputChange = { createSessionViewModel.updateSessionSettings(sessionSettings.copy(date = it)) },
-                            onStartTimeInputChange = { createSessionViewModel.updateSessionSettings(sessionSettings.copy(startTime = it)) },
-                            onEndTimeInputChange = { createSessionViewModel.updateSessionSettings(sessionSettings.copy(endTime = it)) },
-                            onLocationInputChange = { createSessionViewModel.updateSessionSettings(sessionSettings.copy(location = it)) },
+                            onDateInputChange = {
+                                createSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(date = it)
+                                )
+                            },
+                            onStartTimeInputChange = {
+                                createSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(startTime = it)
+                                )
+                            },
+                            onEndTimeInputChange = {
+                                createSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(endTime = it)
+                                )
+                            },
+                            onLocationInputChange = {
+                                createSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(location = it)
+                                )
+                            },
                             onButtonClick = {
                                 createSessionViewModel.createSession(
                                     settings = sessionSettings,
-                                    courseId = courseId,
-                                    moduleId = moduleId,
+                                    courseId = message.courseId,
+                                    moduleId = message.moduleId,
                                     tutorId = userId,
-                                    studentId = studentId,
+                                    studentId = message.studentId,
                                     messageId = messageId,
                                     navigate = {
+                                        Toast.makeText(
+                                            context,
+                                            "Session Created and Student Accepted!",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                         navController.navigateUp()
                                         navController.navigateUp()
                                     },
                                     context = context
                                 )
                             },
-                            buttonText = "Create Session"
+                            buttonText = "Create Session",
+                            enabled = enabled
                         )
                     }
                 }

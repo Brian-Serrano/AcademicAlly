@@ -1,8 +1,13 @@
 package com.serrano.academically.custom_composables
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,8 +17,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -21,7 +24,7 @@ import kotlin.math.sin
 fun RatingBar(
     rating: Float,
     modifier: Modifier = Modifier,
-    color: Color = Color.Yellow
+    onStarClick: (Int) -> Unit = {}
 ) {
     Row(modifier = modifier.wrapContentSize()) {
         (1..5).forEach { step ->
@@ -30,7 +33,7 @@ fun RatingBar(
                 step.rem(rating) < 1 -> rating - (step - 1f)
                 else -> 0f
             }
-            RatingStar(stepRating, color)
+            RatingStar(rating = stepRating, index = step, onStarClick = onStarClick)
         }
     }
 }
@@ -38,18 +41,19 @@ fun RatingBar(
 @Composable
 private fun RatingStar(
     rating: Float,
-    ratingColor: Color = Color.Yellow,
-    backgroundColor: Color = Color.Gray
+    index: Int,
+    onStarClick: (Int) -> Unit
 ) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxHeight()
             .aspectRatio(1f)
             .clip(starShape)
+            .clickable { onStarClick(index) }
     ) {
         Canvas(modifier = Modifier.size(maxHeight)) {
             drawRect(
-                brush = SolidColor(backgroundColor),
+                brush = SolidColor(Color.Gray),
                 size = Size(
                     height = size.height * 1.4f,
                     width = size.width * 1.4f
@@ -61,7 +65,7 @@ private fun RatingStar(
             )
             if (rating > 0) {
                 drawRect(
-                    brush = SolidColor(ratingColor),
+                    brush = SolidColor(Color.Yellow),
                     size = Size(
                         height = size.height * 1.1f,
                         width = size.width * rating
@@ -83,8 +87,8 @@ private val starPath = { size: Float ->
         var rot: Double = Math.PI / 2 * 3
         val cx: Float = size / 2
         val cy: Float = size / 20 * 11
-        var x: Float = cx
-        var y: Float = cy
+        var x: Float
+        var y: Float
         val step = Math.PI / 5
 
         moveTo(cx, cy - outerRadius)
@@ -100,18 +104,5 @@ private val starPath = { size: Float ->
             rot += step
         }
         close()
-    }
-}
-
-@Preview
-@Composable
-fun RatingBarPreview() {
-    Column(
-        Modifier.fillMaxSize().background(Color.White)
-    ) {
-        RatingBar(
-            3.8f,
-            modifier = Modifier.padding(20.dp).height(20.dp)
-        )
     }
 }

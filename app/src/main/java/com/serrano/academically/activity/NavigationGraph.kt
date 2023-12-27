@@ -3,14 +3,12 @@ package com.serrano.academically.activity
 import android.content.Context
 import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import kotlinx.coroutines.CoroutineScope
-import java.time.LocalDate
 
 @Composable
 fun NavigationGraph(
@@ -30,23 +28,13 @@ fun NavigationGraph(
             About(navController)
         }
         composable(
-            route = "Signup/{user}/{courseId}/{score}/{items}/{eval}",
-            arguments = listOf(
-                navArgument("user") { type = NavType.StringType },
-                navArgument("courseId") { type = NavType.IntType },
-                navArgument("score") { type = NavType.IntType },
-                navArgument("items") { type = NavType.IntType },
-                navArgument("eval") { type = NavType.FloatType }
-            )
+            route = "Signup/{user}",
+            arguments = listOf(navArgument("user") { type = NavType.StringType })
         ) {
             Signup(
                 navController = navController,
                 user = it.arguments?.getString("user") ?: "STUDENT",
-                context = context,
-                courseId = it.arguments?.getInt("courseId") ?: 0,
-                score = it.arguments?.getInt("score") ?: 0,
-                items = it.arguments?.getInt("items") ?: 5,
-                eval = it.arguments?.getFloat("eval")?.toDouble() ?: 0.0
+                context = context
             )
         }
         composable(
@@ -108,24 +96,19 @@ fun NavigationGraph(
             )
         }
         composable(
-            route = "AssessmentResult/{id}/{courseId}/{score}/{items}/{eval}/{eligibility}",
+            route = "AssessmentResult/{id}/{score}/{items}/{eligibility}",
             arguments = listOf(
                 navArgument("id") { type = NavType.IntType },
-                navArgument("courseId") { type = NavType.IntType },
                 navArgument("score") { type = NavType.IntType },
                 navArgument("items") { type = NavType.IntType },
-                navArgument("eval") { type = NavType.FloatType },
                 navArgument("eligibility") { type = NavType.StringType }
             )
         ) {
             AssessmentResult(
                 id = it.arguments?.getInt("id") ?: 0,
-                courseId = it.arguments?.getInt("courseId") ?: 0,
                 score = it.arguments?.getInt("score") ?: 0,
-                items = it.arguments?.getInt("items") ?: 5,
-                eval = it.arguments?.getFloat("eval")?.toDouble() ?: 0.0,
+                items = it.arguments?.getInt("items") ?: 0,
                 eligibility = it.arguments?.getString("eligibility") ?: "STUDENT",
-                context = context,
                 navController = navController
             )
         }
@@ -154,7 +137,8 @@ fun NavigationGraph(
                 drawerState = drawerState,
                 context = context,
                 id = it.arguments?.getInt("id") ?: 0,
-                navController = navController)
+                navController = navController
+            )
         }
         composable(
             route = "FindTutor/{id}",
@@ -237,12 +221,9 @@ fun NavigationGraph(
             )
         }
         composable(
-            route = "CreateSession/{id}/{studentId}/{courseId}/{moduleId}/{messageId}",
+            route = "CreateSession/{id}/{messageId}",
             arguments = listOf(
                 navArgument("id") { type = NavType.IntType },
-                navArgument("studentId") { type = NavType.IntType },
-                navArgument("courseId") { type = NavType.IntType },
-                navArgument("moduleId") { type = NavType.IntType },
                 navArgument("messageId") { type = NavType.IntType }
             )
         ) {
@@ -252,9 +233,6 @@ fun NavigationGraph(
                 context = context,
                 navController = navController,
                 userId = it.arguments?.getInt("id") ?: 0,
-                studentId = it.arguments?.getInt("studentId") ?: 0,
-                courseId = it.arguments?.getInt("courseId") ?: 0,
-                moduleId = it.arguments?.getInt("moduleId") ?: 0,
                 messageId = it.arguments?.getInt("messageId") ?: 0
             )
         }
@@ -347,10 +325,11 @@ fun NavigationGraph(
             )
         }
         composable(
-            route = "AssignmentOption/{id}/{sessionId}",
+            route = "AssignmentOption/{id}/{sessionId}/{rate}",
             arguments = listOf(
                 navArgument("id") { type = NavType.IntType },
-                navArgument("sessionId") { type = NavType.IntType }
+                navArgument("sessionId") { type = NavType.IntType },
+                navArgument("rate") { type = NavType.IntType }
             )
         ) {
             AssignmentOption(
@@ -359,17 +338,19 @@ fun NavigationGraph(
                 navController = navController,
                 userId = it.arguments?.getInt("id") ?: 0,
                 sessionId = it.arguments?.getInt("sessionId") ?: 0,
+                rate = it.arguments?.getInt("rate") ?: 0,
                 context = context
             )
         }
         composable(
-            route = "CreateAssignment/{id}/{sessionId}/{items}/{type}/{deadline}",
+            route = "CreateAssignment/{id}/{sessionId}/{items}/{type}/{deadline}/{rate}",
             arguments = listOf(
                 navArgument("id") { type = NavType.IntType },
                 navArgument("sessionId") { type = NavType.IntType },
                 navArgument("items") { type = NavType.StringType },
                 navArgument("type") { type = NavType.StringType },
-                navArgument("deadline") { type = NavType.StringType }
+                navArgument("deadline") { type = NavType.StringType },
+                navArgument("rate") { type = NavType.IntType }
             )
         ) {
             CreateAssignment(
@@ -381,7 +362,36 @@ fun NavigationGraph(
                 sessionId = it.arguments?.getInt("sessionId") ?: 0,
                 items = it.arguments?.getString("items") ?: "5",
                 type = it.arguments?.getString("type") ?: "Multiple Choice",
-                deadline = it.arguments?.getString("deadline") ?: ""
+                deadline = it.arguments?.getString("deadline") ?: "",
+                rate = it.arguments?.getInt("rate") ?: 0
+            )
+        }
+        composable(
+            route = "Assignment/{id}/{assignmentId}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType },
+                navArgument("assignmentId") { type = NavType.IntType }
+            )
+        ) {
+            Assignment(
+                scope = scope,
+                drawerState = drawerState,
+                context = context,
+                navController = navController,
+                userId = it.arguments?.getInt("id") ?: 0,
+                assignmentId = it.arguments?.getInt("assignmentId") ?: 0
+            )
+        }
+        composable(
+            route = "Archive/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) {
+            Archive(
+                scope = scope,
+                drawerState = drawerState,
+                context = context,
+                navController = navController,
+                userId = it.arguments?.getInt("id") ?: 0
             )
         }
     }

@@ -2,8 +2,8 @@ package com.serrano.academically.custom_composables
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShortText
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ShortText
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -19,7 +19,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -52,7 +51,7 @@ fun DashboardTopBar(
             navigationIcon = {
                 IconButton(onClick = { scope.launch { drawerState.open() } }) {
                     Icon(
-                        imageVector = Icons.Filled.ShortText,
+                        imageVector = Icons.AutoMirrored.Filled.ShortText,
                         contentDescription = null,
                         modifier = Modifier.size(30.dp)
                     )

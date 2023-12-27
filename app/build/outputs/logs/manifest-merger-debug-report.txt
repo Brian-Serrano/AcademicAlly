@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-28:12
-INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-28:12
-INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-28:12
-INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-28:12
+ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-30:12
+INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-30:12
+INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-30:12
+INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:1-30:12
 MERGED from [androidx.room:room-ktx:2.6.1] C:\Users\brian\.gradle\caches\transforms-3\fcbce21ff180cc875f341cfd561dd5c8\transformed\room-ktx-2.6.1\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\brian\.gradle\caches\transforms-3\9ba2593cb7614bb49111875fd2a44113\transformed\room-runtime-2.6.1\AndroidManifest.xml:17:1-31:12
 MERGED from [androidx.hilt:hilt-navigation-compose:1.1.0] C:\Users\brian\.gradle\caches\transforms-3\1d36ecf3921a6d28cc637d718c83c5cd\transformed\hilt-navigation-compose-1.1.0\AndroidManifest.xml:2:1-7:12
@@ -96,9 +96,11 @@ MERGED from [com.google.android.play:core-common:2.0.2] C:\Users\brian\.gradle\c
 		INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml
 	xmlns:android
 		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:2:11-69
+	tools:ignore
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:4:5-45
 application
-ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:5:5-26:19
-INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:5:5-26:19
+ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:6:5-28:19
+INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:6:5-28:19
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\brian\.gradle\caches\transforms-3\9ba2593cb7614bb49111875fd2a44113\transformed\room-runtime-2.6.1\AndroidManifest.xml:23:5-29:19
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\brian\.gradle\caches\transforms-3\9ba2593cb7614bb49111875fd2a44113\transformed\room-runtime-2.6.1\AndroidManifest.xml:23:5-29:19
 MERGED from [com.google.android.play:feature-delivery:2.0.1] C:\Users\brian\.gradle\caches\transforms-3\46397518f45e271f8e3148c7fa3994b2\transformed\feature-delivery-2.0.1\AndroidManifest.xml:11:5-12:19
@@ -132,43 +134,45 @@ MERGED from [com.google.android.play:core-common:2.0.2] C:\Users\brian\.gradle\c
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\50f52187ff193881cb799f12afe617d4\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:13:9-35
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:14:9-35
 	android:label
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:11:9-41
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:12:9-41
 	android:fullBackupContent
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:9:9-54
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:10:9-54
 	android:roundIcon
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:12:9-54
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:13:9-54
 	tools:targetApi
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:15:9-29
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:16:9-29
 	android:icon
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:10:9-43
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:11:9-43
 	android:allowBackup
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:7:9-35
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:8:9-36
 	android:theme
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:14:9-50
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:15:9-50
 	android:dataExtractionRules
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:8:9-65
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:9:9-65
 	android:name
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:6:9-51
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:7:9-51
 activity#com.serrano.academically.activity.MainActivity
-ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:16:9-25:20
+ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:17:9-27:20
+	android:screenOrientation
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:20:13-49
 	android:exported
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:18:13-36
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:19:13-36
 	android:theme
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:19:13-54
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:21:13-54
 	android:name
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:17:13-50
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:18:13-50
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:20:13-24:29
+ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:22:13-26:29
 action#android.intent.action.MAIN
-ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:21:17-69
+ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:23:17-69
 	android:name
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:21:25-66
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:23:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:23:17-77
+ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:25:17-77
 	android:name
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:23:27-74
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:25:27-74
 uses-sdk
 INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml

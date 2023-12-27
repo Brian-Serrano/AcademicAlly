@@ -1,14 +1,8 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.RowData
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.ProfileViewModel
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,8 +15,6 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,10 +22,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.custom_composables.BlackButton
+import com.serrano.academically.custom_composables.CoursesList
+import com.serrano.academically.custom_composables.CustomTab
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.RatingCard
+import com.serrano.academically.custom_composables.RowData
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.ProfileViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -47,10 +51,36 @@ fun Profile(
     tabs: List<String> = listOf("AS STUDENT", "AS TUTOR"),
     statisticNames: List<List<String>> = listOf(
         listOf(
-            "Points", "Assessment Points", "Request Points", "Session Points", "Sessions Completed", "Requests Sent", "Requests Denied", "Requests Accepted", "Assignments Taken", "Assessments Taken", "Badges Earned"
+            "Points",
+            "Assessment Points",
+            "Request Points",
+            "Session Points",
+            "Assignment Points",
+            "Sessions Completed",
+            "Requests Sent",
+            "Requests Denied",
+            "Requests Accepted",
+            "Assignments Taken",
+            "Assessments Taken",
+            "Badges Earned",
+            "Rates Obtained",
+            "Tutors Rated"
         ),
         listOf(
-            "Points", "Assessment Points", "Request Points", "Session Points", "Sessions Completed", "Requests Received", "Requests Denied", "Requests Accepted", "Assignments Created", "Assessments Taken", "Badges Earned"
+            "Points",
+            "Assessment Points",
+            "Request Points",
+            "Session Points",
+            "Assignment Points",
+            "Sessions Completed",
+            "Requests Received",
+            "Requests Denied",
+            "Requests Accepted",
+            "Assignments Created",
+            "Assessments Taken",
+            "Badges Earned",
+            "Rates Obtained",
+            "Students Rated"
         )
     ),
     profileViewModel: ProfileViewModel = hiltViewModel()
@@ -67,8 +97,24 @@ fun Profile(
     val courses by profileViewModel.courses.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = "",
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = "",
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -76,7 +122,8 @@ fun Profile(
                 user = user,
                 topBarText = "",
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Profile"
             ) { values ->
                 LazyColumn(
                     modifier = Modifier
@@ -130,27 +177,14 @@ fun Profile(
                         }
                     }
                     item {
-                        TabRow(
-                            selectedTabIndex = tabIndex,
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = Color.Black
-                        ) {
-                            tabs.forEachIndexed { index, title ->
-                                Tab(
-                                    text = {
-                                        Text(
-                                            text = title,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    },
-                                    selected = tabIndex == index,
-                                    onClick = { profileViewModel.updateTabIndex(index) }
-                                )
-                            }
-                        }
+                        CustomTab(
+                            tabIndex = tabIndex,
+                            tabs = tabs,
+                            onTabClick = { profileViewModel.updateTabIndex(it) }
+                        )
                     }
                     item {
-                        YellowCard(MaterialTheme.colorScheme.secondary) {
+                        YellowCard {
                             Text(
                                 text = "Summary: ${profile.summary}",
                                 style = MaterialTheme.typography.labelMedium,
@@ -164,34 +198,40 @@ fun Profile(
                         }
                     }
                     item {
-                        YellowCard(MaterialTheme.colorScheme.secondary) {
+                        YellowCard {
+                            val ratings = listOf(
+                                HelperFunctions.roundRating((if (profile.numberOfRatesAsStudent > 0) profile.totalRatingAsStudent / profile.numberOfRatesAsStudent else 0.0) * 5),
+                                HelperFunctions.roundRating((if (profile.numberOfRatesAsTutor > 0) profile.totalRatingAsTutor / profile.numberOfRatesAsTutor else 0.0) * 5)
+                            )
+                            RatingCard(text = "Performance Rating", rating = ratings[tabIndex])
+                        }
+                    }
+                    item {
+                        YellowCard {
                             Text(
                                 text = "Statistics",
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(20.dp)
                             )
-                            for (idx in 0..10) {
-                                RowData(name = statisticNames[tabIndex][idx], value = statistics[tabIndex][idx])
-                            }
+                            RowData(names = statisticNames[tabIndex], values = statistics[tabIndex])
                         }
                     }
                     item {
-                        YellowCard(MaterialTheme.colorScheme.secondary) {
-                            Text(
-                                text = "Courses",
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(20.dp)
-                            )
-                            courses[tabIndex].forEach {
-                                Text(
-                                    text = it.first,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(20.dp)
-                                )
-                                Text(
-                                    text = it.second,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(20.dp)
+                        YellowCard {
+                            CoursesList(courses[tabIndex])
+                        }
+                    }
+                    if (tabIndex == 1 && userId != otherId && courses[tabIndex].isNotEmpty()) {
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                BlackButton(
+                                    text = "CONTACT TUTOR",
+                                    action = { navController.navigate("MessageTutor/$userId/$otherId") },
+                                    modifier = Modifier.padding(20.dp),
+                                    style = MaterialTheme.typography.labelMedium
                                 )
                             }
                         }

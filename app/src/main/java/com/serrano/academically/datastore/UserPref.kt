@@ -17,5 +17,17 @@ data class UserPref(
     val searchCourseHistory: PersistentList<String> = persistentListOf(),
 
     @Serializable(with = PersistentListSerializer::class)
-    val searchTutorHistory: PersistentList<String> = persistentListOf()
+    val searchTutorHistory: PersistentList<String> = persistentListOf(),
+
+    @Serializable(with = PersistentListSerializer::class)
+    val searchArchiveHistory: PersistentList<String> = persistentListOf(),
+
+    val eligibility: String = "",
+    val courseId: Int = 0,
+    val score: Int = 0,
+    val items: Int = 0,
+    val evaluator: Double = 0.0,
+
+    val assessmentType: String = "",
+    val assessmentItems: String = ""
 )

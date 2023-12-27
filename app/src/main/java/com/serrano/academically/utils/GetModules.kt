@@ -1,10 +1,8 @@
 package com.serrano.academically.utils
 
 import android.content.Context
-import com.serrano.academically.ui.theme.Strings
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.WorkbookFactory
-import java.io.File
 
 object GetModules {
 

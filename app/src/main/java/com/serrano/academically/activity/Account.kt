@@ -1,18 +1,5 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.BlackButton
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.LoginTextField
-import com.serrano.academically.custom_composables.Text_1
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.utils.ManageAccountFields
-import com.serrano.academically.utils.PasswordFields
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.UserDrawerData
-import com.serrano.academically.viewmodel.AccountViewModel
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -30,8 +17,6 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +29,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.custom_composables.BlackButton
+import com.serrano.academically.custom_composables.CustomTab
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.utils.ManageAccountFields
+import com.serrano.academically.utils.PasswordFields
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.UserDrawerData
+import com.serrano.academically.viewmodel.AccountViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -65,10 +64,27 @@ fun Account(
     val accountFields by accountViewModel.accountFields.collectAsState()
     val passwordFields by accountViewModel.passwordFields.collectAsState()
     val tabIndex by accountViewModel.tabIndex.collectAsState()
+    val buttonsEnabled by accountViewModel.buttonsEnabled.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = Strings.manageAccount,
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = Strings.manageAccount,
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -76,35 +92,23 @@ fun Account(
                 user = UserDrawerData(user.id, user.name, user.role, user.email, user.degree),
                 topBarText = Strings.manageAccount,
                 navController = navController,
-                context = context
-            ) {
+                context = context,
+                selected = "ManageAccounts"
+            ) { paddingValues ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(it)
+                        .padding(paddingValues)
                         .background(MaterialTheme.colorScheme.primary)
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    TabRow(
-                        selectedTabIndex = tabIndex,
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = Color.Black
-                    ) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                text = {
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                },
-                                selected = tabIndex == index,
-                                onClick = { accountViewModel.updateTabIndex(index) }
-                            )
-                        }
-                    }
-                    YellowCard(MaterialTheme.colorScheme.tertiary) {
+                    CustomTab(
+                        tabIndex = tabIndex,
+                        tabs = tabs,
+                        onTabClick = { accountViewModel.updateTabIndex(it) }
+                    )
+                    YellowCard {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -113,17 +117,30 @@ fun Account(
                             verticalArrangement = Arrangement.spacedBy(15.dp)
                         ) {
                             when (tabIndex) {
-                                0 -> Info(user.id, accountFields, accountViewModel)
-                                1 -> Password(user.id, user.password, passwordFields, accountViewModel)
-                                2 -> More {
-                                    try {
-                                        accountViewModel.switchRole(user.role, user.id)
-                                        navController.navigate("Dashboard/${user.id}")
-                                    }
-                                    catch (e: Exception) {
-                                        Toast.makeText(context, "Failed to switch role", Toast.LENGTH_LONG).show()
-                                        navController.navigate("Dashboard/${user.id}")
-                                    }
+                                0 -> Info(
+                                    user.id,
+                                    buttonsEnabled[0],
+                                    accountFields,
+                                    accountViewModel
+                                )
+
+                                1 -> Password(
+                                    user.id,
+                                    buttonsEnabled[1],
+                                    user.password,
+                                    passwordFields,
+                                    accountViewModel
+                                )
+
+                                2 -> More(buttonsEnabled[2]) {
+                                    accountViewModel.switchRole(
+                                        role = user.role,
+                                        id = user.id,
+                                        navigate = {
+                                            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                                            navController.navigate("Dashboard/${user.id}")
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -137,6 +154,7 @@ fun Account(
 @Composable
 fun Info(
     id: Int,
+    enabled: Boolean,
     accountFields: ManageAccountFields,
     accountViewModel: AccountViewModel
 ) {
@@ -156,42 +174,66 @@ fun Info(
             action = {}
         )
     }
-    Text_1(text = "Name")
+    Text(
+        text = "Name",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Name",
         input = accountFields.name,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(name = it)) },
         supportingText = "Should be 5-20 characters"
     )
-    Text_1(text = "Degree")
+    Text(
+        text = "Degree",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Degree",
         input = accountFields.degree,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(degree = it)) },
         supportingText = "Should be acronyms of degrees available in STI"
     )
-    Text_1(text = "Age")
+    Text(
+        text = "Age",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Age",
         input = accountFields.age,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(age = it)) },
         supportingText = "Should range between 15-50"
     )
-    Text_1(text = "Address")
+    Text(
+        text = "Address",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Address",
         input = accountFields.address,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(address = it)) },
         supportingText = "Should be 15-40 characters"
     )
-    Text_1(text = "Contact Number")
+    Text(
+        text = "Contact Number",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Contact Number",
         input = accountFields.contactNumber,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(contactNumber = it)) },
         supportingText = "Should be 10-100 characters"
     )
-    Text_1(text = "Summary")
+    Text(
+        text = "Summary",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Summary",
         input = accountFields.summary,
@@ -201,11 +243,21 @@ fun Info(
         maxLines = 5,
         supportingText = "Should be 30-200 characters"
     )
-    Text_1(text = "Educational Background")
+    Text(
+        text = "Educational Background",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Educational Background",
         input = accountFields.educationalBackground,
-        onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(educationalBackground = it)) },
+        onInputChange = {
+            accountViewModel.updateAccountFields(
+                accountFields.copy(
+                    educationalBackground = it
+                )
+            )
+        },
         singleLine = false,
         minLines = 3,
         maxLines = 5,
@@ -217,9 +269,17 @@ fun Info(
             accountViewModel.saveInfo(
                 id = id,
                 accountFields = accountFields,
-                showMessage = { accountViewModel.updateAccountFields(accountFields.copy(error = it.message, errorColor = if (it.isValid) Color.Green else Color.Red)) }
+                showMessage = {
+                    accountViewModel.updateAccountFields(
+                        accountFields.copy(
+                            error = it.message,
+                            errorColor = if (it.isValid) Color.Green else Color.Red
+                        )
+                    )
+                }
             )
-        }
+        },
+        enabled = enabled
     )
     Text(
         text = accountFields.error,
@@ -231,18 +291,27 @@ fun Info(
 @Composable
 fun Password(
     id: Int,
+    enabled: Boolean,
     currentPassword: String,
     passwordFields: PasswordFields,
     accountViewModel: AccountViewModel
 ) {
-    Text_1(text = "Current Password")
+    Text(
+        text = "Current Password",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Current Password",
         input = passwordFields.currentPassword,
         onInputChange = { accountViewModel.updatePasswordFields(passwordFields.copy(currentPassword = it)) },
         visualTransformation = PasswordVisualTransformation()
     )
-    Text_1(text = "New Password")
+    Text(
+        text = "New Password",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "New Password",
         input = passwordFields.newPassword,
@@ -250,7 +319,11 @@ fun Password(
         visualTransformation = PasswordVisualTransformation(),
         supportingText = "Should have at least one letter and number, and 8-20 characters"
     )
-    Text_1(text = "Confirm Password")
+    Text(
+        text = "Confirm Password",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
     LoginTextField(
         inputName = "Confirm Password",
         input = passwordFields.confirmPassword,
@@ -264,9 +337,17 @@ fun Password(
                 id = id,
                 currentPassword = currentPassword,
                 passwordFields = passwordFields,
-                showMessage = { accountViewModel.updatePasswordFields(passwordFields.copy(error = it.message, errorColor = if (it.isValid) Color.Green else Color.Red)) }
+                showMessage = {
+                    accountViewModel.updatePasswordFields(
+                        passwordFields.copy(
+                            error = it.message,
+                            errorColor = if (it.isValid) Color.Green else Color.Red
+                        )
+                    )
+                }
             )
-        }
+        },
+        enabled = enabled
     )
     Text(
         text = passwordFields.error,
@@ -277,10 +358,12 @@ fun Password(
 
 @Composable
 fun More(
+    enabled: Boolean,
     action: () -> Unit
 ) {
     BlackButton(
         text = Strings.switchRole,
-        action = action
+        action = action,
+        enabled = enabled
     )
 }

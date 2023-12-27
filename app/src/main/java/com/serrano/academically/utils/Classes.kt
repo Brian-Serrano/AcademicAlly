@@ -1,5 +1,6 @@
 package com.serrano.academically.utils
 
+import androidx.compose.runtime.State
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import java.time.LocalDateTime
@@ -16,35 +17,32 @@ data class DashboardIcons(
 )
 
 data class LoginInput(
-    var email: String,
-    var password: String,
-    var error: String,
-    var remember: Boolean
-)
-
-data class ValidationMessage(
-    val isValid: Boolean,
-    val message: String
+    var email: String = "",
+    var password: String = "",
+    var error: String = "",
+    var remember: Boolean = false
 )
 
 data class SignupInput(
-    var name: String,
-    var email: String,
-    var password: String,
-    var confirmPassword: String,
-    var error: String
+    var name: String = "",
+    var email: String = "",
+    var password: String = "",
+    var confirmPassword: String = "",
+    var error: String = ""
 )
 
 data class SearchInfo(
-    var searchQuery: String,
-    var isActive: Boolean,
-    var history: List<String>
+    var searchQuery: String = "",
+    var isActive: Boolean = false,
+    var history: List<String> = emptyList()
 )
 
 data class AssessmentResult(
     var score: Int,
     var items: Int,
-    var evaluator: Double
+    var evaluator: Double,
+    var courseId: Int,
+    var eligibility: String
 )
 
 data class DropDownState(
@@ -54,17 +52,24 @@ data class DropDownState(
 )
 
 data class SessionSettings(
-    var date: String,
-    var startTime: String,
-    var endTime: String,
-    var location: String,
-    var error: String
+    var date: String = "",
+    var startTime: String = "",
+    var endTime: String = "",
+    var location: String = "",
+    var error: String = ""
 )
 
 data class DeadlineField(
-    var date: String,
-    var time: String,
-    var error: String
+    var date: String = "",
+    var time: String = "",
+    var error: String = ""
+)
+
+data class RateDialogStates(
+    var userId: Int = 0,
+    var sessionId: Int = 0,
+    var name: String = "",
+    var star: Int = 0
 )
 
 interface AssessmentType {
@@ -77,45 +82,46 @@ data class MultipleChoiceFields(
     override var question: String,
     var choices: List<String>,
     var answer: DropDownState
-): AssessmentType
+) : AssessmentType
 
 data class IdentificationFields(
     override var id: Int,
     override var question: String,
     var answer: String
-): AssessmentType
+) : AssessmentType
 
 data class TrueOrFalseFields(
     override var id: Int,
     override var question: String,
     var answer: DropDownState
-): AssessmentType
+) : AssessmentType
 
 data class ManageAccountFields(
-    val name: String,
-    var degree: String,
-    var age: String,
-    var address: String,
-    var contactNumber: String,
-    var summary: String,
-    var educationalBackground: String,
-    var error: String,
-    var errorColor: Color
+    var name: String = "",
+    var degree: String = "",
+    var age: String = "",
+    var address: String = "",
+    var contactNumber: String = "",
+    var summary: String = "",
+    var educationalBackground: String = "",
+    var error: String = "",
+    var errorColor: Color = Color.Red
 )
 
 data class PasswordFields(
-    var currentPassword: String,
-    var newPassword: String,
-    var confirmPassword: String,
-    var error: String,
-    var errorColor: Color
+    var currentPassword: String = "",
+    var newPassword: String = "",
+    var confirmPassword: String = "",
+    var error: String = "",
+    var errorColor: Color = Color.Red
 )
 
 data class FindTutorData(
     var tutorId: Int,
     var tutorName: String,
     var courses: List<String>,
-    var rating: List<Double>
+    var rating: List<Double>,
+    var performance: Rating
 )
 
 data class FilterDialogStates(
@@ -124,112 +130,139 @@ data class FilterDialogStates(
     var isEnabled: Boolean
 )
 
+data class ChartData(
+    val text: String,
+    val value: State<Float>,
+    val color: Color
+)
+
+data class ValidationMessage(
+    val isValid: Boolean = false,
+    val message: String = "",
+    val id: Int = 0
+)
+
 data class RoomIsDumb(
     val id: Int,
     val achievement: List<Double>
 )
 
 data class UserDrawerData(
-    val id: Int,
-    val name: String,
-    val role : String,
-    val email: String,
-    val degree: String
+    val id: Int = 0,
+    val name: String = "Test",
+    val role: String = "STUDENT",
+    val email: String = "test@gmail.com",
+    val degree: String = "BSCS"
 )
 
 data class UserInfo(
-    val id: Int,
-    val name: String,
-    val degree: String,
-    val age: Int,
-    val address: String,
-    val contactNumber: String,
-    val summary: String,
-    val educationalBackground: String
+    val id: Int = 0,
+    val name: String = "Test",
+    val degree: String = "BSCS",
+    val age: Int = 0,
+    val address: String = "NA",
+    val contactNumber: String = "NA",
+    val summary: String = "This user has no summary provided",
+    val educationalBackground: String = "This user has no educational background provided"
 )
 
 data class UserInfoAndCredentials(
-    val id: Int,
-    val name: String,
-    val role : String,
-    val email: String,
-    val password: String,
-    val imagePath: String,
-    val degree: String,
-    val age: Int,
-    val address: String,
-    val contactNumber: String,
-    val summary: String,
-    val educationalBackground: String
+    val id: Int = 0,
+    val name: String = "Test",
+    val role: String = "STUDENT",
+    val email: String = "test@gmail.com",
+    val password: String = "test123",
+    val imagePath: String = "NA",
+    val degree: String = "BSCS",
+    val age: Int = 0,
+    val address: String = "NA",
+    val contactNumber: String = "NA",
+    val summary: String = "This user has no summary provided",
+    val educationalBackground: String = "This user has no educational background provided"
 )
 
 data class AnalyticsData(
-    val id: Int,
-
-    val name: String,
-    val role : String,
-    val email: String,
-    val degree: String,
-
-    val studentPoints: Double,
-    val studentAssessmentPoints: Double,
-    val studentRequestPoints: Double,
-    val studentSessionPoints: Double,
-    val sessionsCompletedAsStudent: Int,
-    val requestsSent: Int,
-    val deniedRequests: Int,
-    val acceptedRequests: Int,
-    val assignmentsTaken: Int,
-    val assessmentsTakenAsStudent: Int,
-    val badgeProgressAsStudent: List<Double>,
-
-    val tutorPoints: Double,
-    val tutorAssessmentPoints: Double,
-    val tutorRequestPoints: Double,
-    val tutorSessionPoints: Double,
-    val sessionsCompletedAsTutor: Int,
-    val requestsAccepted: Int,
-    val requestsDenied: Int,
-    val requestsReceived: Int,
-    val assignmentsCreated: Int,
-    val assessmentsTakenAsTutor: Int,
-    val badgeProgressAsTutor: List<Double>
+    val id: Int = 0,
+    val name: String = "Test",
+    val role: String = "STUDENT",
+    val email: String = "test@gmail.com",
+    val degree: String = "BSCS",
+    val studentPoints: Double = 0.0,
+    val studentAssessmentPoints: Double = 0.0,
+    val studentRequestPoints: Double = 0.0,
+    val studentSessionPoints: Double = 0.0,
+    val studentAssignmentPoints: Double = 0.0,
+    val sessionsCompletedAsStudent: Int = 0,
+    val requestsSent: Int = 0,
+    val deniedRequests: Int = 0,
+    val acceptedRequests: Int = 0,
+    val assignmentsTaken: Int = 0,
+    val assessmentsTakenAsStudent: Int = 0,
+    val badgeProgressAsStudent: List<Double> = List(28) { 0.0 },
+    val numberOfRatesAsStudent: Int = 0,
+    val totalRatingAsStudent: Double = 0.0,
+    val tutorsRated: Int = 0,
+    val tutorPoints: Double = 0.0,
+    val tutorAssessmentPoints: Double = 0.0,
+    val tutorRequestPoints: Double = 0.0,
+    val tutorSessionPoints: Double = 0.0,
+    val tutorAssignmentPoints: Double = 0.0,
+    val sessionsCompletedAsTutor: Int = 0,
+    val requestsAccepted: Int = 0,
+    val requestsDenied: Int = 0,
+    val requestsReceived: Int = 0,
+    val assignmentsCreated: Int = 0,
+    val assessmentsTakenAsTutor: Int = 0,
+    val badgeProgressAsTutor: List<Double> = List(28) { 0.0 },
+    val numberOfRatesAsTutor: Int = 0,
+    val totalRatingAsTutor: Double = 0.0,
+    val studentsRated: Int = 0
 )
 
 data class LeaderboardData(
     val id: Int,
     val name: String,
-    val points: Double
+    val rating: Double,
+    val number: Int
+)
+
+data class Rating(
+    val rating: Double = 0.0,
+    val number: Int = 0,
 )
 
 data class SessionInfo(
-    val courseName: String,
-    val tutorName: String,
-    val studentName: String,
-    val moduleName: String
+    val courseName: String = "Computer Programming 1",
+    val tutorName: String = "TestTutor",
+    val studentName: String = "TestStudent",
+    val moduleName: String = "Basics of Programming"
 )
 
 data class SessionNotifications(
     val sessionId: Int,
     val courseId: Int,
     val startTime: LocalDateTime,
-    val endTime: LocalDateTime
+    val endTime: LocalDateTime,
+    val status: String,
+    val studentViewed: Boolean
 )
 
 data class MessageCourse(
-    val courseName: String,
-    val moduleName: String
+    val courseName: String = "Computer Programming 1",
+    val moduleName: String = "Basics of Programming"
 )
 
 data class MessageNotifications(
     val messageId: Int,
     val studentId: Int,
     val tutorId: Int,
-    val courseId: Int
+    val courseId: Int,
+    val status: String,
+    val tutorViewed: Boolean
 )
 
 sealed class ProcessState {
-    object Loading : ProcessState()
-    object Success : ProcessState()
-    object Error : ProcessState()
+    data object Loading : ProcessState()
+    data object Success : ProcessState()
+    data object Error : ProcessState()
 }

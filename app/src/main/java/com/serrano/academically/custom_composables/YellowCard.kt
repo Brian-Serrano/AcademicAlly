@@ -8,22 +8,20 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun YellowCard(
-    color: Color,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = color
+            containerColor = MaterialTheme.colorScheme.tertiary
         ),
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
-        shape = MaterialTheme.shapes.small,
+        shape = MaterialTheme.shapes.extraSmall,
         content = content
     )
 }

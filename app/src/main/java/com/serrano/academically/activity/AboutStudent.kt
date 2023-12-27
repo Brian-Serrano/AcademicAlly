@@ -1,23 +1,13 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.BlackButton
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.InfoCard
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.Text_1
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.AboutStudentViewModel
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +17,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,6 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.serrano.academically.custom_composables.BlackButton
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.InfoCard
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.AboutStudentViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -54,22 +55,38 @@ fun AboutStudent(
     }
 
     val message by aboutStudentViewModel.messageDetails.collectAsState()
-    val message2 by aboutStudentViewModel.messageInfo.collectAsState()
     val user by aboutStudentViewModel.userData.collectAsState()
-    val userInfo by aboutStudentViewModel.userInfo.collectAsState()
     val process by aboutStudentViewModel.processState.collectAsState()
+    val rejectEnabled by aboutStudentViewModel.rejectButtonEnabled.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = "ABOUT STUDENT",
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = "ABOUT STUDENT",
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
-                topBarText = "ABOUT ${userInfo.name}",
+                topBarText = "ABOUT ${message.third.name}",
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Notifications"
             ) {
                 Column(
                     modifier = Modifier
@@ -78,7 +95,7 @@ fun AboutStudent(
                         .padding(it)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    YellowCard(MaterialTheme.colorScheme.tertiary) {
+                    YellowCard {
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
@@ -90,10 +107,21 @@ fun AboutStudent(
                                         .size(80.dp)
                                 )
                                 Column {
-                                    Box(modifier = Modifier.clickable { navController.navigate("Profile/${user.id}/${userInfo.id}") }) {
-                                        Text_1(text = userInfo.name)
+                                    Box(
+                                        modifier = Modifier
+                                            .clickable { navController.navigate("Profile/${user.id}/${message.third.id}") }
+                                    ) {
+                                        Text(
+                                            text = message.third.name,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            modifier = Modifier.padding(10.dp)
+                                        )
                                     }
-                                    Text_1(text = message.studentMessage)
+                                    Text(
+                                        text = message.first.studentMessage,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
                                 }
                             }
                             if (user.role == "TUTOR") {
@@ -101,37 +129,67 @@ fun AboutStudent(
                                     BlackButton(
                                         text = Strings.accept,
                                         action = {
-                                            navController.navigate("CreateSession/$userId/${userInfo.id}/${message.courseId}/${message.moduleId}/$messageId")
+                                            navController.navigate("CreateSession/$userId/$messageId")
                                         },
                                         style = MaterialTheme.typography.labelMedium,
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(65.dp)
                                             .padding(10.dp)
                                     )
                                     BlackButton(
                                         text = Strings.reject,
                                         action = {
-                                            aboutStudentViewModel.respond(message.studentId, message.tutorId, "REJECT", messageId, context) { navController.navigateUp() }
+                                            aboutStudentViewModel.respond(
+                                                studentId = message.first.studentId,
+                                                tutorId = message.first.tutorId,
+                                                status = "REJECT",
+                                                messageId = messageId,
+                                                context = context,
+                                                navigate = {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Student Rejected!",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    navController.navigateUp()
+                                                }
+                                            )
                                         },
                                         style = MaterialTheme.typography.labelMedium,
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(65.dp)
-                                            .padding(10.dp)
+                                            .padding(10.dp),
+                                        enabled = rejectEnabled
                                     )
                                 }
                             }
                         }
                     }
-                    InfoCard(title = "COURSE", description = message2.courseName)
-                    InfoCard(title = "MODULE", description = message2.moduleName)
-                    InfoCard(title = "AGE", description = userInfo.age.toString())
-                    InfoCard(title = "DEGREE", description = userInfo.degree)
-                    InfoCard(title = "ADDRESS", description = userInfo.address)
-                    InfoCard(title = "CONTACT NUMBER", description = userInfo.contactNumber)
-                    InfoCard(title = "SUMMARY", description = userInfo.summary)
-                    InfoCard(title = "EDUCATIONAL BACKGROUND", description = userInfo.educationalBackground)
+
+                    val titles = listOf(
+                        "COURSE",
+                        "MODULE",
+                        "AGE",
+                        "DEGREE",
+                        "ADDRESS",
+                        "CONTACT NUMBER",
+                        "SUMMARY",
+                        "EDUCATIONAL BACKGROUND"
+                    )
+                    val descriptions = listOf(
+                        message.second.courseName,
+                        message.second.moduleName,
+                        message.third.age.toString(),
+                        message.third.degree,
+                        message.third.address,
+                        message.third.contactNumber,
+                        message.third.summary,
+                        message.third.educationalBackground
+                    )
+
+                    titles.forEachIndexed { index, title ->
+                        InfoCard(title = title, description = descriptions[index])
+                    }
                 }
             }
         }

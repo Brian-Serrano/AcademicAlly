@@ -1,15 +1,12 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.serrano.academically.room.UserRepository
 import com.serrano.academically.utils.GetAchievements
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.UserDrawerData
-import com.serrano.academically.utils.UserInfoAndCredentials
-import com.serrano.academically.utils.emptyUserDrawerData
-import com.serrano.academically.utils.emptyUserInfoAndCredentials
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,12 +18,12 @@ import javax.inject.Inject
 @HiltViewModel
 class AchievementsViewModel @Inject constructor(
     private val userRepository: UserRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _userData = MutableStateFlow(emptyUserDrawerData())
+    private val _userData = MutableStateFlow(UserDrawerData())
     val userData: StateFlow<UserDrawerData> = _userData.asStateFlow()
 
     private val _achievements = MutableStateFlow<List<List<String>>>(emptyList())
@@ -42,19 +39,21 @@ class AchievementsViewModel @Inject constructor(
                 _userData.value = userRepository.getUserDataForDrawer(id).first()
 
                 // Fetch achievements and progress base on user role
-                when (userData.value.role) {
+                when (_userData.value.role) {
                     "STUDENT" -> {
                         _achievements.value = GetAchievements.getAchievements(1, context)
-                        _achievementsProgress.value = userRepository.getBadgeProgressAsStudent(id).first().achievement
+                        _achievementsProgress.value =
+                            userRepository.getBadgeProgressAsStudent(id).first().achievement
                     }
+
                     "TUTOR" -> {
                         _achievements.value = GetAchievements.getAchievements(0, context)
-                        _achievementsProgress.value = userRepository.getBadgeProgressAsTutor(id).first().achievement
+                        _achievementsProgress.value =
+                            userRepository.getBadgeProgressAsTutor(id).first().achievement
                     }
                 }
                 _processState.value = ProcessState.Success
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 _processState.value = ProcessState.Error
             }
         }

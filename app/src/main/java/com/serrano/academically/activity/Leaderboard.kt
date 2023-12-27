@@ -1,13 +1,5 @@
 package com.serrano.academically.activity
 
-import com.serrano.academically.custom_composables.DrawerAndScaffold
-import com.serrano.academically.custom_composables.ErrorComposable
-import com.serrano.academically.custom_composables.FourButtons
-import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
-import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.viewmodel.LeaderboardViewModel
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,7 +28,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.serrano.academically.utils.roundRating
+import com.serrano.academically.custom_composables.DrawerAndScaffold
+import com.serrano.academically.custom_composables.ErrorComposable
+import com.serrano.academically.custom_composables.Loading
+import com.serrano.academically.custom_composables.ScaffoldNoDrawer
+import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.viewmodel.LeaderboardViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -54,12 +54,27 @@ fun Leaderboard(
 
     val user by leaderboardViewModel.userDrawer.collectAsState()
     val leaderboard by leaderboardViewModel.leaderboardsData.collectAsState()
-    val tab by leaderboardViewModel.tabIndex.collectAsState()
     val process by leaderboardViewModel.processState.collectAsState()
 
     when (process) {
-        ProcessState.Error -> ErrorComposable(navController)
-        ProcessState.Loading -> Loading()
+        ProcessState.Error -> {
+            ScaffoldNoDrawer(
+                text = Strings.leaderboard,
+                navController = navController
+            ) {
+                ErrorComposable(navController, it)
+            }
+        }
+
+        ProcessState.Loading -> {
+            ScaffoldNoDrawer(
+                text = Strings.leaderboard,
+                navController = navController
+            ) {
+                Loading(it)
+            }
+        }
+
         ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
@@ -67,7 +82,8 @@ fun Leaderboard(
                 user = user,
                 topBarText = Strings.leaderboard,
                 navController = navController,
-                context = context
+                context = context,
+                selected = "Leaderboard"
             ) {
                 Column(
                     modifier = Modifier
@@ -75,25 +91,14 @@ fun Leaderboard(
                         .background(MaterialTheme.colorScheme.primary)
                         .padding(it)
                 ) {
-                    YellowCard(MaterialTheme.colorScheme.secondary) {
-                        FourButtons(
-                            texts = listOf("ALL", "ASSESSMENTS", "REQUESTS", "SESSIONS"),
-                            actions = listOf(
-                                { leaderboardViewModel.updateTabIndex(0) },
-                                { leaderboardViewModel.updateTabIndex(1) },
-                                { leaderboardViewModel.updateTabIndex(2) },
-                                { leaderboardViewModel.updateTabIndex(3) }
-                            )
-                        )
-                    }
-                    YellowCard(MaterialTheme.colorScheme.secondary) {
+                    YellowCard {
                         LazyColumn {
-                            items(leaderboard[tab].size) {
+                            items(leaderboard.size) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 30.dp)
-                                        .clickable { navController.navigate("Profile/${user.id}/${leaderboard[tab][it].id}") },
+                                        .clickable { navController.navigate("Profile/${user.id}/${leaderboard[it].id}") },
                                     horizontalArrangement = Arrangement.SpaceEvenly,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -112,12 +117,13 @@ fun Leaderboard(
                                             .size(40.dp),
                                     )
                                     Text(
-                                        text = leaderboard[tab][it].name,
+                                        text = leaderboard[it].name,
                                         style = MaterialTheme.typography.bodyMedium,
                                         modifier = Modifier.weight(1f)
                                     )
                                     Text(
-                                        text = roundRating(leaderboard[tab][it].points).toString(),
+                                        text = HelperFunctions.roundRating((if (leaderboard[it].number > 0) leaderboard[it].rating / leaderboard[it].number else 0.0) * 5)
+                                            .toString(),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
