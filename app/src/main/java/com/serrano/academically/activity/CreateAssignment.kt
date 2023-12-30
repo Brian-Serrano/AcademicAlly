@@ -36,7 +36,7 @@ import com.serrano.academically.custom_composables.LoginTextField
 import com.serrano.academically.custom_composables.QuizInfo
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAnim
-import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.AssessmentType
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.IdentificationFields
@@ -153,7 +153,7 @@ fun CreateAssignment(
                             thumbRadius = 1.dp,
                             thumbOffset = 1.5.dp,
                             progress = item / items.toFloat(),
-                            progressBarColor = Color.Cyan
+                            progressBarColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                         Text(
                             text = "Item",
@@ -252,7 +252,7 @@ fun MultipleChoiceEditor(
     onFieldEdit: (MultipleChoiceFields) -> Unit,
     choices: List<String> = listOf("A", "B", "C", "D")
 ) {
-    YellowCard {
+    CustomCard {
         Text(
             text = "Question #${assessmentFields.id + 1}",
             style = MaterialTheme.typography.labelMedium,
@@ -331,7 +331,7 @@ fun IdentificationEditor(
     assessmentFields: IdentificationFields,
     onFieldEdit: (IdentificationFields) -> Unit
 ) {
-    YellowCard {
+    CustomCard {
         Text(
             text = "Question #${assessmentFields.id + 1}",
             style = MaterialTheme.typography.labelMedium,
@@ -364,7 +364,7 @@ fun TrueOrFalseEditor(
     assessmentFields: TrueOrFalseFields,
     onFieldEdit: (TrueOrFalseFields) -> Unit
 ) {
-    YellowCard {
+    CustomCard {
         Text(
             text = "Question #${assessmentFields.id + 1}",
             style = MaterialTheme.typography.labelMedium,

@@ -18,14 +18,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SimpleProgressIndicatorWithAnim(
-    modifier: Modifier = Modifier,
-    progress: Float = 0.7f,
-    progressBarColor: Color = Color.Red,
-    cornerRadius: Dp = 0.dp,
-    trackColor: Color = Color(0XFFFBE8E8),
-    thumbRadius: Dp = 0.dp,
+    modifier: Modifier,
+    progress: Float,
+    progressBarColor: Color,
+    cornerRadius: Dp,
+    thumbRadius: Dp,
+    thumbOffset: Dp,
     thumbColor: Color = Color.White,
-    thumbOffset: Dp = thumbRadius,
+    trackColor: Color = Color(0XFFFBE8E8),
     animationSpec: AnimationSpec<Float> = SimpleProgressIndicatorDefaults.SimpleProgressAnimationSpec,
 ) {
     val mProgress: Float by animateFloatAsState(

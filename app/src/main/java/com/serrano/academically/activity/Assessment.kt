@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.serrano.academically.custom_composables.AssessmentMenu
@@ -45,13 +46,21 @@ fun Assessment(
     val isDrawerShouldAvailable by assessmentViewModel.isDrawerShouldAvailable.collectAsState()
     val nextEnabled by assessmentViewModel.nextButtonEnabled.collectAsState()
 
+    val focusManager = LocalFocusManager.current
+
     val onBackButtonClick = {
         if (item > 0) {
+            if (type == "Identification") {
+                focusManager.clearFocus()
+            }
             assessmentViewModel.moveItem(false)
         }
     }
     val onNextButtonClick = {
         if (item < assessmentData.size - 1) {
+            if (type == "Identification") {
+                focusManager.clearFocus()
+            }
             assessmentViewModel.moveItem(true)
         } else {
             if (id == 0) {
@@ -84,7 +93,7 @@ fun Assessment(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.assess,
+                text = "ASSESSMENT",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -93,7 +102,7 @@ fun Assessment(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.assess,
+                text = "ASSESSMENT",
                 navController = navController
             ) {
                 Loading(it)
@@ -114,7 +123,7 @@ fun Assessment(
                         topBar = TopBar(
                             scope = scope,
                             drawerState = drawerState,
-                            text = Strings.assess,
+                            text = "ASSESSMENT",
                             navController = navController
                         )
                     ) { paddingValues ->
@@ -135,7 +144,7 @@ fun Assessment(
                 }
             } else {
                 ScaffoldNoDrawer(
-                    text = Strings.assess,
+                    text = "ASSESSMENT",
                     navController = navController
                 ) { paddingValues ->
                     AssessmentMenu(

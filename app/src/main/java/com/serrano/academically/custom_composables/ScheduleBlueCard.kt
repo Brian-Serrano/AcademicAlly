@@ -33,7 +33,7 @@ fun ScheduleBlueCard(
     BadgedBox(badge = badge) {
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -45,20 +45,17 @@ fun ScheduleBlueCard(
                     Text(
                         text = HelperFunctions.formatTime(session.startTime, session.endTime),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White,
                         modifier = Modifier.padding(start = 15.dp, top = 15.dp)
                     )
                     Text(
                         text = sessionCourse,
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
                         modifier = Modifier.padding(start = 15.dp, bottom = 15.dp)
                     )
                 }
                 Icon(
                     imageVector = Icons.Filled.ChevronRight,
                     contentDescription = null,
-                    tint = Color.White,
                     modifier = Modifier
                         .size(35.dp)
                         .clickable(onClick = onArrowClick)

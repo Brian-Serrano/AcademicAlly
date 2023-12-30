@@ -61,19 +61,21 @@ fun AssessmentResult(
             verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically)
         ) {
             Text(
-                text = Strings.completedAssess,
-                style = MaterialTheme.typography.displayMedium
+                text = "Assessment Completed",
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.onPrimary
             )
             CircularProgressBar(
                 percentage = score.toFloat() / items,
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                radius = 75.dp,
+                radius = 100.dp,
                 animationPlayed = animationPlayed
             )
             Text(
                 text = "You got a score of $score out of $items. You are eligible to be $eligibility for this course. This eligibility is only for this course assessment. It might change base on computation of your past and future assessments.",
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
         Row(

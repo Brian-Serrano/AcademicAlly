@@ -38,14 +38,15 @@ fun FilterDialog(
             modifier = Modifier
                 .size(300.dp, 500.dp)
                 .clip(MaterialTheme.shapes.extraSmall)
-                .background(color = Color.White),
+                .background(MaterialTheme.colorScheme.onBackground),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "Filter Tutor by Course",
                 style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(10.dp)
+                modifier = Modifier.padding(10.dp),
+                color = MaterialTheme.colorScheme.background
             )
             LazyColumn(
                 modifier = Modifier
@@ -69,7 +70,8 @@ fun FilterDialog(
                         )
                         Text(
                             text = filter.courseName,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.background
                         )
                     }
                 }

@@ -20,7 +20,7 @@ fun CustomTab(
     TabRow(
         selectedTabIndex = tabIndex,
         containerColor = MaterialTheme.colorScheme.secondary,
-        contentColor = Color.Black
+        contentColor = MaterialTheme.colorScheme.background
     ) {
         tabs.forEachIndexed { index, title ->
             Tab(

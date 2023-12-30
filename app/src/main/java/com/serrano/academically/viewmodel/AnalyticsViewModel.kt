@@ -1,12 +1,15 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serrano.academically.room.CourseSkill
 import com.serrano.academically.room.CourseSkillRepository
 import com.serrano.academically.room.UserRepository
 import com.serrano.academically.utils.AnalyticsData
+import com.serrano.academically.utils.ChartState
 import com.serrano.academically.utils.GetCourses
 import com.serrano.academically.utils.ProcessState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,11 +41,8 @@ class AnalyticsViewModel @Inject constructor(
     private val _chartTabIndex = MutableStateFlow(0)
     val chartTabIndex: StateFlow<Int> = _chartTabIndex.asStateFlow()
 
-    private val _chartCamera = MutableStateFlow(0f)
-    val chartCamera: StateFlow<Float> = _chartCamera.asStateFlow()
-
-    private val _chartViewSize = MutableStateFlow(0f)
-    val chartViewSize: StateFlow<Float> = _chartViewSize.asStateFlow()
+    private val _chartState = MutableStateFlow(ChartState())
+    val chartState: StateFlow<ChartState> = _chartState.asStateFlow()
 
     fun getData(id: Int, context: Context) {
         viewModelScope.launch {
@@ -63,20 +63,15 @@ class AnalyticsViewModel @Inject constructor(
         }
     }
 
+    fun updateChartState(newState: ChartState) {
+        _chartState.value = newState
+    }
+
     fun toggleAnimation(bool: Boolean) {
         _animationPlayed.value = bool
     }
 
-    fun updateCamera(delta: Float) {
-        _chartCamera.value = delta
-    }
-
-    fun updateChartSize(actualSize: Float) {
-        _chartViewSize.value = actualSize
-    }
-
     fun updateChartTab(newIdx: Int) {
-        updateCamera(0f)
         toggleAnimation(false)
         _chartTabIndex.value = newIdx
     }

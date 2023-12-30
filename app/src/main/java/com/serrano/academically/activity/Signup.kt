@@ -75,7 +75,6 @@ fun Signup(
             Icon(
                 imageVector = Icons.Default.ArrowBackIosNew,
                 contentDescription = null,
-                tint = Color.Black,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(20.dp)
@@ -88,7 +87,7 @@ fun Signup(
             ) {
                 Text(
                     text = "Create $user Account",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.labelMedium
                 )
                 LoginTextField(
@@ -122,11 +121,11 @@ fun Signup(
                 )
                 Text(
                     text = signupInput.error,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 BlackButton(
-                    text = Strings.createAccount,
+                    text = "CREATE ACCOUNT",
                     action = {
                         signupViewModel.validateUserSignUpAsynchronously(
                             context = context,
@@ -159,13 +158,13 @@ fun Signup(
                     horizontalArrangement = Arrangement.spacedBy(30.dp)
                 ) {
                     Text(
-                        text = Strings.haveAccount,
+                        text = "Already have account?",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = Strings.logIn,
-                        color = Color.Blue,
+                        text = "Login Now",
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { navController.navigate("Login/$user") }

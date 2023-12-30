@@ -24,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -34,8 +33,7 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.InfoCard
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AboutStudentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -95,13 +93,12 @@ fun AboutStudent(
                         .padding(it)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    YellowCard {
+                    CustomCard {
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Filled.AccountCircle,
                                     contentDescription = null,
-                                    tint = Color.Gray,
                                     modifier = Modifier
                                         .padding(10.dp)
                                         .size(80.dp)
@@ -127,7 +124,7 @@ fun AboutStudent(
                             if (user.role == "TUTOR") {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     BlackButton(
-                                        text = Strings.accept,
+                                        text = "ACCEPT",
                                         action = {
                                             navController.navigate("CreateSession/$userId/$messageId")
                                         },
@@ -137,7 +134,7 @@ fun AboutStudent(
                                             .padding(10.dp)
                                     )
                                     BlackButton(
-                                        text = Strings.reject,
+                                        text = "REJECT",
                                         action = {
                                             aboutStudentViewModel.respond(
                                                 studentId = message.first.studentId,
@@ -170,7 +167,7 @@ fun AboutStudent(
                         "COURSE",
                         "MODULE",
                         "AGE",
-                        "DEGREE",
+                        "PROGRAM",
                         "ADDRESS",
                         "CONTACT NUMBER",
                         "SUMMARY",

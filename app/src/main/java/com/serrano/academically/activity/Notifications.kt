@@ -27,7 +27,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -37,9 +36,8 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.ScheduleBlueCard
-import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.room.Assignment
-import com.serrano.academically.ui.theme.Strings
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.MessageNotifications
 import com.serrano.academically.utils.ProcessState
@@ -72,7 +70,7 @@ fun Notifications(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.notifications,
+                text = "Notifications",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -81,7 +79,7 @@ fun Notifications(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.notifications,
+                text = "Notifications",
                 navController = navController
             ) {
                 Loading(it)
@@ -93,7 +91,7 @@ fun Notifications(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
-                topBarText = Strings.notifications,
+                topBarText = "Notifications",
                 navController = navController,
                 context = context,
                 selected = "Notifications"
@@ -178,7 +176,7 @@ fun Requests(
                     .fillMaxWidth()
                     .clickable { onClick(it.first.messageId) },
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            ){
                 BadgedBox(badge = {
                     if (!it.first.tutorViewed && badgeAvailability) {
                         Badge(
@@ -191,7 +189,6 @@ fun Requests(
                     Icon(
                         imageVector = Icons.Filled.AccountCircle,
                         contentDescription = null,
-                        tint = Color.DarkGray,
                         modifier = Modifier
                             .size(60.dp)
                             .padding(10.dp)
@@ -220,7 +217,7 @@ fun Sessions(
     badgeAvailability: Boolean,
     onClick: (Int) -> Unit
 ) {
-    YellowCard {
+    CustomCard {
         LazyColumn {
             items(items = sessions.toList()) { session ->
                 Text(
@@ -268,7 +265,7 @@ fun Assignments(
                     }
                 }
             ) {
-                YellowCard {
+                CustomCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
@@ -300,7 +297,6 @@ fun Assignments(
                         Icon(
                             imageVector = Icons.Filled.ChevronRight,
                             contentDescription = null,
-                            tint = Color.Black,
                             modifier = Modifier
                                 .size(35.dp)
                                 .clickable { onClick(it.first.assignmentId) }

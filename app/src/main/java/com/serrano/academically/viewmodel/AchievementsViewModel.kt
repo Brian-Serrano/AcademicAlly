@@ -32,6 +32,9 @@ class AchievementsViewModel @Inject constructor(
     private val _achievementsProgress = MutableStateFlow<List<Double>>(emptyList())
     val achievementsProgress: StateFlow<List<Double>> = _achievementsProgress.asStateFlow()
 
+    private val _achievementImages = MutableStateFlow<List<Int>>(emptyList())
+    val achievementImages: StateFlow<List<Int>> = _achievementImages.asStateFlow()
+
     fun getData(id: Int, context: Context) {
         viewModelScope.launch {
             try {
@@ -52,6 +55,10 @@ class AchievementsViewModel @Inject constructor(
                             userRepository.getBadgeProgressAsTutor(id).first().achievement
                     }
                 }
+
+                // Fetch achievement badge images
+                _achievementImages.value = GetAchievements.getAchievementBadgeIcons(_userData.value.role)
+
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
                 _processState.value = ProcessState.Error

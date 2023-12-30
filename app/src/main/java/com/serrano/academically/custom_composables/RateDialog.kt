@@ -34,14 +34,15 @@ fun RateDialog(
             modifier = Modifier
                 .size(300.dp, 300.dp)
                 .clip(MaterialTheme.shapes.small)
-                .background(color = Color.White),
+                .background(MaterialTheme.colorScheme.onBackground),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier.padding(20.dp),
+                color = MaterialTheme.colorScheme.background
             )
             RatingBar(
                 rating = star.toFloat(),

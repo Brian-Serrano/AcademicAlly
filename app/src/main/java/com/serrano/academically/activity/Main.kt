@@ -71,23 +71,23 @@ fun Main(navController: NavController) {
                 modifier = Modifier.fillMaxSize()
             ) {
                 Text(
-                    text = Strings.signIn,
+                    text = "SIGN IN",
                     style = MaterialTheme.typography.headlineMedium
                 )
                 MainButton(
-                    text = Strings.student,
+                    text = "AS A STUDENT",
                     route = "Login/STUDENT",
                     color = MaterialTheme.colorScheme.secondary,
                     navController = navController
                 )
                 MainButton(
-                    text = Strings.tutor,
+                    text = "AS A TUTOR",
                     route = "Login/TUTOR",
                     color = MaterialTheme.colorScheme.primary,
                     navController = navController
                 )
                 Text(
-                    text = Strings.notSure,
+                    text = "Not quite sure? Let us help you!",
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.clickable { navController.navigate("ChooseAssessment/0") }
                 )

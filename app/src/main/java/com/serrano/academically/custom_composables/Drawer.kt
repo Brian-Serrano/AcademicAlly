@@ -64,7 +64,10 @@ fun Drawer(
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
-                ModalDrawerSheet(drawerContainerColor = MaterialTheme.colorScheme.primaryContainer) {
+                ModalDrawerSheet(
+                    drawerContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    drawerContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -76,7 +79,7 @@ fun Drawer(
                             text = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onBackground
                                     )
                                 ) {
                                     append(user.name + "  ")
@@ -93,7 +96,6 @@ fun Drawer(
                         )
                         Text(
                             text = user.email,
-                            color = Color.White,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -102,14 +104,12 @@ fun Drawer(
                             icon = {
                                 Icon(
                                     imageVector = item,
-                                    contentDescription = null,
-                                    tint = Color.White
+                                    contentDescription = null
                                 )
                             },
                             label = {
                                 Text(
                                     text = item.name.substring("Filled.".length),
-                                    color = Color.White,
                                     style = MaterialTheme.typography.labelMedium
                                 )
                             },
@@ -139,7 +139,14 @@ fun Drawer(
                                 paddingValues = NavigationDrawerItemDefaults.ItemPadding
                             ),
                             colors = NavigationDrawerItemDefaults.colors(
-                                unselectedContainerColor = MaterialTheme.colorScheme.primaryContainer
+                                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                unselectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedIconColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedBadgeColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                unselectedBadgeColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         )
                     }

@@ -27,12 +27,12 @@ fun DashboardTopBarNoDrawer(
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(
-                                    style = SpanStyle(color = Color.White)
+                                    style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)
                                 ) {
                                     append("Academic")
                                 }
                                 withStyle(
-                                    style = SpanStyle(color = Color.Yellow)
+                                    style = SpanStyle(color = MaterialTheme.colorScheme.secondary)
                                 ) {
                                     append("Ally")
                                 }
@@ -40,7 +40,7 @@ fun DashboardTopBarNoDrawer(
                             style = MaterialTheme.typography.labelMedium
                         )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = DashboardTopBarColors()
                 )
             },
             content = content

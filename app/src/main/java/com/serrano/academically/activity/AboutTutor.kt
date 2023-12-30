@@ -25,7 +25,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -38,8 +37,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RatingBar
 import com.serrano.academically.custom_composables.RatingCard
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AboutTutorViewModel
@@ -108,13 +106,12 @@ fun AboutTutor(
                         .padding(values)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    YellowCard {
+                    CustomCard {
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Filled.AccountCircle,
                                     contentDescription = null,
-                                    tint = Color.Gray,
                                     modifier = Modifier
                                         .padding(10.dp)
                                         .size(80.dp)
@@ -128,7 +125,7 @@ fun AboutTutor(
                                         )
                                     }
                                     Text(
-                                        text = "Degree: ${tutor.degree}",
+                                        text = "Program: ${tutor.degree}",
                                         style = MaterialTheme.typography.labelMedium,
                                         modifier = Modifier.padding(10.dp)
                                     )
@@ -154,7 +151,7 @@ fun AboutTutor(
                                     modifier = Modifier.padding(10.dp)
                                 )
                                 BlackButton(
-                                    text = Strings.contact,
+                                    text = "CONTACT",
                                     action = { navController.navigate("MessageTutor/${user.id}/${tutor.id}") },
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier
@@ -164,13 +161,13 @@ fun AboutTutor(
                             }
                         }
                     }
-                    YellowCard {
+                    CustomCard {
                         RatingCard(text = "Performance Rating", rating = performanceRating)
                     }
-                    YellowCard {
+                    CustomCard {
                         RatingCard(text = "Overall Course Rating", rating = courseRating)
                     }
-                    YellowCard {
+                    CustomCard {
                         CoursesRating(tutorCourses)
                     }
                     InfoCard(title = "SUMMARY", description = tutor.summary)

@@ -34,7 +34,11 @@ private val LightColorScheme = lightColorScheme(
     surface = md_theme_light_surface,
     onSurface = md_theme_light_onSurface,
     surfaceVariant = md_theme_light_surfaceVariant,
-    onSurfaceVariant = md_theme_light_onSurfaceVariant
+    onSurfaceVariant = md_theme_light_onSurfaceVariant,
+    error = md_theme_light_error,
+    onError = md_theme_light_onError,
+    background = md_theme_light_background,
+    onBackground = md_theme_light_onBackground
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -53,7 +57,11 @@ private val DarkColorScheme = darkColorScheme(
     surface = md_theme_dark_surface,
     onSurface = md_theme_dark_onSurface,
     surfaceVariant = md_theme_dark_surfaceVariant,
-    onSurfaceVariant = md_theme_dark_onSurfaceVariant
+    onSurfaceVariant = md_theme_dark_onSurfaceVariant,
+    error = md_theme_dark_error,
+    onError = md_theme_dark_onError,
+    background = md_theme_dark_background,
+    onBackground = md_theme_dark_onBackground
 )
 
 private val shapes = Shapes(

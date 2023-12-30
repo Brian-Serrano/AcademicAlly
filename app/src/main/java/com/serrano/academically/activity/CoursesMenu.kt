@@ -28,8 +28,7 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RatingBar
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.CoursesMenuViewModel
@@ -55,7 +54,7 @@ fun CoursesMenu(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.courses,
+                text = "COURSES",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -64,7 +63,7 @@ fun CoursesMenu(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.courses,
+                text = "COURSES",
                 navController = navController
             ) {
                 Loading(it)
@@ -76,7 +75,7 @@ fun CoursesMenu(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
-                topBarText = Strings.courses,
+                topBarText = "COURSES",
                 navController = navController,
                 context = context,
                 selected = "Dashboard"
@@ -89,7 +88,7 @@ fun CoursesMenu(
                 ) {
                     LazyColumn {
                         items(items = courseSkills) {
-                            YellowCard {
+                            CustomCard {
                                 val rating =
                                     HelperFunctions.roundRating((it.first.assessmentRating / it.first.assessmentTaken) * 5)
                                 Text(
@@ -121,7 +120,7 @@ fun CoursesMenu(
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 BlackButton(
-                                    text = Strings.takeAssessment,
+                                    text = "TAKE ASSESSMENT",
                                     action = { navController.navigate("ChooseAssessment/${user.id}") },
                                     modifier = Modifier.padding(20.dp),
                                     style = MaterialTheme.typography.labelMedium

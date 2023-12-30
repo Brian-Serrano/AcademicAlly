@@ -45,12 +45,11 @@ fun TopBar(
                 IconButton(onClick = { scope.launch { drawerState.open() } }) {
                     Icon(
                         imageVector = Icons.Filled.Menu,
-                        contentDescription = null,
-                        tint = Color.White
+                        contentDescription = null
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.secondary)
+            colors = TopBarColors()
         )
     }
 }

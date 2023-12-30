@@ -30,10 +30,9 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.GreenButton
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RatingCard
-import com.serrano.academically.custom_composables.RowData
+import com.serrano.academically.custom_composables.DataGroup
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ChartData
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.ProcessState
@@ -59,13 +58,12 @@ fun Analytics(
     val process by analyticsViewModel.processState.collectAsState()
     val animationPlayed by analyticsViewModel.animationPlayed.collectAsState()
     val chartTab by analyticsViewModel.chartTabIndex.collectAsState()
-    val camera by analyticsViewModel.chartCamera.collectAsState()
-    val chartSize by analyticsViewModel.chartViewSize.collectAsState()
+    val chartState by analyticsViewModel.chartState.collectAsState()
 
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.analytics,
+                text = "ANALYTICS",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -74,7 +72,7 @@ fun Analytics(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.analytics,
+                text = "ANALYTICS",
                 navController = navController
             ) {
                 Loading(it)
@@ -106,7 +104,7 @@ fun Analytics(
                 scope = scope,
                 drawerState = drawerState,
                 user = UserDrawerData(user.id, user.name, user.role, user.email, user.degree),
-                topBarText = Strings.analytics,
+                topBarText = "ANALYTICS",
                 navController = navController,
                 context = context,
                 selected = "Analytics"
@@ -207,9 +205,9 @@ fun Analytics(
                     }
                     yValuesMapper = HelperFunctions.roundRating((points.max() * 1.5) / 4)
                     yValuesMapperData = HelperFunctions.roundRating((data.max() * 1.5) / 4)
-                    YellowCard {
+                    CustomCard {
                         Text(
-                            text = Strings.progressGraph,
+                            text = "Progress Graph",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
@@ -231,10 +229,8 @@ fun Analytics(
                                     )
                                 },
                                 verticalStep = yValuesMapper.toFloat(),
-                                camera = camera,
-                                onCameraChange = { analyticsViewModel.updateCamera(it) },
-                                chartSize = chartSize,
-                                onChartSize = { analyticsViewModel.updateChartSize(it) }
+                                chartState = chartState,
+                                onChartStateChange = { analyticsViewModel.updateChartState(it) }
                             )
 
                             1 -> BarGraph(
@@ -254,10 +250,8 @@ fun Analytics(
                                     )
                                 },
                                 verticalStep = yValuesMapperData.toFloat(),
-                                camera = camera,
-                                onCameraChange = { analyticsViewModel.updateCamera(it) },
-                                chartSize = chartSize,
-                                onChartSize = { analyticsViewModel.updateChartSize(it) }
+                                chartState = chartState,
+                                onChartStateChange = { analyticsViewModel.updateChartState(it) }
                             )
                         }
                         Row(
@@ -277,23 +271,23 @@ fun Analytics(
                             )
                         }
                     }
-                    YellowCard {
+                    CustomCard {
                         Text(
                             text = "Points",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
-                        RowData(names = pointsNames, values = points.map { it.toString() })
+                        DataGroup(names = pointsNames, values = points.map { it.toString() })
                     }
-                    YellowCard {
+                    CustomCard {
                         Text(
                             text = "Statistics",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
-                        RowData(names = dataNames, values = data.map { it.toString() })
+                        DataGroup(names = dataNames, values = data.map { it.toString() })
                     }
-                    YellowCard {
+                    CustomCard {
                         val rating = if (user.role == "STUDENT") {
                             HelperFunctions.roundRating((if (user.numberOfRatesAsStudent > 0) user.totalRatingAsStudent / user.numberOfRatesAsStudent else 0.0) * 5)
                         } else {
@@ -301,13 +295,13 @@ fun Analytics(
                         }
                         RatingCard(text = "Performance Rating", rating = rating)
                     }
-                    YellowCard {
+                    CustomCard {
                         val avgRating =
                             HelperFunctions.roundRating(if (courses.isNotEmpty()) courses.map { (it.first.assessmentRating / it.first.assessmentTaken) * 5 }
                                 .average() else 0.0)
                         RatingCard(text = "Overall Course Rating", rating = avgRating)
                     }
-                    YellowCard {
+                    CustomCard {
                         CoursesRating(courses)
                     }
                 }

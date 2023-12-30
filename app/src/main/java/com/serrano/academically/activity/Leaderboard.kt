@@ -32,8 +32,7 @@ import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.LeaderboardViewModel
@@ -59,7 +58,7 @@ fun Leaderboard(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.leaderboard,
+                text = "Leaderboard",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -68,7 +67,7 @@ fun Leaderboard(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.leaderboard,
+                text = "Leaderboard",
                 navController = navController
             ) {
                 Loading(it)
@@ -80,7 +79,7 @@ fun Leaderboard(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
-                topBarText = Strings.leaderboard,
+                topBarText = "Leaderboard",
                 navController = navController,
                 context = context,
                 selected = "Leaderboard"
@@ -91,7 +90,7 @@ fun Leaderboard(
                         .background(MaterialTheme.colorScheme.primary)
                         .padding(it)
                 ) {
-                    YellowCard {
+                    CustomCard {
                         LazyColumn {
                             items(leaderboard.size) {
                                 Row(

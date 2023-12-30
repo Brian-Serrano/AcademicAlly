@@ -49,7 +49,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RateDialog
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
-import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.room.Assignment
 import com.serrano.academically.room.Session
 import com.serrano.academically.utils.HelperFunctions
@@ -275,7 +275,7 @@ fun ArchiveMessages(
 ) {
     LazyColumn {
         items(items = messages) {
-            YellowCard {
+            CustomCard {
                 Row(
                     modifier = Modifier
                         .padding(20.dp)
@@ -285,7 +285,6 @@ fun ArchiveMessages(
                     Icon(
                         imageVector = Icons.Filled.AccountCircle,
                         contentDescription = null,
-                        tint = Color.DarkGray,
                         modifier = Modifier
                             .size(60.dp)
                             .padding(10.dp)
@@ -317,7 +316,7 @@ fun ArchiveSessions(
 ) {
     LazyColumn {
         items(items = sessions) {
-            YellowCard {
+            CustomCard {
                 Row(
                     modifier = Modifier
                         .padding(20.dp)
@@ -380,7 +379,7 @@ fun ArchiveAssignments(
 ) {
     LazyColumn {
         items(items = assignments) {
-            YellowCard {
+            CustomCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(

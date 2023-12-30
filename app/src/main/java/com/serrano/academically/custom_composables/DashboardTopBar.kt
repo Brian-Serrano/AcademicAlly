@@ -35,12 +35,12 @@ fun DashboardTopBar(
                 Text(
                     text = buildAnnotatedString {
                         withStyle(
-                            style = SpanStyle(color = Color.White)
+                            style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)
                         ) {
                             append("Academic")
                         }
                         withStyle(
-                            style = SpanStyle(color = Color.Yellow)
+                            style = SpanStyle(color = MaterialTheme.colorScheme.secondary)
                         ) {
                             append("Ally")
                         }
@@ -62,12 +62,11 @@ fun DashboardTopBar(
                     Icon(
                         imageVector = Icons.Filled.AccountCircle,
                         contentDescription = null,
-                        modifier = Modifier.size(30.dp),
-                        tint = Color.DarkGray
+                        modifier = Modifier.size(30.dp)
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+            colors = DashboardTopBarColors()
         )
     }
 }

@@ -17,7 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -28,7 +27,7 @@ import com.serrano.academically.custom_composables.GreenButton
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.LoginTextField
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AssignmentOptionViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -93,25 +92,25 @@ fun AssignmentOption(
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    YellowCard {
+                    CustomCard {
                         Text(
                             text = "Course: ${session.second.courseName}",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
-                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        HorizontalDivider(thickness = 2.dp)
                         Text(
                             text = "Module: ${session.second.moduleName}",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
-                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        HorizontalDivider(thickness = 2.dp)
                         Text(
                             text = "If you cancel making assignment, the session will remain uncompleted and the student you rate will be discarded.",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
-                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        HorizontalDivider(thickness = 2.dp)
                         Text(
                             text = "Items",
                             style = MaterialTheme.typography.labelMedium,
@@ -135,7 +134,7 @@ fun AssignmentOption(
                                 )
                             }
                         )
-                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        HorizontalDivider(thickness = 2.dp)
                         Text(
                             text = "Type",
                             style = MaterialTheme.typography.labelMedium,
@@ -159,7 +158,7 @@ fun AssignmentOption(
                                 )
                             }
                         )
-                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        HorizontalDivider(thickness = 2.dp)
                         Text(
                             text = "Deadline Date",
                             style = MaterialTheme.typography.labelMedium,
@@ -178,7 +177,7 @@ fun AssignmentOption(
                             modifier = Modifier.padding(10.dp),
                             supportingText = "Should be in dd/MM/yyyy format"
                         )
-                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        HorizontalDivider(thickness = 2.dp)
                         Text(
                             text = "Deadline Time",
                             style = MaterialTheme.typography.labelMedium,
@@ -197,10 +196,10 @@ fun AssignmentOption(
                             modifier = Modifier.padding(10.dp),
                             supportingText = "Should be in hh:mm AM/PM format"
                         )
-                        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                        HorizontalDivider(thickness = 2.dp)
                         Text(
                             text = deadline.error,
-                            color = Color.Red
+                            color = MaterialTheme.colorScheme.error
                         )
                         Row {
                             GreenButton(

@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -45,7 +44,7 @@ fun AssessmentMenu(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.primary)
+            .background(MaterialTheme.colorScheme.primary)
             .padding(padding)
     ) {
         Column(
@@ -69,11 +68,12 @@ fun AssessmentMenu(
                 thumbRadius = 1.dp,
                 thumbOffset = 1.5.dp,
                 progress = item / items.toFloat(),
-                progressBarColor = Color.Cyan
+                progressBarColor = MaterialTheme.colorScheme.surfaceVariant
             )
             Text(
                 text = "Item",
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onPrimary
             )
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -125,7 +125,7 @@ fun MultipleChoice(
     onAddAnswer: (String) -> Unit,
     choices: List<String> = listOf("A", "B", "C", "D")
 ) {
-    YellowCard {
+    CustomCard {
         Text(
             text = "${item + 1}.) ${itemContent[1]}",
             style = MaterialTheme.typography.labelMedium,
@@ -157,10 +157,9 @@ fun MultipleChoice(
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
-                        tint = Color.White,
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.medium)
-                            .background(color = Color(0xFF177424))
+                            .background(color = MaterialTheme.colorScheme.secondaryContainer)
                             .padding(7.dp)
                     )
                 }
@@ -176,7 +175,7 @@ fun Identification(
     answer: String,
     onAddAnswer: (String) -> Unit
 ) {
-    YellowCard {
+    CustomCard {
         Text(
             text = "${item + 1}.) ${itemContent[1]}",
             style = MaterialTheme.typography.labelMedium,
@@ -200,7 +199,7 @@ fun TrueOrFalse(
     onAddAnswer: (String) -> Unit,
     choices: List<String> = listOf("TRUE", "FALSE")
 ) {
-    YellowCard {
+    CustomCard {
         Text(
             text = "${item + 1}.) ${itemContent[1]}",
             style = MaterialTheme.typography.labelMedium,
@@ -227,10 +226,9 @@ fun TrueOrFalse(
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
-                        tint = Color.White,
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.medium)
-                            .background(color = Color(0xFF177424))
+                            .background(color = MaterialTheme.colorScheme.secondaryContainer)
                             .padding(7.dp)
                     )
                 }

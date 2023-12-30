@@ -26,10 +26,10 @@ fun BlackButton(
     Button(
         onClick = action,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black,
-            contentColor = Color.White,
-            disabledContainerColor = Color.Black,
-            disabledContentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContainerColor = MaterialTheme.colorScheme.background,
+            disabledContentColor = MaterialTheme.colorScheme.onBackground
         ),
         modifier = modifier,
         shape = MaterialTheme.shapes.extraLarge
@@ -41,10 +41,10 @@ fun BlackButton(
             Text(
                 text = text,
                 style = style,
-                color = if (enabled) Color.White else Color.Transparent
+                color = if (enabled) MaterialTheme.colorScheme.onBackground else Color.Transparent
             )
             if (!enabled) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(20.dp))
             }
         }
     }

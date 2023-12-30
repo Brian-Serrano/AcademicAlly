@@ -92,7 +92,6 @@ fun Login(
             Icon(
                 imageVector = Icons.Default.ArrowBackIosNew,
                 contentDescription = null,
-                tint = Color.Black,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(20.dp)
@@ -105,7 +104,7 @@ fun Login(
             ) {
                 Text(
                     text = "Sign in as $user",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.titleMedium
                 )
                 LoginTextField(
@@ -123,7 +122,7 @@ fun Login(
                 )
                 Text(
                     text = loginInput.error,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Row(
@@ -136,20 +135,20 @@ fun Login(
                             onClick = { loginViewModel.updateInput(loginInput.copy(remember = !loginInput.remember)) }
                         )
                         Text(
-                            text = Strings.remember,
-                            color = Color.White,
+                            text = "Remember Me",
+                            color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
-                        text = Strings.forgotPass,
+                        text = "Forgot Password",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 BlackButton(
-                    text = Strings.signIn,
+                    text = "SIGN IN",
                     action = {
                         loginViewModel.validateUserLoginAsynchronously(
                             context = context,
@@ -179,13 +178,13 @@ fun Login(
                     horizontalArrangement = Arrangement.spacedBy(30.dp)
                 ) {
                     Text(
-                        text = Strings.noAccount,
+                        text = "No account yet?",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = Strings.signUp,
-                        color = Color.Blue,
+                        text = "Signup Now",
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { navController.navigate("Signup/$user") }

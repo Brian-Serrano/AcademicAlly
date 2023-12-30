@@ -1,6 +1,7 @@
 package com.serrano.academically.utils
 
 import androidx.compose.runtime.State
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import java.time.LocalDateTime
@@ -104,16 +105,16 @@ data class ManageAccountFields(
     var contactNumber: String = "",
     var summary: String = "",
     var educationalBackground: String = "",
-    var error: String = "",
-    var errorColor: Color = Color.Red
+    var errorMessage: String = "",
+    var isError: Boolean = false
 )
 
 data class PasswordFields(
     var currentPassword: String = "",
     var newPassword: String = "",
     var confirmPassword: String = "",
-    var error: String = "",
-    var errorColor: Color = Color.Red
+    var errorMessage: String = "",
+    var isError: Boolean = false
 )
 
 data class FindTutorData(
@@ -128,6 +129,13 @@ data class FilterDialogStates(
     var id: Int,
     var courseName: String,
     var isEnabled: Boolean
+)
+
+data class ChartState(
+    val camera: Offset = Offset.Zero,
+    val scale: Float = 1f,
+    val size: Offset = Offset.Zero,
+    val viewSize: Offset = Offset.Zero
 )
 
 data class ChartData(

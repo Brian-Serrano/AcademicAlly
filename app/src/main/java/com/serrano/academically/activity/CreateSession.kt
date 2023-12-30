@@ -23,7 +23,7 @@ import com.serrano.academically.custom_composables.EditSessionMenu
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.CreateSessionViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -85,7 +85,7 @@ fun CreateSession(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    YellowCard {
+                    CustomCard {
                         EditSessionMenu(
                             sessionSettings = sessionSettings,
                             onDateInputChange = {

@@ -30,8 +30,7 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.SearchInfo
 import com.serrano.academically.viewmodel.ChooseAssessmentViewModel
@@ -59,7 +58,7 @@ fun ChooseAssessment(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.startAssess,
+                text = "START ASSESSMENT",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -68,7 +67,7 @@ fun ChooseAssessment(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.startAssess,
+                text = "START ASSESSMENT",
                 navController = navController
             ) {
                 Loading(it)
@@ -89,7 +88,7 @@ fun ChooseAssessment(
                         topBar = TopBar(
                             scope = scope,
                             drawerState = drawerState,
-                            text = Strings.startAssess,
+                            text = "START ASSESSMENT",
                             navController = navController
                         )
                     ) {
@@ -106,7 +105,7 @@ fun ChooseAssessment(
                 }
             } else {
                 ScaffoldNoDrawer(
-                    text = Strings.startAssess,
+                    text = "START ASSESSMENT",
                     navController = navController
                 ) {
                     ChooseAssessmentMenu(
@@ -171,7 +170,7 @@ fun ChooseAssessmentMenu(
         }
         LazyColumn {
             items(items = courses) {
-                YellowCard {
+                CustomCard {
                     Text(
                         text = it[1],
                         style = MaterialTheme.typography.labelMedium,

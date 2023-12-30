@@ -32,9 +32,9 @@ import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RatingCard
-import com.serrano.academically.custom_composables.RowData
+import com.serrano.academically.custom_composables.DataGroup
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.ProfileViewModel
@@ -148,31 +148,38 @@ fun Profile(
                             )
                             Text(
                                 text = profile.name,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                             Text(
                                 text = profile.email,
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                             Text(
                                 text = "Current Role: ${profile.role}",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                             Text(
-                                text = "Degree: ${profile.degree}",
-                                style = MaterialTheme.typography.bodyMedium
+                                text = "Program: ${profile.degree}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                             Text(
                                 text = "Age: ${profile.age}",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                             Text(
                                 text = "Address: ${profile.address}",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                             Text(
                                 text = "Contact Number: ${profile.contactNumber}",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                         }
                     }
@@ -184,7 +191,7 @@ fun Profile(
                         )
                     }
                     item {
-                        YellowCard {
+                        CustomCard {
                             Text(
                                 text = "Summary: ${profile.summary}",
                                 style = MaterialTheme.typography.labelMedium,
@@ -198,7 +205,7 @@ fun Profile(
                         }
                     }
                     item {
-                        YellowCard {
+                        CustomCard {
                             val ratings = listOf(
                                 HelperFunctions.roundRating((if (profile.numberOfRatesAsStudent > 0) profile.totalRatingAsStudent / profile.numberOfRatesAsStudent else 0.0) * 5),
                                 HelperFunctions.roundRating((if (profile.numberOfRatesAsTutor > 0) profile.totalRatingAsTutor / profile.numberOfRatesAsTutor else 0.0) * 5)
@@ -207,17 +214,17 @@ fun Profile(
                         }
                     }
                     item {
-                        YellowCard {
+                        CustomCard {
                             Text(
                                 text = "Statistics",
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(20.dp)
                             )
-                            RowData(names = statisticNames[tabIndex], values = statistics[tabIndex])
+                            DataGroup(names = statisticNames[tabIndex], values = statistics[tabIndex])
                         }
                     }
                     item {
-                        YellowCard {
+                        CustomCard {
                             CoursesList(courses[tabIndex])
                         }
                     }

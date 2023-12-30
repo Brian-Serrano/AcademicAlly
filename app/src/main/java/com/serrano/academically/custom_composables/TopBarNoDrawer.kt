@@ -34,7 +34,7 @@ fun TopBarNoDrawer(
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.secondary)
+            colors = TopBarColors()
         )
     }
 }

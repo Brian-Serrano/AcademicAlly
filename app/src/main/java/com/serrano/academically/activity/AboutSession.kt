@@ -29,8 +29,7 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.InfoCard
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AboutSessionViewModel
@@ -57,7 +56,7 @@ fun AboutSession(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.aboutSession,
+                text = "ABOUT SESSION",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -66,7 +65,7 @@ fun AboutSession(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.aboutSession,
+                text = "ABOUT SESSION",
                 navController = navController
             ) {
                 Loading(it)
@@ -78,7 +77,7 @@ fun AboutSession(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
-                topBarText = Strings.aboutSession,
+                topBarText = "ABOUT SESSION",
                 navController = navController,
                 context = context,
                 selected = "Notifications"
@@ -90,7 +89,7 @@ fun AboutSession(
                         .padding(it)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    YellowCard {
+                    CustomCard {
                         Text(
                             text = session.second.courseName,
                             style = MaterialTheme.typography.labelMedium,

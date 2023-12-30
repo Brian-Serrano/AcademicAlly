@@ -37,8 +37,7 @@ import com.serrano.academically.custom_composables.FilterDialog
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RatingBar
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.HelperFunctions
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.FindTutorViewModel
@@ -67,7 +66,7 @@ fun FindTutor(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.searchTutor,
+                text = "SEARCH TUTORS",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -76,7 +75,7 @@ fun FindTutor(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.searchTutor,
+                text = "SEARCH TUTORS",
                 navController = navController
             ) {
                 Loading(it)
@@ -88,7 +87,7 @@ fun FindTutor(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
-                topBarText = Strings.searchTutor,
+                topBarText = "SEARCH TUTORS",
                 navController = navController,
                 context = context,
                 selected = "FindTutor"
@@ -145,7 +144,7 @@ fun FindTutor(
                         }
                         LazyColumn {
                             items(items = tutors) {
-                                YellowCard {
+                                CustomCard {
                                     Column {
                                         val avgRating =
                                             HelperFunctions.roundRating(it.rating.average())
@@ -155,7 +154,6 @@ fun FindTutor(
                                             Icon(
                                                 imageVector = Icons.Filled.AccountCircle,
                                                 contentDescription = null,
-                                                tint = Color.Gray,
                                                 modifier = Modifier
                                                     .padding(10.dp)
                                                     .size(80.dp)
@@ -186,12 +184,13 @@ fun FindTutor(
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             RatingBar(
                                                 rating = HelperFunctions.roundRating((avgRating + performance) / 2)
-                                                    .toFloat(), modifier = Modifier
+                                                    .toFloat(),
+                                                modifier = Modifier
                                                     .padding(10.dp)
                                                     .height(20.dp)
                                             )
                                             BlackButton(
-                                                text = Strings.viewTutor,
+                                                text = "VIEW TUTOR",
                                                 action = { navController.navigate("AboutTutor/${user.id}/${it.tutorId}") },
                                                 style = MaterialTheme.typography.labelMedium,
                                                 modifier = Modifier

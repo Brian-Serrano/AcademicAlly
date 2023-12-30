@@ -87,7 +87,7 @@ fun EditSessionMenu(
     ) {
         Text(
             text = sessionSettings.error,
-            color = Color.Red,
+            color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(15.dp)
         )

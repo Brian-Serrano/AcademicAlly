@@ -226,7 +226,7 @@ class ArchiveViewModel @Inject constructor(
                     .first(),
                 GetCourses.getCourseNameById(it.courseId, context)
             )
-        }
+        }.reversed()
     }
 
     private suspend fun getMessage(
@@ -274,7 +274,7 @@ class ArchiveViewModel @Inject constructor(
                     .first(),
                 GetCourses.getCourseNameById(it.courseId, context)
             )
-        }
+        }.reversed()
     }
 
     private suspend fun getSession(
@@ -318,7 +318,7 @@ class ArchiveViewModel @Inject constructor(
                 GetCourses.getCourseNameById(it.courseId, context),
                 GetModules.getModuleByCourseAndModuleId(it.courseId, it.moduleId, context)
             )
-        }
+        }.reversed()
     }
 
     private suspend fun getAssignment(

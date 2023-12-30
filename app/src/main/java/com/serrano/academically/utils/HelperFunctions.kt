@@ -3,6 +3,8 @@ package com.serrano.academically.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.serrano.academically.room.CourseSkill
 import com.serrano.academically.room.CourseSkillRepository

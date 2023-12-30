@@ -45,15 +45,13 @@ fun CustomSearchBar(
         placeholder = {
             Text(
                 text = placeHolder,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Filled.Search,
-                contentDescription = null,
-                tint = Color.DarkGray
+                contentDescription = null
             )
         },
         trailingIcon = {
@@ -62,7 +60,6 @@ fun CustomSearchBar(
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = null,
-                        tint = Color.DarkGray,
                         modifier = Modifier
                             .padding(horizontal = 5.dp)
                             .clickable(onClick = onTrailingIconClick)
@@ -72,7 +69,6 @@ fun CustomSearchBar(
                     Icon(
                         imageVector = Icons.Filled.Tune,
                         contentDescription = null,
-                        tint = Color.DarkGray,
                         modifier = Modifier
                             .padding(horizontal = 5.dp)
                             .clickable(onClick = onFilterClick)
@@ -83,8 +79,8 @@ fun CustomSearchBar(
         shape = MaterialTheme.shapes.small,
         modifier = Modifier.fillMaxWidth(),
         colors = SearchBarDefaults.colors(
-            containerColor = Color.White,
-            dividerColor = Color.Gray,
+            containerColor = MaterialTheme.colorScheme.onBackground,
+            dividerColor = MaterialTheme.colorScheme.background,
             inputFieldColors = InputFieldColors()
         )
     ) {
@@ -93,21 +89,18 @@ fun CustomSearchBar(
                 Row(
                     modifier = Modifier
                         .padding(10.dp)
-                        .clickable {
-                            onSearch(it)
-                        },
+                        .clickable { onSearch(it) },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.History,
                         contentDescription = null,
-                        tint = Color.Black,
                         modifier = Modifier.padding(end = 10.dp)
                     )
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.background
                     )
                 }
             }

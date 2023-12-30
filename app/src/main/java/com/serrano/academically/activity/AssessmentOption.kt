@@ -19,7 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -29,8 +28,7 @@ import com.serrano.academically.custom_composables.GreenButton
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AssessmentOptionViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -65,7 +63,7 @@ fun AssessmentOption(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.startAssess,
+                text = "START ASSESSMENT",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -74,7 +72,7 @@ fun AssessmentOption(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.startAssess,
+                text = "START ASSESSMENT",
                 navController = navController
             ) {
                 Loading(it)
@@ -95,7 +93,7 @@ fun AssessmentOption(
                         topBar = TopBar(
                             scope = scope,
                             drawerState = drawerState,
-                            text = Strings.startAssess,
+                            text = "START ASSESSMENT",
                             navController = navController
                         )
                     ) {
@@ -109,7 +107,7 @@ fun AssessmentOption(
                 }
             } else {
                 ScaffoldNoDrawer(
-                    text = Strings.startAssess,
+                    text = "START ASSESSMENT",
                     navController = navController
                 ) {
                     AssessmentOptionMenu(
@@ -140,19 +138,19 @@ fun AssessmentOptionMenu(
             .padding(padding)
             .verticalScroll(rememberScrollState())
     ) {
-        YellowCard {
+        CustomCard {
             Text(
                 text = "Course: ${course.first}",
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(10.dp)
             )
-            HorizontalDivider(color = Color.Black, thickness = 2.dp)
+            HorizontalDivider(thickness = 2.dp)
             Text(
                 text = "Description: ${course.second}",
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(10.dp)
             )
-            HorizontalDivider(color = Color.Black, thickness = 2.dp)
+            HorizontalDivider(thickness = 2.dp)
             Row {
                 GreenButton(
                     action = onClick,

@@ -1,11 +1,17 @@
 package com.serrano.academically.custom_composables
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -24,11 +31,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import com.serrano.academically.ui.theme.AcademicAllyPrototypeTheme
 import com.serrano.academically.utils.ChartData
+import com.serrano.academically.utils.ChartState
 import com.serrano.academically.utils.HelperFunctions
 import kotlin.math.ceil
 
@@ -38,10 +51,8 @@ fun BarGraph(
     yValues: List<Double>,
     data: List<ChartData>,
     verticalStep: Float,
-    camera: Float,
-    onCameraChange: (Float) -> Unit,
-    chartSize: Float,
-    onChartSize: (Float) -> Unit
+    chartState: ChartState,
+    onChartStateChange: (ChartState) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -57,39 +68,51 @@ fun BarGraph(
             modifier = Modifier.padding(10.dp)
         )
 
-        val cellYSize = 60f
         val textMeasure = rememberTextMeasurer()
-        val textSpace = 100
-        val cellXSize = cellYSize * 2f
-        val canvasWidth = (textSpace * 2) + (cellXSize * ((data.size * 2) + 1))
-        val canvasHeight = (textSpace * 2) + (cellYSize * ((yValues.size * 2) + 1))
+        val lineColor = MaterialTheme.colorScheme.background
 
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
                 .clipToBounds()
-                .background(Color.White)
-                .border(5.dp, Color.Black, MaterialTheme.shapes.extraSmall)
-                .draggable(
-                    orientation = Orientation.Horizontal,
-                    state = rememberDraggableState {
-                        if (camera - it <= canvasWidth - chartSize && camera - it >= 0) {
-                            onCameraChange(camera - it)
-                        }
+                .background(MaterialTheme.colorScheme.onBackground)
+                .border(5.dp, lineColor)
+                .padding(20.dp)
+                .transformable(
+                    state = rememberTransformableState { zoom, pan, _ ->
+                        onChartStateChange(
+                            chartState.copy(
+                                camera = Offset(
+                                    x = (chartState.camera.x - pan.x).coerceIn(0f, chartState.size.x - chartState.viewSize.x),
+                                    y = (chartState.camera.y - pan.y).coerceIn(0f, chartState.size.y - chartState.viewSize.y)
+                                ),
+                                scale = (chartState.scale * zoom).coerceIn(1f, 2f)
+                            )
+                        )
                     }
                 )
-                .padding(20.dp)
         ) {
+            val canvasHeight = chartState.scale * size.height
+            val textSpaceY = canvasHeight * 0.1f
+            val cellYSize = (canvasHeight * 0.8f) / ((yValues.size * 2) + 1)
+            val textSpaceX = textSpaceY * 1.25f
+            val cellXSize = cellYSize * 2f
+            val canvasWidth = (cellXSize * ((data.size * 2) + 1)) + (textSpaceX * 2)
 
-            val numberOfXCells = ceil((canvasWidth - textSpace * 2) / cellXSize).toInt()
-            val numberOfYCells = ceil((canvasHeight - textSpace * 2) / cellYSize).toInt()
+            val numberOfXCells = ceil((canvasWidth - textSpaceX * 2) / cellXSize).toInt()
+            val numberOfYCells = ceil((canvasHeight - textSpaceY * 2) / cellYSize).toInt()
 
-            onChartSize(size.width)
+            onChartStateChange(
+                chartState.copy(
+                    size = Offset(canvasWidth, canvasHeight),
+                    viewSize = Offset(size.width, size.height)
+                )
+            )
 
             drawPath(
                 path = Path().apply {
-                    val xOffset = textSpace.toFloat() - camera
-                    val yOffset = canvasHeight - textSpace
+                    val xOffset = textSpaceX - chartState.camera.x
+                    val yOffset = (canvasHeight - textSpaceY) - chartState.camera.y
                     moveTo(xOffset, yOffset)
                     lineTo(xOffset, yOffset - (numberOfYCells * cellYSize))
                     lineTo(
@@ -99,7 +122,7 @@ fun BarGraph(
                     lineTo(xOffset + (numberOfXCells * cellXSize), yOffset)
                     lineTo(xOffset, yOffset)
                 },
-                color = Color.Black,
+                color = lineColor,
                 style = Stroke(5F)
             )
 
@@ -107,15 +130,15 @@ fun BarGraph(
                 for (j in 0..<numberOfYCells) {
                     drawPath(
                         path = Path().apply {
-                            val xOffset = (i * cellXSize + textSpace) - camera
-                            val yOffset = canvasHeight - (j * cellYSize + textSpace)
+                            val xOffset = (i * cellXSize + textSpaceX) - chartState.camera.x
+                            val yOffset = (canvasHeight - (j * cellYSize + textSpaceY)) - chartState.camera.y
                             moveTo(xOffset, yOffset)
                             lineTo(xOffset, yOffset - cellYSize)
                             lineTo(xOffset + cellXSize, yOffset - cellYSize)
                             lineTo(xOffset + cellXSize, yOffset)
                             lineTo(xOffset, yOffset)
                         },
-                        color = Color.Black,
+                        color = lineColor,
                         style = Stroke(1.5F)
                     )
                 }
@@ -124,8 +147,8 @@ fun BarGraph(
             for (i in data.indices) {
                 val textCenter = textMeasure.measure(data[i].text).size.toSize() / 2f
                 val offset = Offset(
-                    ((cellXSize * 2) * (i + 1)) + textSpace - (cellXSize / 2) - camera,
-                    (canvasHeight - (textSpace / 2f))
+                    ((cellXSize * 2) * (i + 1)) + textSpaceX - (cellXSize / 2) - chartState.camera.x,
+                    (canvasHeight - (textSpaceY / 2f)) - chartState.camera.y
                 ) - Offset(textCenter.width, textCenter.height)
 
                 translate(offset.x, offset.y) {
@@ -136,9 +159,8 @@ fun BarGraph(
                     )
                 }
 
-                val x = ((cellXSize * 2) * (i + 1)) + textSpace - cellXSize - camera
-                val y =
-                    canvasHeight - (((cellYSize * 2) * (data[i].value.value / verticalStep)) + textSpace)
+                val x = ((cellXSize * 2) * (i + 1)) + textSpaceX - cellXSize - chartState.camera.x
+                val y = (canvasHeight - (((cellYSize * 2) * (data[i].value.value / verticalStep)) + textSpaceY)) - chartState.camera.y
 
                 drawRect(
                     color = data[i].color,
@@ -151,8 +173,8 @@ fun BarGraph(
                 val yValue = HelperFunctions.roundRating(yValues[i]).toString()
                 val textCenter = textMeasure.measure(yValue).size / 2
                 val offset = Offset(
-                    (textSpace / 2f) - textCenter.width - camera,
-                    canvasHeight - (((cellYSize * 2) * (i + 1)) - textCenter.height + textSpace) - (cellYSize / 2)
+                    (textSpaceX / 2f) - textCenter.width - chartState.camera.x,
+                    (canvasHeight - (((cellYSize * 2) * (i + 1)) - textCenter.height + textSpaceY) - (cellYSize / 2)) - chartState.camera.y
                 )
                 translate(offset.x, offset.y) {
                     drawText(

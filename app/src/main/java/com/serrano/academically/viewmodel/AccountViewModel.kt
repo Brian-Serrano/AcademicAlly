@@ -56,7 +56,7 @@ class AccountViewModel @Inject constructor(
                     info.summary,
                     info.educationalBackground,
                     "",
-                    Color.Red
+                    false
                 )
 
                 _processState.value = ProcessState.Success

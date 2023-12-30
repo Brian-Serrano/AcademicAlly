@@ -24,7 +24,7 @@ fun Loading(paddingValues: PaddingValues) {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.size(75.dp)
         )
     }

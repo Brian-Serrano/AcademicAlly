@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -21,7 +22,7 @@ fun BottomBar(
     return {
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.tertiary,
-            contentColor = Color.Black
+            contentColor = MaterialTheme.colorScheme.onTertiary
         ) {
             items.forEachIndexed { index, item ->
                 NavigationBarItem(
@@ -32,20 +33,16 @@ fun BottomBar(
                     },
                     alwaysShowLabel = true,
                     icon = {
-                        BadgedBox(
-                            badge = {
-
-                            }
-                        ) {
-                            Icon(imageVector = icons[index][navBarIndex], contentDescription = null)
-                        }
+                        Icon(imageVector = icons[index][if (navBarIndex == index) 1 else 0], contentDescription = null)
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,
-                        selectedTextColor = Color.Black,
-                        indicatorColor = Color.Transparent,
-                        unselectedIconColor = Color.DarkGray,
-                        unselectedTextColor = Color.DarkGray
+                        selectedIconColor = MaterialTheme.colorScheme.background,
+                        selectedTextColor = MaterialTheme.colorScheme.background,
+                        indicatorColor = Color.LightGray,
+                        unselectedIconColor = MaterialTheme.colorScheme.onTertiary,
+                        unselectedTextColor = MaterialTheme.colorScheme.onTertiary,
+                        disabledIconColor = Color.Transparent,
+                        disabledTextColor = Color.Transparent
                     )
                 )
             }

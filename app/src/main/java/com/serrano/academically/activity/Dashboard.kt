@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,8 +17,9 @@ import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.BrowseGallery
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.PersonSearch
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -48,15 +47,13 @@ import com.serrano.academically.custom_composables.DashboardTopBarNoDrawer
 import com.serrano.academically.custom_composables.Drawer
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.ui.theme.montserrat
 import com.serrano.academically.utils.DashboardIcons
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.DashboardViewModel
 import kotlinx.coroutines.CoroutineScope
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
     scope: CoroutineScope,
@@ -130,7 +127,7 @@ fun Dashboard(
                             text = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 ) {
                                     append("Good Morning, ")
@@ -149,33 +146,37 @@ fun Dashboard(
                         )
                         LazyRow(modifier = Modifier.padding(10.dp)) {
                             items(items = icons) {
-                                Column(
+                                Card(
                                     modifier = Modifier
                                         .padding(10.dp)
                                         .size(105.dp)
-                                        .clip(MaterialTheme.shapes.extraSmall)
-                                        .background(MaterialTheme.colorScheme.tertiary),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.SpaceBetween
+                                        .clip(MaterialTheme.shapes.extraSmall),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiary
+                                    )
                                 ) {
-                                    IconButton(
-                                        onClick = { navController.navigate(it.route) },
-                                        modifier = Modifier.size(50.dp)
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
                                     ) {
-                                        Icon(
-                                            imageVector = it.icon,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(50.dp),
-                                            tint = Color.DarkGray
+                                        IconButton(
+                                            onClick = { navController.navigate(it.route) },
+                                            modifier = Modifier.size(50.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = it.icon,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(50.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = it.name,
+                                            fontFamily = montserrat,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier.padding(10.dp)
                                         )
                                     }
-                                    Text(
-                                        text = it.name,
-                                        fontFamily = montserrat,
-                                        fontSize = 12.sp,
-                                        color = Color.DarkGray,
-                                        modifier = Modifier.padding(10.dp)
-                                    )
                                 }
                             }
                         }
@@ -186,67 +187,73 @@ fun Dashboard(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(
+                                    Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(220.dp)
                                             .weight(1f)
                                             .padding(20.dp)
-                                            .clip(MaterialTheme.shapes.extraSmall)
-                                            .background(MaterialTheme.colorScheme.tertiary),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
+                                            .clip(MaterialTheme.shapes.extraSmall),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiary
+                                        )
                                     ) {
-                                        Text(
-                                            text = "Knowledge",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier
-                                                .padding(10.dp)
-                                                .padding(bottom = 15.dp)
-                                        )
-                                        CircularProgressBar(
-                                            percentage = ratings.first.toFloat(),
-                                            color = MaterialTheme.colorScheme.surfaceVariant,
-                                            radius = 40.dp,
-                                            animationPlayed = animationPlayed
-                                        )
+                                        Column(
+                                            modifier = Modifier.fillMaxSize(),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                text = "Knowledge",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                modifier = Modifier.padding(10.dp)
+                                            )
+                                            CircularProgressBar(
+                                                percentage = ratings.first.toFloat(),
+                                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                                radius = 55.dp,
+                                                animationPlayed = animationPlayed
+                                            )
+                                        }
                                     }
-                                    Column(
+                                    Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(220.dp)
                                             .weight(1f)
                                             .padding(20.dp)
-                                            .clip(MaterialTheme.shapes.extraSmall)
-                                            .background(MaterialTheme.colorScheme.tertiary),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
+                                            .clip(MaterialTheme.shapes.extraSmall),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiary
+                                        )
                                     ) {
-                                        Text(
-                                            text = "Performance",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier
-                                                .padding(10.dp)
-                                                .padding(bottom = 15.dp)
-                                        )
-                                        CircularProgressBar(
-                                            percentage = ratings.second.toFloat(),
-                                            color = MaterialTheme.colorScheme.surfaceVariant,
-                                            radius = 40.dp,
-                                            animationPlayed = animationPlayed
-                                        )
+                                        Column(
+                                            modifier = Modifier.fillMaxSize(),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                text = "Performance",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                modifier = Modifier.padding(10.dp)
+                                            )
+                                            CircularProgressBar(
+                                                percentage = ratings.second.toFloat(),
+                                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                                radius = 55.dp,
+                                                animationPlayed = animationPlayed
+                                            )
+                                        }
                                     }
                                 }
                             }
                             item {
-                                YellowCard {
+                                CustomCard {
                                     CoursesList(course)
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.Center
                                     ) {
                                         BlackButton(
-                                            text = Strings.showAllCourses,
+                                            text = "SHOW ALL COURSES",
                                             action = { navController.navigate("CoursesMenu/${user.id}") },
                                             modifier = Modifier.padding(20.dp),
                                             style = MaterialTheme.typography.labelMedium

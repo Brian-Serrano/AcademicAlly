@@ -24,7 +24,12 @@ fun MainButton(
         onClick = {
             navController.navigate(route)
         },
-        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.onBackground,
+            contentColor = MaterialTheme.colorScheme.background,
+            disabledContainerColor = MaterialTheme.colorScheme.onBackground,
+            disabledContentColor = MaterialTheme.colorScheme.background
+        ),
         modifier = Modifier
             .width(280.dp)
             .height(72.dp)

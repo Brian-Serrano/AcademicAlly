@@ -30,9 +30,9 @@ fun RowScope.GreenButton(
         shape = MaterialTheme.shapes.extraSmall,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = Color.White,
+            contentColor = MaterialTheme.colorScheme.onSurface,
             disabledContainerColor = MaterialTheme.colorScheme.surface,
-            disabledContentColor = Color.White
+            disabledContentColor = MaterialTheme.colorScheme.onSurface
         ),
         modifier = Modifier
             .padding(10.dp)
@@ -46,12 +46,12 @@ fun RowScope.GreenButton(
         ) {
             Text(
                 text = text,
-                color = if (enabled) Color.White else Color.Transparent,
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else Color.Transparent,
                 style = style,
                 maxLines = 1
             )
             if (!enabled) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
             }
         }
     }

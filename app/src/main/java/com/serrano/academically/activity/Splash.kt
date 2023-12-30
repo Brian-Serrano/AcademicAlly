@@ -87,15 +87,15 @@ fun Splash(
             verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
         ) {
             Text(
-                text = Strings.splashSchoolName,
+                text = "STI COLLEGE LAOAG, BSCS-3",
                 style = MaterialTheme.typography.labelMedium
             )
             Text(
-                text = Strings.splashProjectName,
+                text = "ACADEMIC\nALLY",
                 style = MaterialTheme.typography.headlineMedium
             )
             Text(
-                text = Strings.splashProjectDesc,
+                text = "IMPROVING ACADEMIC PERFORMANCE\nTHROUGH STUDENT-TO-STUDENT TUTORING",
                 style = MaterialTheme.typography.labelMedium
             )
         }

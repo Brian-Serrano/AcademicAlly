@@ -24,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,8 +35,7 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.LoginTextField
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.custom_composables.YellowCard
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ManageAccountFields
 import com.serrano.academically.utils.PasswordFields
 import com.serrano.academically.utils.ProcessState
@@ -69,7 +67,7 @@ fun Account(
     when (process) {
         ProcessState.Error -> {
             ScaffoldNoDrawer(
-                text = Strings.manageAccount,
+                text = "Manage Account",
                 navController = navController
             ) {
                 ErrorComposable(navController, it)
@@ -78,7 +76,7 @@ fun Account(
 
         ProcessState.Loading -> {
             ScaffoldNoDrawer(
-                text = Strings.manageAccount,
+                text = "Manage Account",
                 navController = navController
             ) {
                 Loading(it)
@@ -90,7 +88,7 @@ fun Account(
                 scope = scope,
                 drawerState = drawerState,
                 user = UserDrawerData(user.id, user.name, user.role, user.email, user.degree),
-                topBarText = Strings.manageAccount,
+                topBarText = "Manage Account",
                 navController = navController,
                 context = context,
                 selected = "ManageAccounts"
@@ -108,7 +106,7 @@ fun Account(
                         tabs = tabs,
                         onTabClick = { accountViewModel.updateTabIndex(it) }
                     )
-                    YellowCard {
+                    CustomCard {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -166,11 +164,10 @@ fun Info(
         Icon(
             imageVector = Icons.Filled.AccountCircle,
             contentDescription = null,
-            tint = Color.Gray,
             modifier = Modifier.size(100.dp)
         )
         BlackButton(
-            text = Strings.upload,
+            text = "UPLOAD",
             action = {}
         )
     }
@@ -186,15 +183,15 @@ fun Info(
         supportingText = "Should be 5-20 characters"
     )
     Text(
-        text = "Degree",
+        text = "Program",
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
     LoginTextField(
-        inputName = "Degree",
+        inputName = "Program",
         input = accountFields.degree,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(degree = it)) },
-        supportingText = "Should be acronyms of degrees available in STI"
+        supportingText = "Should be acronyms of programs available in STI"
     )
     Text(
         text = "Age",
@@ -264,7 +261,7 @@ fun Info(
         supportingText = "Should be 30-200 characters"
     )
     BlackButton(
-        text = Strings.save,
+        text = "SAVE",
         action = {
             accountViewModel.saveInfo(
                 id = id,
@@ -272,8 +269,8 @@ fun Info(
                 showMessage = {
                     accountViewModel.updateAccountFields(
                         accountFields.copy(
-                            error = it.message,
-                            errorColor = if (it.isValid) Color.Green else Color.Red
+                            errorMessage = it.message,
+                            isError = it.isValid
                         )
                     )
                 }
@@ -282,8 +279,8 @@ fun Info(
         enabled = enabled
     )
     Text(
-        text = accountFields.error,
-        color = accountFields.errorColor,
+        text = accountFields.errorMessage,
+        color = if (accountFields.isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
         style = MaterialTheme.typography.bodyMedium
     )
 }
@@ -331,7 +328,7 @@ fun Password(
         visualTransformation = PasswordVisualTransformation()
     )
     BlackButton(
-        text = Strings.save,
+        text = "SAVE",
         action = {
             accountViewModel.savePassword(
                 id = id,
@@ -340,8 +337,8 @@ fun Password(
                 showMessage = {
                     accountViewModel.updatePasswordFields(
                         passwordFields.copy(
-                            error = it.message,
-                            errorColor = if (it.isValid) Color.Green else Color.Red
+                            errorMessage = it.message,
+                            isError = it.isValid
                         )
                     )
                 }
@@ -350,8 +347,8 @@ fun Password(
         enabled = enabled
     )
     Text(
-        text = passwordFields.error,
-        color = passwordFields.errorColor,
+        text = passwordFields.errorMessage,
+        color = if (passwordFields.isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
         style = MaterialTheme.typography.bodyMedium
     )
 }
@@ -362,7 +359,7 @@ fun More(
     action: () -> Unit
 ) {
     BlackButton(
-        text = Strings.switchRole,
+        text = "SWITCH ROLE",
         action = action,
         enabled = enabled
     )

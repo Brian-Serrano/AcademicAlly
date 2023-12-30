@@ -34,7 +34,7 @@ fun DropDown(
         modifier = Modifier
             .padding(10.dp)
             .height(60.dp)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.onBackground)
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
@@ -50,13 +50,13 @@ fun DropDown(
                     .padding(10.dp),
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.DarkGray,
+                color = MaterialTheme.colorScheme.background,
                 maxLines = 1
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = null,
-                tint = Color.DarkGray,
+                tint = MaterialTheme.colorScheme.background,
                 modifier = Modifier
                     .padding(10.dp)
                     .clickable(onClick = onArrowClick)
@@ -65,7 +65,7 @@ fun DropDown(
         DropdownMenu(
             expanded = dropDownState.expanded,
             onDismissRequest = onDismissRequest,
-            modifier = Modifier.background(Color.White)
+            modifier = Modifier.background(MaterialTheme.colorScheme.onBackground)
         ) {
             dropDownState.dropDownItems.forEach {
                 DropdownMenuItem(
@@ -73,7 +73,7 @@ fun DropDown(
                         Text(
                             text = it,
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.background,
                             modifier = Modifier.padding(10.dp)
                         )
                     },

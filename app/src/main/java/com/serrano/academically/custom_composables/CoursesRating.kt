@@ -19,7 +19,7 @@ fun CoursesRating(courses: List<Pair<CourseSkill, String>>) {
         modifier = Modifier.padding(10.dp)
     )
     courses.forEach {
-        HorizontalDivider(color = Color.Black, thickness = 2.dp)
+        HorizontalDivider(thickness = 2.dp)
         val rating =
             HelperFunctions.roundRating((it.first.assessmentRating / it.first.assessmentTaken) * 5)
         RatingCard(text = it.second, rating = rating)

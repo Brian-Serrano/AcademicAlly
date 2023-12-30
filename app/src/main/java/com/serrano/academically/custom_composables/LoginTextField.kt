@@ -27,15 +27,13 @@ fun LoginTextField(
         label = {
             Text(
                 text = "Enter ${inputName.lowercase()}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         placeholder = {
             Text(
                 text = "$inputName here",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         singleLine = singleLine,
@@ -44,10 +42,9 @@ fun LoginTextField(
         maxLines = maxLines,
         shape = MaterialTheme.shapes.extraLarge,
         colors = InputFieldColors(),
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         supportingText = {
-            Text(text = supportingText, color = Color.Black)
+            Text(text = supportingText)
         }
     )
 }

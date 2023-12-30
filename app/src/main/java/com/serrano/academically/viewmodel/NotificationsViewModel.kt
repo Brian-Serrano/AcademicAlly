@@ -69,11 +69,12 @@ class NotificationsViewModel @Inject constructor(
                                     userRepository.getUserName(it.tutorId).first(),
                                     GetCourses.getCourseNameById(it.courseId, context)
                                 )
-                            }
+                            }.reversed()
                         _session.value = sessionRepository
                             .getStudentSessions("UPCOMING", id)
                             .first()
                             .map { Pair(it, GetCourses.getCourseNameById(it.courseId, context)) }
+                            .reversed()
                         _assignment.value = assignmentRepository
                             .getStudentAssignments("UNCOMPLETED", id)
                             .first()
@@ -87,7 +88,7 @@ class NotificationsViewModel @Inject constructor(
                                         context
                                     )
                                 )
-                            }
+                            }.reversed()
                     }
 
                     "TUTOR" -> {
@@ -100,11 +101,12 @@ class NotificationsViewModel @Inject constructor(
                                     userRepository.getUserName(it.studentId).first(),
                                     GetCourses.getCourseNameById(it.courseId, context)
                                 )
-                            }
+                            }.reversed()
                         _session.value = sessionRepository
                             .getTutorSessions("UPCOMING", id)
                             .first()
                             .map { Pair(it, GetCourses.getCourseNameById(it.courseId, context)) }
+                            .reversed()
                         _assignment.value = assignmentRepository
                             .getTutorAssignments("UNCOMPLETED", id)
                             .first()
@@ -118,7 +120,7 @@ class NotificationsViewModel @Inject constructor(
                                         context
                                     )
                                 )
-                            }
+                            }.reversed()
                     }
                 }
 

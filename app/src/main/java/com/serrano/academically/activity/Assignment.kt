@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.serrano.academically.custom_composables.AssessmentMenu
@@ -42,13 +43,21 @@ fun Assignment(
     val nextEnabled by assignmentViewModel.nextButtonEnabled.collectAsState()
     val course by assignmentViewModel.courseName.collectAsState()
 
+    val focusManager = LocalFocusManager.current
+
     val onBackButtonClick = {
         if (item > 0) {
+            if (assignment.type == "Identification") {
+                focusManager.clearFocus()
+            }
             assignmentViewModel.moveItem(false)
         }
     }
     val onNextButtonClick = {
         if (item < assessmentData.size - 1) {
+            if (assignment.type == "Identification") {
+                focusManager.clearFocus()
+            }
             assignmentViewModel.moveItem(true)
         } else {
             assignmentViewModel.completeAssignment(
