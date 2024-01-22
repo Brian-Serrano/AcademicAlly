@@ -1,15 +1,8 @@
 package com.serrano.academically.custom_composables
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,28 +14,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import com.serrano.academically.ui.theme.AcademicAllyPrototypeTheme
 import com.serrano.academically.utils.ChartData
 import com.serrano.academically.utils.ChartState
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.Utils
 import kotlin.math.ceil
 
 @Composable
@@ -71,6 +57,18 @@ fun BarGraph(
         val textMeasure = rememberTextMeasurer()
         val lineColor = MaterialTheme.colorScheme.background
 
+        val transformState = rememberTransformableState { zoom, pan, _ ->
+            onChartStateChange(
+                chartState.copy(
+                    camera = Offset(
+                        x = ((chartState.camera.x - (chartState.scale * pan.x)) + zoom).coerceIn(0f, chartState.size.x - chartState.viewSize.x),
+                        y = ((chartState.camera.y - (chartState.scale * pan.y)) + zoom).coerceIn(0f, chartState.size.y - chartState.viewSize.y)
+                    ),
+                    scale = (chartState.scale * zoom).coerceIn(1f, 2f)
+                )
+            )
+        }
+
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -78,19 +76,7 @@ fun BarGraph(
                 .background(MaterialTheme.colorScheme.onBackground)
                 .border(5.dp, lineColor)
                 .padding(20.dp)
-                .transformable(
-                    state = rememberTransformableState { zoom, pan, _ ->
-                        onChartStateChange(
-                            chartState.copy(
-                                camera = Offset(
-                                    x = (chartState.camera.x - pan.x).coerceIn(0f, chartState.size.x - chartState.viewSize.x),
-                                    y = (chartState.camera.y - pan.y).coerceIn(0f, chartState.size.y - chartState.viewSize.y)
-                                ),
-                                scale = (chartState.scale * zoom).coerceIn(1f, 2f)
-                            )
-                        )
-                    }
-                )
+                .transformable(state = transformState)
         ) {
             val canvasHeight = chartState.scale * size.height
             val textSpaceY = canvasHeight * 0.1f
@@ -170,7 +156,7 @@ fun BarGraph(
             }
 
             for (i in yValues.indices) {
-                val yValue = HelperFunctions.roundRating(yValues[i]).toString()
+                val yValue = Utils.roundRating(yValues[i]).toString()
                 val textCenter = textMeasure.measure(yValue).size / 2
                 val offset = Offset(
                     (textSpaceX / 2f) - textCenter.width - chartState.camera.x,

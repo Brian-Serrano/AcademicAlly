@@ -4,120 +4,118 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.Message
-import com.serrano.academically.room.MessageRepository
-import com.serrano.academically.room.UserRepository
-import com.serrano.academically.utils.GetAchievements
-import com.serrano.academically.utils.GetCourses
-import com.serrano.academically.utils.GetModules
-import com.serrano.academically.utils.HelperFunctions
-import com.serrano.academically.utils.MessageCourse
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.NoCurrentUser
+import com.serrano.academically.api.RejectStudentBody
+import com.serrano.academically.api.Student
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.UserDrawerData
-import com.serrano.academically.utils.UserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AboutStudentViewModel @Inject constructor(
-    private val messageRepository: MessageRepository,
-    private val userRepository: UserRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
-    private val _messageDetails = MutableStateFlow(Triple(Message(), MessageCourse(), UserInfo()))
-    val messageDetails: StateFlow<Triple<Message, MessageCourse, UserInfo>> =
-        _messageDetails.asStateFlow()
+    private val _message = MutableStateFlow(Student())
+    val message: StateFlow<Student> = _message.asStateFlow()
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _userData = MutableStateFlow(UserDrawerData())
-    val userData: StateFlow<UserDrawerData> = _userData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
     private val _rejectButtonEnabled = MutableStateFlow(true)
     val rejectButtonEnabled: StateFlow<Boolean> = _rejectButtonEnabled.asStateFlow()
 
-    fun getData(userId: Int, messageId: Int, context: Context) {
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    fun getData(messageId: Int, context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch drawer data
-                _userData.value = userRepository.getUserDataForDrawer(userId).first()
-                val role = _userData.value.role
+                ActivityCacheManager.profile = null
 
-                // Fetch message
-                val message = messageRepository.getMessage(messageId).first()
-                _messageDetails.value = Triple(
-                    message,
-                    MessageCourse(
-                        courseName = GetCourses.getCourseNameById(message.courseId, context),
-                        moduleName = GetModules.getModuleByCourseAndModuleId(
-                            message.courseId,
-                            message.moduleId,
-                            context
-                        )
-                    ),
-                    userRepository.getUserInfo(if (role == "STUDENT") message.tutorId else message.studentId)
-                        .first()
-                )
+                val messageCache = ActivityCacheManager.aboutStudent[messageId]
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Mark message as seen by tutor
-                messageRepository.updateTutorView(messageId)
+                if (messageCache != null && currentUserCache != null) {
+                    _message.value = messageCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(messageId, context)
+                }
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun respond(
-        studentId: Int,
-        tutorId: Int,
-        status: String,
-        messageId: Int,
-        context: Context,
-        navigate: () -> Unit
-    ) {
+    fun refreshData(messageId: Int, context: Context) {
         viewModelScope.launch {
             try {
-                // Disable reject button temporarily
+                _isRefreshLoading.value = true
+
+                callApi(messageId, context)
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi(messageId: Int, context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            val response = when (val message = academicallyApi.getStudent(messageId)) {
+                is WithCurrentUser.Success -> message
+                is WithCurrentUser.Error -> throw IllegalArgumentException(message.error)
+            }
+
+            _message.value = response.data!!
+            _drawerData.value = response.currentUser!!
+
+            ActivityCacheManager.aboutStudent[messageId] = response.data
+            ActivityCacheManager.currentUser = response.currentUser
+        }
+    }
+
+    fun respond(studentId: Int, tutorId: Int, messageId: Int, context: Context, navigate: () -> Unit) {
+        viewModelScope.launch {
+            try {
                 _rejectButtonEnabled.value = false
 
-                // Update message to be REJECTED
-                messageRepository.updateMessageStatus(status, messageId)
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    val apiResponse = academicallyApi.rejectStudent(RejectStudentBody(messageId, studentId, tutorId))
+                    Utils.showToast(
+                        when (apiResponse) {
+                            is NoCurrentUser.Success -> apiResponse.data!!
+                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                        },
+                        context
+                    )
 
-                // Update student and tutor denied requests
-                userRepository.updateStudentDeniedRequests(studentId)
-                userRepository.updateTutorDeniedRequests(tutorId)
-
-                // Update tutor denied requests achievement
-                val achievementProgressTutor =
-                    userRepository.getBadgeProgressAsTutor(tutorId).first().achievement
-                val computedProgressTutor = HelperFunctions.computeAchievementProgress(
-                    userRepository.getTutorDeniedRequests(tutorId).first().toDouble(),
-                    listOf(1, 3, 10),
-                    listOf(4, 5, 6),
-                    achievementProgressTutor
-                )
-                userRepository.updateTutorBadgeProgress(computedProgressTutor, tutorId)
-
-                // Show toast message if an achievement is completed
-                HelperFunctions.checkCompletedAchievements(
-                    achievementProgressTutor, computedProgressTutor
-                ) {
-                    Toast.makeText(
-                        context,
-                        GetAchievements.getAchievements(0, context)[it][0],
-                        Toast.LENGTH_LONG
-                    ).show()
+                    ActivityCacheManager.aboutStudent.remove(messageId)
+                    ActivityCacheManager.notificationsMessages = null
+                    ActivityCacheManager.archiveRejectedMessages = null
                 }
 
-                // Enable reject button again
                 _rejectButtonEnabled.value = true
 
                 navigate()

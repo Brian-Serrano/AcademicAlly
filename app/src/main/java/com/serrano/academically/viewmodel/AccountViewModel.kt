@@ -1,33 +1,45 @@
 package com.serrano.academically.viewmodel
 
-import androidx.compose.ui.graphics.Color
-import androidx.core.text.isDigitsOnly
+import android.content.Context
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.UserRepository
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.Info
+import com.serrano.academically.api.InfoBody
+import com.serrano.academically.api.PasswordBody
+import com.serrano.academically.api.NoCurrentUser
+import com.serrano.academically.api.Validation
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.ManageAccountFields
 import com.serrano.academically.utils.PasswordFields
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.UserInfoAndCredentials
-import com.serrano.academically.utils.ValidationMessage
+import com.serrano.academically.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _userData = MutableStateFlow(UserInfoAndCredentials())
-    val userData: StateFlow<UserInfoAndCredentials> = _userData.asStateFlow()
+    private val _userData = MutableStateFlow(Info())
+    val userData: StateFlow<Info> = _userData.asStateFlow()
 
     private val _accountFields = MutableStateFlow(ManageAccountFields())
     val accountFields: StateFlow<ManageAccountFields> = _accountFields.asStateFlow()
@@ -38,37 +50,90 @@ class AccountViewModel @Inject constructor(
     private val _tabIndex = MutableStateFlow(0)
     val tabIndex: StateFlow<Int> = _tabIndex.asStateFlow()
 
-    private val _buttonsEnabled = MutableStateFlow(listOf(true, true, true))
+    private val _buttonsEnabled = MutableStateFlow(listOf(true, true, true, true))
     val buttonsEnabled: StateFlow<List<Boolean>> = _buttonsEnabled.asStateFlow()
 
-    fun getData(id: Int) {
+    private val _selectedImage = MutableStateFlow(ImageBitmap(100, 100))
+    val selectedImage: StateFlow<ImageBitmap> = _selectedImage.asStateFlow()
+
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    fun getData(context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch user information and credentials and place in text fields
-                val info = userRepository.getUserInfoAndCredentials(id).first()
-                _userData.value = info
-                _accountFields.value = ManageAccountFields(
-                    info.name,
-                    info.degree,
-                    info.age.toString(),
-                    info.address,
-                    info.contactNumber,
-                    info.summary,
-                    info.educationalBackground,
-                    "",
-                    false
-                )
+                val accountCache = ActivityCacheManager.account
+
+                if (accountCache != null) {
+                    _userData.value = accountCache
+                } else {
+                    callApi(context)
+                }
+
+                refreshFields()
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
+    fun refreshData(context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(context)
+
+                refreshFields()
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun refreshFields() {
+        _accountFields.value = ManageAccountFields(
+            _userData.value.name,
+            _userData.value.degree,
+            _userData.value.age.toString(),
+            _userData.value.address,
+            _userData.value.contactNumber,
+            _userData.value.summary,
+            _userData.value.educationalBackground,
+            _userData.value.freeTutoringTime,
+            "",
+            false
+        )
+
+        _selectedImage.value = Utils.convertToImage(_userData.value.image)
+    }
+
+    private suspend fun callApi(context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            val response = when (val userData = academicallyApi.getInfo()) {
+                is NoCurrentUser.Success -> userData
+                is NoCurrentUser.Error -> throw IllegalArgumentException(userData.error)
+            }
+            _userData.value = response.data!!
+            ActivityCacheManager.account = response.data
+        }
+    }
+
+    fun selectImage(uri: Uri?, context: Context) {
+        if (uri != null) {
+            _selectedImage.value = Utils.convertToImage(uri, context)
+        }
+    }
+
     private fun toggleButtons(index: Int, value: Boolean) {
-        _buttonsEnabled.value =
-            _buttonsEnabled.value.mapIndexed { idx, item -> if (index == idx) value else item }
+        _buttonsEnabled.value = _buttonsEnabled.value.mapIndexed { idx, item -> if (index == idx) value else item }
     }
 
     fun updateTabIndex(index: Int) {
@@ -83,181 +148,117 @@ class AccountViewModel @Inject constructor(
         _passwordFields.value = newPasswordField
     }
 
-    fun saveInfo(
-        id: Int,
-        accountFields: ManageAccountFields,
-        showMessage: (ValidationMessage) -> Unit
-    ) {
+    fun saveInfo(context: Context, accountFields: ManageAccountFields, showMessage: (Validation) -> Unit) {
         viewModelScope.launch {
             try {
-                // Disable button temporarily
                 toggleButtons(0, false)
 
-                // Validate and update user information
-                val result = validateUserInfo(accountFields, userRepository.getUserNames().first())
-                if (result.isValid) {
-                    userRepository.updateUserInfo(
-                        name = accountFields.name,
-                        age = accountFields.age.toInt(),
-                        degree = accountFields.degree,
-                        address = accountFields.address,
-                        contactNumber = accountFields.contactNumber,
-                        summary = accountFields.summary,
-                        educationalBackground = accountFields.educationalBackground,
-                        id = id
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    val response = academicallyApi.updateInfo(
+                        InfoBody(
+                            name = accountFields.name,
+                            age = accountFields.age.toInt(),
+                            degree = accountFields.degree,
+                            address = accountFields.address,
+                            contactNumber = accountFields.contactNumber,
+                            summary = accountFields.summary,
+                            educationalBackground = accountFields.educationalBackground,
+                            freeTutoringTime = accountFields.freeTutoringTime
+                        )
                     )
+                    val validation = when (response) {
+                        is NoCurrentUser.Success -> response.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(response.error)
+                    }
+
+                    ActivityCacheManager.account = null
+                    ActivityCacheManager.currentUser = null
+
+                    toggleButtons(0, true)
+
+                    showMessage(validation)
                 }
-
-                // Enable button again
-                toggleButtons(0, true)
-
-                showMessage(result)
             } catch (e: Exception) {
                 toggleButtons(0, true)
-                showMessage(ValidationMessage(false, "Something went wrong saving your info."))
+                showMessage(Validation(false, e.message ?: ""))
             }
         }
     }
 
-    private fun validateUserInfo(
-        accountFields: ManageAccountFields,
-        existingNames: List<String>
-    ): ValidationMessage {
-        return when {
-            accountFields.age.isEmpty() ||
-                    accountFields.degree.isEmpty() ||
-                    accountFields.address.isEmpty() ||
-                    accountFields.name.isEmpty() ||
-                    accountFields.contactNumber.isEmpty() ||
-                    accountFields.summary.isEmpty() ||
-                    accountFields.educationalBackground.isEmpty() -> ValidationMessage(
-                false,
-                "Please fill up empty fields."
-            )
-
-            accountFields.address.length < 15 || accountFields.address.length > 40 -> ValidationMessage(
-                false,
-                "Address should be 15-40 characters length."
-            )
-
-            accountFields.name.length < 5 || accountFields.name.length > 20 -> ValidationMessage(
-                false,
-                "Name should be 5-20 characters length."
-            )
-
-            accountFields.contactNumber.length < 10 || accountFields.contactNumber.length > 100 -> ValidationMessage(
-                false,
-                "Contact Number should be 10-100 characters length."
-            )
-
-            accountFields.summary.length < 30 || accountFields.summary.length > 200 -> ValidationMessage(
-                false,
-                "Summary should be 30-200 characters length."
-            )
-
-            accountFields.educationalBackground.length < 30 || accountFields.educationalBackground.length > 200 -> ValidationMessage(
-                false,
-                "Educational Background should be 30-200 characters length."
-            )
-
-            !accountFields.age.isDigitsOnly() -> ValidationMessage(false, "Age should be a number.")
-            accountFields.age.toInt() < 15 || accountFields.age.toInt() > 50 -> ValidationMessage(
-                false,
-                "Age should range from 15 to 50"
-            )
-
-            !Regex("BSCS|HRS|STEM|IT|ACT|HRM|ABM").matches(accountFields.degree.uppercase()) -> ValidationMessage(
-                false,
-                "Please enter valid degree."
-            )
-
-            existingNames.any { it == accountFields.name } && accountFields.name != userData.value.name -> ValidationMessage(
-                false,
-                "Username already exists."
-            )
-
-            else -> ValidationMessage(true, "User Information Successfully Saved")
-        }
-    }
-
-    fun savePassword(
-        id: Int,
-        currentPassword: String,
-        passwordFields: PasswordFields,
-        showMessage: (ValidationMessage) -> Unit
-    ) {
+    fun savePassword(context: Context, passwordFields: PasswordFields, showMessage: (Validation) -> Unit) {
         viewModelScope.launch {
             try {
-                // Disable button temporarily
                 toggleButtons(1, false)
 
-                // Validate and update user password
-                val result = validatePassword(currentPassword, passwordFields)
-                if (result.isValid) {
-                    userRepository.updateUserPassword(passwordFields.newPassword, id)
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    val response = academicallyApi.updatePassword(
+                        PasswordBody(
+                            passwordFields.currentPassword,
+                            passwordFields.newPassword,
+                            passwordFields.confirmPassword
+                        )
+                    )
+                    val validation = when (response) {
+                        is NoCurrentUser.Success -> response.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(response.error)
+                    }
+
+                    userCacheRepository.updatePassword(passwordFields.newPassword)
+
+                    toggleButtons(1, true)
+
+                    showMessage(validation)
                 }
-
-                // Enable button again
-                toggleButtons(1, true)
-
-                showMessage(result)
             } catch (e: Exception) {
                 toggleButtons(1, true)
-                showMessage(
-                    ValidationMessage(
-                        false,
-                        "Something went wrong saving your new password."
-                    )
-                )
+                showMessage(Validation(false, e.message ?: ""))
             }
         }
     }
 
-    private fun validatePassword(
-        currentPassword: String,
-        passwordFields: PasswordFields
-    ): ValidationMessage {
-        return when {
-            passwordFields.currentPassword.isEmpty() || passwordFields.newPassword.isEmpty() || passwordFields.confirmPassword.isEmpty() -> ValidationMessage(
-                false,
-                "Please fill up empty fields."
-            )
-
-            passwordFields.currentPassword != currentPassword -> ValidationMessage(
-                false,
-                "Current password do not match."
-            )
-
-            !Regex("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}\$").containsMatchIn(passwordFields.newPassword) -> ValidationMessage(
-                false,
-                "Invalid New Password."
-            )
-
-            passwordFields.newPassword != passwordFields.confirmPassword -> ValidationMessage(
-                false,
-                "New password do not match."
-            )
-
-            else -> ValidationMessage(true, "Password Successfully Saved")
-        }
-    }
-
-    fun switchRole(role: String, id: Int, navigate: (String) -> Unit) {
+    fun switchRole(context: Context, newRole: String, navigate: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                // Disable button temporarily
                 toggleButtons(2, false)
 
-                // Switch user role
-                userRepository.updateUserRole(if (role == "STUDENT") "TUTOR" else "STUDENT", id)
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    academicallyApi.switchRole()
 
-                // Enable button again
+                    userCacheRepository.updateRole(newRole)
+
+                    ActivityCacheManager.clearCache()
+                }
+
                 toggleButtons(2, true)
 
                 navigate("Switch role successful!")
             } catch (e: Exception) {
                 toggleButtons(2, true)
                 navigate("Failed to switch role")
+            }
+        }
+    }
+
+    fun uploadImage(imageBitmap: ImageBitmap, showMessage: (Validation) -> Unit, context: Context) {
+        viewModelScope.launch {
+            try {
+                toggleButtons(3, false)
+
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    val file = Utils.bitmapToFile(imageBitmap, context)
+                    val imagePart = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody("image/*".toMediaTypeOrNull()))
+                    academicallyApi.uploadImage(imagePart)
+
+                    ActivityCacheManager.account = null
+                }
+
+                toggleButtons(3, true)
+
+                showMessage(Validation(true, "Image Uploaded"))
+            } catch (e: Exception) {
+                toggleButtons(3, true)
+                e.printStackTrace()
+                showMessage(Validation(false, "Cannot Upload Image"))
             }
         }
     }

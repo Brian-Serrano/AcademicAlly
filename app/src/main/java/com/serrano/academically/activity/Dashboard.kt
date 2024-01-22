@@ -39,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.serrano.academically.api.Course
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.CircularProgressBar
 import com.serrano.academically.custom_composables.CoursesList
@@ -50,6 +53,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.ui.theme.montserrat
 import com.serrano.academically.utils.DashboardIcons
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.DashboardViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -59,43 +63,47 @@ fun Dashboard(
     scope: CoroutineScope,
     drawerState: DrawerState,
     navController: NavController,
-    userId: Int,
     context: Context,
     dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        dashboardViewModel.getData(userId, context)
+        dashboardViewModel.getData(context) {
+            navController.navigate("PatternAssessment")
+        }
     }
 
-    val user by dashboardViewModel.user.collectAsState()
-    val course by dashboardViewModel.courseSkills.collectAsState()
+    val user by dashboardViewModel.drawerData.collectAsState()
+    val dashboard by dashboardViewModel.dashboard.collectAsState()
     val process by dashboardViewModel.processState.collectAsState()
-    val ratings by dashboardViewModel.ratings.collectAsState()
     val animationPlayed by dashboardViewModel.animationPlayed.collectAsState()
+    val isRefreshLoading by dashboardViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { dashboardViewModel.refreshData(context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             DashboardTopBarNoDrawer {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             DashboardTopBarNoDrawer {
                 Loading(it)
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             val icons = if (user.role == "STUDENT") arrayOf(
-                DashboardIcons("Leaderboard/${user.id}", "Leaderboard", Icons.Filled.Leaderboard),
-                DashboardIcons("Analytics/${user.id}", "Analytics", Icons.Filled.Analytics),
-                DashboardIcons("FindTutor/${user.id}", "Find Tutor", Icons.Filled.PersonSearch),
-                DashboardIcons("Notifications/${user.id}", "Sessions", Icons.Filled.BrowseGallery)
+                DashboardIcons("Leaderboard", "Leaderboard", Icons.Filled.Leaderboard),
+                DashboardIcons("Analytics", "Analytics", Icons.Filled.Analytics),
+                DashboardIcons("FindTutor", "Find Tutor", Icons.Filled.PersonSearch),
+                DashboardIcons("Notifications", "Notifications", Icons.Filled.BrowseGallery)
             ) else arrayOf(
-                DashboardIcons("Leaderboard/${user.id}", "Leaderboard", Icons.Filled.Leaderboard),
-                DashboardIcons("Analytics/${user.id}", "Analytics", Icons.Filled.Analytics),
-                DashboardIcons("Notifications/${user.id}", "Sessions", Icons.Filled.BrowseGallery)
+                DashboardIcons("Leaderboard", "Leaderboard", Icons.Filled.Leaderboard),
+                DashboardIcons("Analytics", "Analytics", Icons.Filled.Analytics),
+                DashboardIcons("Notifications", "Notifications", Icons.Filled.BrowseGallery)
             )
 
             LaunchedEffect(Unit) {
@@ -114,7 +122,8 @@ fun Dashboard(
                     topBar = DashboardTopBar(
                         scope = scope,
                         drawerState = drawerState,
-                        onIconClick = { navController.navigate("Profile/${user.id}/${user.id}") }
+                        onIconClick = { navController.navigate("Profile/${user.id}") },
+                        image = Utils.convertToImage(dashboard.image)
                     )
                 ) { values ->
                     Column(
@@ -167,7 +176,8 @@ fun Dashboard(
                                             Icon(
                                                 imageVector = it.icon,
                                                 contentDescription = null,
-                                                modifier = Modifier.size(50.dp)
+                                                modifier = Modifier.size(50.dp),
+                                                tint = MaterialTheme.colorScheme.onSecondary
                                             )
                                         }
                                         Text(
@@ -180,84 +190,90 @@ fun Dashboard(
                                 }
                             }
                         }
-                        LazyColumn {
-                            item {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f)
-                                            .padding(20.dp)
-                                            .clip(MaterialTheme.shapes.extraSmall),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.tertiary
-                                        )
+                        SwipeRefresh(
+                            state = swipeRefreshState,
+                            onRefresh = onRefresh,
+                            refreshTriggerDistance = 50.dp
+                        ) {
+                            LazyColumn {
+                                item {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Column(
-                                            modifier = Modifier.fillMaxSize(),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            verticalArrangement = Arrangement.Center
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .weight(1f)
+                                                .padding(20.dp)
+                                                .clip(MaterialTheme.shapes.extraSmall),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = MaterialTheme.colorScheme.tertiary
+                                            )
                                         ) {
-                                            Text(
-                                                text = "Knowledge",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                modifier = Modifier.padding(10.dp)
-                                            )
-                                            CircularProgressBar(
-                                                percentage = ratings.first.toFloat(),
-                                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                                radius = 55.dp,
-                                                animationPlayed = animationPlayed
-                                            )
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = "Knowledge",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    modifier = Modifier.padding(10.dp)
+                                                )
+                                                CircularProgressBar(
+                                                    percentage = Utils.roundRating(if (dashboard.courses.isNotEmpty()) dashboard.courses.map { it.assessmentRating / it.assessmentTaken }.average() else 0.0).toFloat(),
+                                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                                    radius = 55.dp,
+                                                    animationPlayed = animationPlayed
+                                                )
+                                            }
                                         }
-                                    }
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f)
-                                            .padding(20.dp)
-                                            .clip(MaterialTheme.shapes.extraSmall),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.tertiary
-                                        )
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.fillMaxSize(),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            verticalArrangement = Arrangement.Center
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .weight(1f)
+                                                .padding(20.dp)
+                                                .clip(MaterialTheme.shapes.extraSmall),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = MaterialTheme.colorScheme.tertiary
+                                            )
                                         ) {
-                                            Text(
-                                                text = "Performance",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                modifier = Modifier.padding(10.dp)
-                                            )
-                                            CircularProgressBar(
-                                                percentage = ratings.second.toFloat(),
-                                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                                radius = 55.dp,
-                                                animationPlayed = animationPlayed
-                                            )
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = "Performance",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    modifier = Modifier.padding(10.dp)
+                                                )
+                                                CircularProgressBar(
+                                                    percentage = Utils.roundRating(if (dashboard.rateNumber > 0) dashboard.rating / dashboard.rateNumber else 0.0).toFloat(),
+                                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                                    radius = 55.dp,
+                                                    animationPlayed = animationPlayed
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            item {
-                                CustomCard {
-                                    CoursesList(course)
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        BlackButton(
-                                            text = "SHOW ALL COURSES",
-                                            action = { navController.navigate("CoursesMenu/${user.id}") },
-                                            modifier = Modifier.padding(20.dp),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
+                                item {
+                                    CustomCard {
+                                        CoursesList(dashboard.courses.map { Course(it.courseName, it.courseDescription) })
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            BlackButton(
+                                                text = "SHOW ALL COURSES",
+                                                action = { navController.navigate("CoursesMenu") },
+                                                modifier = Modifier.padding(20.dp),
+                                                style = MaterialTheme.typography.labelMedium
+                                            )
+                                        }
                                     }
                                 }
                             }

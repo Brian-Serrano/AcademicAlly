@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +37,6 @@ import com.serrano.academically.R
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DiagonalBackground
 import com.serrano.academically.custom_composables.LoginTextField
-import com.serrano.academically.ui.theme.Strings
 import com.serrano.academically.viewmodel.SignupViewModel
 
 @Composable
@@ -78,7 +76,7 @@ fun Signup(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(20.dp)
-                    .clickable { navController.navigateUp() }
+                    .clickable { navController.popBackStack() }
             )
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
@@ -127,13 +125,17 @@ fun Signup(
                 BlackButton(
                     text = "CREATE ACCOUNT",
                     action = {
-                        signupViewModel.validateUserSignUpAsynchronously(
+                        signupViewModel.signup(
                             context = context,
                             role = user,
                             si = signupInput,
                             navigate = {
-                                Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
-                                navController.navigate("Dashboard/${it.id}")
+                                Toast.makeText(context, "User Signed Up!", Toast.LENGTH_LONG).show()
+                                navController.navigate("Dashboard") {
+                                    popUpTo(navController.graph.id) {
+                                        inclusive = false
+                                    }
+                                }
                             },
                             error = {
                                 signupViewModel.updateInput(

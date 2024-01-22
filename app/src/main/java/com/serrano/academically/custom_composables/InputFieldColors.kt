@@ -5,7 +5,6 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.serrano.academically.room.User
 import com.serrano.academically.utils.DashboardIcons
 
 @Composable

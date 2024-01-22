@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.ConfirmDialog
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.DropDown
@@ -38,7 +39,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAnim
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.AssessmentType
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.IdentificationFields
 import com.serrano.academically.utils.MultipleChoiceFields
 import com.serrano.academically.utils.ProcessState
@@ -53,7 +54,6 @@ fun CreateAssignment(
     drawerState: DrawerState,
     navController: NavController,
     context: Context,
-    userId: Int,
     sessionId: Int,
     items: String,
     type: String,
@@ -62,15 +62,19 @@ fun CreateAssignment(
     createAssignmentViewModel: CreateAssignmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        createAssignmentViewModel.getData(userId, sessionId, items.toInt(), type, context)
+        createAssignmentViewModel.getData(sessionId, items.toInt(), type, context)
     }
 
     val process by createAssignmentViewModel.processState.collectAsState()
     val user by createAssignmentViewModel.drawerData.collectAsState()
-    val session by createAssignmentViewModel.sessionInfo.collectAsState()
+    val session by createAssignmentViewModel.session.collectAsState()
     val assessmentFields by createAssignmentViewModel.quizFields.collectAsState()
     val item by createAssignmentViewModel.item.collectAsState()
     val dialogOpen by createAssignmentViewModel.isFilterDialogOpen.collectAsState()
+    val isRefreshLoading by createAssignmentViewModel.isRefreshLoading.collectAsState()
+
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { createAssignmentViewModel.refreshData(sessionId, items.toInt(), type, context) }
 
     val onBackButtonClick = {
         if (item > 0) {
@@ -82,23 +86,22 @@ fun CreateAssignment(
             createAssignmentViewModel.moveItem(true)
         }
     }
-    val onFieldEdit =
-        { quiz: AssessmentType -> createAssignmentViewModel.updateFields(assessmentFields.map { if (quiz.id == it.id) quiz else it }) }
+    val onFieldEdit = { quiz: AssessmentType -> createAssignmentViewModel.updateFields(assessmentFields.map { if (quiz.id == it.id) quiz else it }) }
     val onSaveButtonClick = { createAssignmentViewModel.toggleDialog(true) }
 
     val deadlineLocalDate = LocalDateTime.parse(deadline)
 
-    when (process) {
-        ProcessState.Error -> {
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "EDIT ASSIGNMENT",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "EDIT ASSIGNMENT",
                 navController = navController
@@ -107,7 +110,7 @@ fun CreateAssignment(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -128,15 +131,15 @@ fun CreateAssignment(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         LazyRow {
-                            item { QuizInfo(name = "Course", value = session.second.courseName) }
+                            item { QuizInfo(name = "Course", value = session.courseName) }
                             item { QuizInfo(name = "Items", value = items) }
                             item { QuizInfo(name = "Type", value = type) }
-                            item { QuizInfo(name = "Module", value = session.second.moduleName) }
+                            item { QuizInfo(name = "Module", value = session.moduleName) }
                             item {
                                 QuizInfo(
                                     name = "Deadline",
-                                    value = "${HelperFunctions.formatDate(deadlineLocalDate)} ${
-                                        HelperFunctions.toMilitaryTime(
+                                    value = "${Utils.formatDate(deadlineLocalDate)} ${
+                                        Utils.toMilitaryTime(
                                             deadlineLocalDate.hour,
                                             deadlineLocalDate.minute
                                         )
@@ -211,12 +214,8 @@ fun CreateAssignment(
                             onClickingYes = {
                                 createAssignmentViewModel.toggleDialog(false)
                                 createAssignmentViewModel.completeSessionAndSaveAssignment(
-                                    studentId = session.first.studentId,
-                                    tutorId = session.first.tutorId,
-                                    sessionId = session.first.sessionId,
+                                    session = session,
                                     rate = rate,
-                                    courseId = session.first.courseId,
-                                    moduleId = session.first.moduleId,
                                     type = type,
                                     deadLine = deadlineLocalDate,
                                     navigate = {
@@ -225,10 +224,10 @@ fun CreateAssignment(
                                             "Assignment Created and Session Completed!",
                                             Toast.LENGTH_LONG
                                         ).show()
-                                        navController.navigateUp()
-                                        navController.navigateUp()
-                                        navController.navigateUp()
-                                        navController.navigateUp()
+                                        navController.popBackStack()
+                                        navController.popBackStack()
+                                        navController.popBackStack()
+                                        navController.popBackStack()
                                     },
                                     context = context,
                                     assessment = assessmentFields,

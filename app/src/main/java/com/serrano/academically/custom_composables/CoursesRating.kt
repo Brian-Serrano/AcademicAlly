@@ -6,13 +6,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.serrano.academically.room.CourseSkill
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.api.CourseRating
+import com.serrano.academically.utils.Utils
 
 @Composable
-fun CoursesRating(courses: List<Pair<CourseSkill, String>>) {
+fun CoursesRating(courses: List<CourseRating>) {
     Text(
         text = "Courses Ratings",
         style = MaterialTheme.typography.labelMedium,
@@ -21,7 +20,7 @@ fun CoursesRating(courses: List<Pair<CourseSkill, String>>) {
     courses.forEach {
         HorizontalDivider(thickness = 2.dp)
         val rating =
-            HelperFunctions.roundRating((it.first.assessmentRating / it.first.assessmentTaken) * 5)
-        RatingCard(text = it.second, rating = rating)
+            Utils.roundRating((it.assessmentRating / it.assessmentTaken) * 5)
+        RatingCard(text = it.courseName, rating = rating)
     }
 }

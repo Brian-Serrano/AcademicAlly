@@ -4,60 +4,96 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.Message
-import com.serrano.academically.room.MessageRepository
-import com.serrano.academically.room.Session
-import com.serrano.academically.room.SessionRepository
-import com.serrano.academically.room.UserRepository
-import com.serrano.academically.utils.GetAchievements
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.CreateSessionBody
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.Message
+import com.serrano.academically.api.NoCurrentUser
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.SessionSettings
-import com.serrano.academically.utils.UserDrawerData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateSessionViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val sessionRepository: SessionRepository,
-    private val messageRepository: MessageRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _drawerData = MutableStateFlow(UserDrawerData())
-    val drawerData: StateFlow<UserDrawerData> = _drawerData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
     private val _sessionSettings = MutableStateFlow(SessionSettings())
     val sessionSettings: StateFlow<SessionSettings> = _sessionSettings.asStateFlow()
 
-    private val _messageInfo = MutableStateFlow(Message())
-    val messageInfo: StateFlow<Message> = _messageInfo.asStateFlow()
+    private val _message = MutableStateFlow(Message())
+    val message: StateFlow<Message> = _message.asStateFlow()
 
     private val _buttonEnabled = MutableStateFlow(true)
     val buttonEnabled: StateFlow<Boolean> = _buttonEnabled.asStateFlow()
 
-    fun getData(id: Int, messageId: Int) {
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    fun getData(messageId: Int, context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch user drawer data
-                _drawerData.value = userRepository.getUserDataForDrawer(id).first()
+                val messageCache = ActivityCacheManager.createSession[messageId]
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Fetch message information
-                _messageInfo.value = messageRepository.getMessage(messageId).first()
+                if (messageCache != null && currentUserCache != null) {
+                    _message.value = messageCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(messageId, context)
+                }
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
+            }
+        }
+    }
+
+    fun refreshData(messageId: Int, context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(messageId, context)
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi(messageId: Int, context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            when (val message = academicallyApi.getMessage(messageId)) {
+                is WithCurrentUser.Success -> {
+                    _message.value = message.data!!
+                    _drawerData.value = message.currentUser!!
+
+                    ActivityCacheManager.createSession[messageId] = message.data
+                    ActivityCacheManager.currentUser = message.currentUser
+                }
+                is WithCurrentUser.Error -> throw IllegalArgumentException(message.error)
             }
         }
     }
@@ -68,91 +104,42 @@ class CreateSessionViewModel @Inject constructor(
 
     fun createSession(
         settings: SessionSettings,
-        courseId: Int,
-        moduleId: Int,
-        tutorId: Int,
-        studentId: Int,
-        messageId: Int,
+        message: Message,
         navigate: () -> Unit,
         context: Context
     ) {
         viewModelScope.launch {
             try {
-                // Disable button temporarily
                 _buttonEnabled.value = false
 
-                // Save session
-                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a")
-                sessionRepository.addSession(
-                    Session(
-                        courseId = courseId,
-                        tutorId = tutorId,
-                        studentId = studentId,
-                        moduleId = moduleId,
-                        startTime = LocalDateTime.parse(
-                            "${settings.date} ${settings.startTime}",
-                            formatter
-                        ),
-                        endTime = LocalDateTime.parse(
-                            "${settings.date} ${settings.endTime}",
-                            formatter
-                        ),
-                        location = settings.location,
-                        expireDate = LocalDateTime.now().plusDays(28)
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    val apiResponse = academicallyApi.createSession(
+                        CreateSessionBody(
+                            Utils.validateDate("${settings.date} ${settings.startTime}"),
+                            Utils.validateDate("${settings.date} ${settings.endTime}"),
+                            message.messageId,
+                            message.studentId,
+                            message.tutorId,
+                            message.courseId,
+                            message.moduleId,
+                            settings.location
+                        )
                     )
-                )
-
-                // Update message as ACCEPTED
-                messageRepository.updateMessageStatus("ACCEPT", messageId)
-
-                // Update student and tutor accepted requests and points
-                userRepository.updateStudentAcceptedRequests(0.2, studentId)
-                userRepository.updateTutorAcceptedRequests(0.2, tutorId)
-
-                // Update student points and accepted requests achievement
-                val achievementProgressStudent =
-                    userRepository.getBadgeProgressAsStudent(studentId).first().achievement
-                val computedProgressStudent = HelperFunctions.computeAchievementProgress(
-                    userRepository.getStudentPoints(studentId).first(),
-                    listOf(10, 25, 50, 100, 200),
-                    listOf(7, 8, 9, 10, 11),
-                    HelperFunctions.computeAchievementProgress(
-                        userRepository.getStudentAcceptedRequests(studentId).first().toDouble(),
-                        listOf(1, 3, 10),
-                        listOf(4, 5, 6),
-                        achievementProgressStudent
+                    Utils.showToast(
+                        when (apiResponse) {
+                            is NoCurrentUser.Success -> apiResponse.data!!
+                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                        },
+                        context
                     )
-                )
-                userRepository.updateStudentBadgeProgress(computedProgressStudent, studentId)
 
-                // Update tutor points and accepted requests achievement
-                val achievementProgressTutor =
-                    userRepository.getBadgeProgressAsTutor(tutorId).first().achievement
-                val computedProgressTutor = HelperFunctions.computeAchievementProgress(
-                    userRepository.getTutorPoints(tutorId).first(),
-                    listOf(10, 25, 50, 100, 200),
-                    listOf(7, 8, 9, 10, 11),
-                    HelperFunctions.computeAchievementProgress(
-                        userRepository.getTutorAcceptedRequests(tutorId).first().toDouble(),
-                        listOf(1, 5, 10, 20),
-                        listOf(0, 1, 2, 3),
-                        achievementProgressTutor
-                    )
-                )
-                userRepository.updateTutorBadgeProgress(computedProgressTutor, tutorId)
-
-                // Show toast message if an achievement is completed
-                HelperFunctions.checkCompletedAchievements(
-                    achievementProgressTutor, computedProgressTutor
-                ) {
-                    Toast.makeText(
-                        context,
-                        GetAchievements.getAchievements(0, context)[it][0],
-                        Toast.LENGTH_LONG
-                    ).show()
+                    ActivityCacheManager.createSession.remove(message.messageId)
+                    ActivityCacheManager.aboutStudent.remove(message.messageId)
+                    ActivityCacheManager.notificationsSessions = null
+                    ActivityCacheManager.notificationsMessages = null
+                    ActivityCacheManager.archiveAcceptedMessages = null
                 }
 
-                // Enable button again
                 _buttonEnabled.value = true
 
                 navigate()

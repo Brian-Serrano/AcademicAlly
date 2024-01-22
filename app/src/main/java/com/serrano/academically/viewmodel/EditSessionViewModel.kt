@@ -1,39 +1,41 @@
 package com.serrano.academically.viewmodel
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.Session
-import com.serrano.academically.room.SessionRepository
-import com.serrano.academically.room.UserRepository
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.SessionData
+import com.serrano.academically.api.UpdateSessionBody
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.RateDialogStates
 import com.serrano.academically.utils.SessionSettings
-import com.serrano.academically.utils.UserDrawerData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
 class EditSessionViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val sessionRepository: SessionRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
-
-    private val _session = MutableStateFlow(Session())
-    val session: StateFlow<Session> = _session.asStateFlow()
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _drawerData = MutableStateFlow(UserDrawerData())
-    val drawerData: StateFlow<UserDrawerData> = _drawerData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+
+    private val _sessionData = MutableStateFlow(SessionData())
+    val sessionData: StateFlow<SessionData> = _sessionData.asStateFlow()
 
     private val _sessionSettings = MutableStateFlow(SessionSettings())
     val sessionSettings: StateFlow<SessionSettings> = _sessionSettings.asStateFlow()
@@ -50,38 +52,85 @@ class EditSessionViewModel @Inject constructor(
     private val _buttonEnabled = MutableStateFlow(true)
     val buttonEnabled: StateFlow<Boolean> = _buttonEnabled.asStateFlow()
 
-    fun getData(userId: Int, sessionId: Int) {
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    fun getData(sessionId: Int, context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch drawer data
-                _drawerData.value = userRepository.getUserDataForDrawer(userId).first()
+                val sessionCache = ActivityCacheManager.editSession[sessionId]
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Fetch session
-                val session = sessionRepository.getSession(sessionId).first()
-                _session.value = session
+                if (sessionCache != null && currentUserCache != null) {
+                    _sessionData.value = sessionCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(sessionId, context)
+                }
 
-                // Place session info in text fields
-                _sessionSettings.value = SessionSettings(
-                    date = String.format(
-                        "%02d/%02d/%04d",
-                        session.startTime.dayOfMonth,
-                        session.startTime.monthValue,
-                        session.startTime.year
-                    ),
-                    startTime = HelperFunctions.toMilitaryTime(
-                        session.startTime.hour,
-                        session.startTime.minute
-                    ),
-                    endTime = HelperFunctions.toMilitaryTime(
-                        session.endTime.hour,
-                        session.endTime.minute
-                    ),
-                    location = session.location,
-                    error = ""
-                )
+                refreshSessionSettings()
+
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
+            }
+        }
+    }
+
+    fun refreshData(sessionId: Int, context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(sessionId, context)
+
+                refreshSessionSettings()
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun refreshSessionSettings() {
+        val startTime = Utils.convertToDate(_sessionData.value.startTime)
+        val endTime = Utils.convertToDate(_sessionData.value.endTime)
+
+        _sessionSettings.value = SessionSettings(
+            date = String.format(
+                "%02d/%02d/%04d",
+                startTime.dayOfMonth,
+                startTime.monthValue,
+                startTime.year
+            ),
+            startTime = Utils.toMilitaryTime(
+                startTime.hour,
+                startTime.minute
+            ),
+            endTime = Utils.toMilitaryTime(
+                endTime.hour,
+                endTime.minute
+            ),
+            location = _sessionData.value.location,
+            error = ""
+        )
+    }
+
+    private suspend fun callApi(sessionId: Int, context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            when (val sessionResponse = academicallyApi.getSessionSettings(sessionId)) {
+                is WithCurrentUser.Success -> {
+                    _sessionData.value = sessionResponse.data!!
+                    _drawerData.value = sessionResponse.currentUser!!
+
+                    ActivityCacheManager.editSession[sessionId] = sessionResponse.data
+                    ActivityCacheManager.currentUser = sessionResponse.currentUser
+                }
+                is WithCurrentUser.Error -> throw IllegalArgumentException(sessionResponse.error)
             }
         }
     }
@@ -90,29 +139,25 @@ class EditSessionViewModel @Inject constructor(
         _sessionSettings.value = newSessionSettings
     }
 
-    fun updateSession(settings: SessionSettings, sessionId: Int, navigate: () -> Unit) {
+    fun updateSession(context: Context, settings: SessionSettings, sessionId: Int, navigate: () -> Unit) {
         viewModelScope.launch {
             try {
-                // Disable button temporarily
                 _buttonEnabled.value = false
 
-                // Update Session
-                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a")
-                sessionRepository.updateSession(
-                    startTime = LocalDateTime.parse(
-                        "${settings.date} ${settings.startTime}",
-                        formatter
-                    ),
-                    endTime = LocalDateTime.parse(
-                        "${settings.date} ${settings.endTime}",
-                        formatter
-                    ),
-                    location = settings.location,
-                    expireDate = LocalDateTime.now().plusDays(28),
-                    sessionId = sessionId
-                )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    academicallyApi.updateSession(
+                        UpdateSessionBody(
+                            sessionId,
+                            Utils.validateDate("${settings.date} ${settings.startTime}"),
+                            Utils.validateDate("${settings.date} ${settings.endTime}"),
+                            settings.location
+                        )
+                    )
 
-                // Enable button again
+                    ActivityCacheManager.editSession.remove(sessionId)
+                    ActivityCacheManager.notificationsSessions = null
+                }
+
                 _buttonEnabled.value = true
 
                 navigate()

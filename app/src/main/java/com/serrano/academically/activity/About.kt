@@ -31,7 +31,6 @@ import com.serrano.academically.R
 import com.serrano.academically.custom_composables.HorizontalPagerIndicator
 import com.serrano.academically.custom_composables.MainButton
 import com.serrano.academically.ui.theme.AcademicAllyPrototypeTheme
-import com.serrano.academically.ui.theme.Strings
 import com.serrano.academically.utils.AboutText
 
 @OptIn(ExperimentalFoundationApi::class)

@@ -23,7 +23,8 @@ fun RowScope.GreenButton(
     action: () -> Unit,
     text: String,
     style: TextStyle = MaterialTheme.typography.labelMedium,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    clickable: Boolean = true
 ) {
     Button(
         onClick = action,
@@ -38,7 +39,7 @@ fun RowScope.GreenButton(
             .padding(10.dp)
             .fillMaxWidth()
             .weight(1f),
-        enabled = enabled
+        enabled = enabled && clickable
     ) {
         Box(
             modifier = Modifier.height(25.dp),

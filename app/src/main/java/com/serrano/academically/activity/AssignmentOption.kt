@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.DropDown
 import com.serrano.academically.custom_composables.ErrorComposable
@@ -37,14 +39,13 @@ fun AssignmentOption(
     scope: CoroutineScope,
     drawerState: DrawerState,
     navController: NavController,
-    userId: Int,
     sessionId: Int,
     rate: Int,
     context: Context,
     assignmentOptionViewModel: AssignmentOptionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        assignmentOptionViewModel.getData(userId, sessionId, context)
+        assignmentOptionViewModel.getData(sessionId, context)
     }
 
     val process by assignmentOptionViewModel.processState.collectAsState()
@@ -52,19 +53,23 @@ fun AssignmentOption(
     val itemsDropdown by assignmentOptionViewModel.itemsDropdown.collectAsState()
     val typeDropdown by assignmentOptionViewModel.typeDropdown.collectAsState()
     val deadline by assignmentOptionViewModel.deadlineField.collectAsState()
-    val session by assignmentOptionViewModel.sessionInfo.collectAsState()
+    val session by assignmentOptionViewModel.session.collectAsState()
+    val isRefreshLoading by assignmentOptionViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { assignmentOptionViewModel.refreshData(sessionId, context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "EDIT ASSIGNMENT",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "EDIT ASSIGNMENT",
                 navController = navController
@@ -73,7 +78,7 @@ fun AssignmentOption(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -94,13 +99,13 @@ fun AssignmentOption(
                 ) {
                     CustomCard {
                         Text(
-                            text = "Course: ${session.second.courseName}",
+                            text = "Course: ${session.courseName}",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
                         HorizontalDivider(thickness = 2.dp)
                         Text(
-                            text = "Module: ${session.second.moduleName}",
+                            text = "Module: ${session.moduleName}",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
@@ -206,7 +211,7 @@ fun AssignmentOption(
                                 action = {
                                     assignmentOptionViewModel.validateDeadlineFormatAndNavigate(
                                         deadlineField = deadline,
-                                        navigate = { navController.navigate("CreateAssignment/$userId/$sessionId/${itemsDropdown.selected}/${typeDropdown.selected}/$it/$rate") }
+                                        navigate = { navController.navigate("CreateAssignment/$sessionId/${itemsDropdown.selected}/${typeDropdown.selected}/$it/$rate") }
                                     )
                                 },
                                 text = "Create Assignment"

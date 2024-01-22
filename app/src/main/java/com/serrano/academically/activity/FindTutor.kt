@@ -1,10 +1,12 @@
 package com.serrano.academically.activity
 
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
@@ -25,10 +30,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.CustomSearchBar
 import com.serrano.academically.custom_composables.DrawerAndScaffold
@@ -38,7 +46,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RatingBar
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.FindTutorViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -47,13 +55,12 @@ import kotlinx.coroutines.CoroutineScope
 fun FindTutor(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    userId: Int,
     navController: NavController,
     context: Context,
     findTutorViewModel: FindTutorViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        findTutorViewModel.getData(context, userId)
+        findTutorViewModel.getData(context)
     }
 
     val search by findTutorViewModel.searchInfo.collectAsState()
@@ -62,18 +69,22 @@ fun FindTutor(
     val process by findTutorViewModel.processState.collectAsState()
     val dialogOpen by findTutorViewModel.isFilterDialogOpen.collectAsState()
     val filterState by findTutorViewModel.filterState.collectAsState()
+    val isRefreshLoading by findTutorViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { findTutorViewModel.refreshData(context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "SEARCH TUTORS",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "SEARCH TUTORS",
                 navController = navController
@@ -82,7 +93,7 @@ fun FindTutor(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -98,7 +109,10 @@ fun FindTutor(
                         .background(MaterialTheme.colorScheme.primary)
                         .padding(values)
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -122,7 +136,7 @@ fun FindTutor(
                                             isActive = false
                                         )
                                     )
-                                    findTutorViewModel.updateMenu(filterState, it, context, userId)
+                                    findTutorViewModel.updateMenu(filterState, it, context)
                                 },
                                 onActiveChange = {
                                     findTutorViewModel.updateSearch(
@@ -142,63 +156,88 @@ fun FindTutor(
                                 isFilterButtonEnabled = true
                             )
                         }
-                        LazyColumn {
-                            items(items = tutors) {
-                                CustomCard {
-                                    Column {
-                                        val avgRating =
-                                            HelperFunctions.roundRating(it.rating.average())
-                                        val performance =
-                                            HelperFunctions.roundRating((if (it.performance.number > 0) it.performance.rating / it.performance.number else 0.0) * 5)
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.Filled.AccountCircle,
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .padding(10.dp)
-                                                    .size(80.dp)
-                                            )
+                        SwipeRefresh(
+                            state = swipeRefreshState,
+                            onRefresh = onRefresh,
+                            refreshTriggerDistance = 50.dp
+                        ) {
+                            if (tutors.tutors.isNotEmpty()) {
+                                LazyColumn {
+                                    items(items = tutors.tutors) {
+                                        CustomCard {
                                             Column {
-                                                Text(
-                                                    text = "Name: ${it.tutorName}",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    modifier = Modifier.padding(10.dp)
-                                                )
-                                                Text(
-                                                    text = "Courses: ${it.courses.joinToString(limit = 5)}",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    modifier = Modifier.padding(10.dp)
-                                                )
-                                                Text(
-                                                    text = "Course Rating: $avgRating",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    modifier = Modifier.padding(10.dp)
-                                                )
-                                                Text(
-                                                    text = "Performance Rating: $performance",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    modifier = Modifier.padding(10.dp)
-                                                )
+                                                val avgRating = Utils.roundRating(it.coursesAndRatings.map { it.courseRating }.average())
+                                                val performance = Utils.roundRating((if (it.performance.rateNumber > 0) it.performance.rating / it.performance.rateNumber else 0.0) * 5)
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Image(
+                                                        bitmap = Utils.convertToImage(it.image),
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .padding(10.dp)
+                                                            .size(80.dp)
+                                                            .clip(RoundedCornerShape(40.dp))
+                                                    )
+                                                    Column {
+                                                        Text(
+                                                            text = "Name: ${it.tutorName}",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            modifier = Modifier.padding(10.dp)
+                                                        )
+                                                        Text(
+                                                            text = "Courses: ${
+                                                                it.coursesAndRatings.joinToString(
+                                                                    limit = 5
+                                                                ) { it.courseName }
+                                                            }",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            modifier = Modifier.padding(10.dp)
+                                                        )
+                                                        Text(
+                                                            text = "Course Rating: $avgRating",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            modifier = Modifier.padding(10.dp)
+                                                        )
+                                                        Text(
+                                                            text = "Performance Rating: $performance",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            modifier = Modifier.padding(10.dp)
+                                                        )
+                                                        Text(
+                                                            text = "Primary pattern learning ${if (it.primaryPattern == user.primaryLearning) "" else "don't "}matched.",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            modifier = Modifier.padding(10.dp),
+                                                            color = if (it.primaryPattern == user.primaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
+                                                        )
+                                                        Text(
+                                                            text = "Secondary pattern learning ${if (it.secondaryPattern == user.secondaryLearning) "" else "don't "}matched.",
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            modifier = Modifier.padding(10.dp),
+                                                            color = if (it.secondaryPattern == user.secondaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
+                                                        )
+                                                    }
+                                                }
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    RatingBar(
+                                                        rating = Utils.roundRating((avgRating + performance) / 2).toFloat(),
+                                                        modifier = Modifier
+                                                            .padding(10.dp)
+                                                            .height(20.dp)
+                                                    )
+                                                    BlackButton(
+                                                        text = "VIEW TUTOR",
+                                                        action = { navController.navigate("AboutTutor/${it.tutorId}") },
+                                                        style = MaterialTheme.typography.labelMedium,
+                                                        modifier = Modifier.padding(10.dp)
+                                                    )
+                                                }
                                             }
                                         }
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            RatingBar(
-                                                rating = HelperFunctions.roundRating((avgRating + performance) / 2)
-                                                    .toFloat(),
-                                                modifier = Modifier
-                                                    .padding(10.dp)
-                                                    .height(20.dp)
-                                            )
-                                            BlackButton(
-                                                text = "VIEW TUTOR",
-                                                action = { navController.navigate("AboutTutor/${user.id}/${it.tutorId}") },
-                                                style = MaterialTheme.typography.labelMedium,
-                                                modifier = Modifier
-                                                    .width(200.dp)
-                                                    .padding(10.dp)
-                                            )
-                                        }
                                     }
+                                }
+                            } else {
+                                // To make swipe refresh work
+                                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                    Spacer(modifier = Modifier.padding(100.dp))
                                 }
                             }
                         }
@@ -212,9 +251,8 @@ fun FindTutor(
                         FilterDialog(
                             courseNames = filterState,
                             search = search,
-                            context = context,
-                            id = userId,
-                            findTutorViewModel = findTutorViewModel
+                            findTutorViewModel = findTutorViewModel,
+                            context = context
                         )
                     }
                 }

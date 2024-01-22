@@ -10,12 +10,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.AssessmentMenu
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AssignmentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -26,12 +28,11 @@ fun Assignment(
     drawerState: DrawerState,
     context: Context,
     navController: NavController,
-    userId: Int,
     assignmentId: Int,
     assignmentViewModel: AssignmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        assignmentViewModel.getData(userId, assignmentId, context)
+        assignmentViewModel.getData(assignmentId, context)
     }
 
     val process by assignmentViewModel.processState.collectAsState()
@@ -41,7 +42,10 @@ fun Assignment(
     val item by assignmentViewModel.item.collectAsState()
     val assessmentAnswer by assignmentViewModel.assessmentAnswers.collectAsState()
     val nextEnabled by assignmentViewModel.nextButtonEnabled.collectAsState()
-    val course by assignmentViewModel.courseName.collectAsState()
+    val isRefreshLoading by assignmentViewModel.isRefreshLoading.collectAsState()
+
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { assignmentViewModel.refreshData(assignmentId, context) }
 
     val focusManager = LocalFocusManager.current
 
@@ -61,8 +65,7 @@ fun Assignment(
             assignmentViewModel.moveItem(true)
         } else {
             assignmentViewModel.completeAssignment(
-                id = userId,
-                score = HelperFunctions.evaluateAnswer(
+                score = Utils.evaluateAnswer(
                     assessmentData,
                     assessmentAnswer,
                     assignment.type
@@ -75,23 +78,23 @@ fun Assignment(
                         "Assignment Completed! Your score is $it.",
                         Toast.LENGTH_LONG
                     ).show()
-                    navController.navigateUp()
+                    navController.popBackStack()
                 }
             )
         }
     }
 
-    when (process) {
-        ProcessState.Error -> {
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "ASSIGNMENT",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "ASSIGNMENT",
                 navController = navController
@@ -100,7 +103,7 @@ fun Assignment(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -113,7 +116,7 @@ fun Assignment(
                 AssessmentMenu(
                     items = assessmentData.size.toString(),
                     type = assignment.type,
-                    course = course,
+                    course = assignment.name,
                     item = item,
                     assessmentData = assessmentData,
                     assessmentAnswers = assessmentAnswer,

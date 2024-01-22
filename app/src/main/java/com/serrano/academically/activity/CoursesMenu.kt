@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.ErrorComposable
@@ -29,7 +31,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RatingBar
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.CoursesMenuViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -39,29 +41,32 @@ fun CoursesMenu(
     scope: CoroutineScope,
     drawerState: DrawerState,
     context: Context,
-    id: Int,
     navController: NavController,
     coursesMenuViewModel: CoursesMenuViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        coursesMenuViewModel.getData(id, context)
+        coursesMenuViewModel.getData(context)
     }
 
-    val user by coursesMenuViewModel.user.collectAsState()
+    val user by coursesMenuViewModel.drawerData.collectAsState()
     val process by coursesMenuViewModel.processState.collectAsState()
     val courseSkills by coursesMenuViewModel.courseSkills.collectAsState()
+    val isRefreshLoading by coursesMenuViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { coursesMenuViewModel.refreshData(context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "COURSES",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "COURSES",
                 navController = navController
@@ -70,7 +75,7 @@ fun CoursesMenu(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -86,45 +91,51 @@ fun CoursesMenu(
                         .background(color = MaterialTheme.colorScheme.primary)
                         .padding(values)
                 ) {
-                    LazyColumn {
-                        items(items = courseSkills) {
-                            CustomCard {
-                                val rating =
-                                    HelperFunctions.roundRating((it.first.assessmentRating / it.first.assessmentTaken) * 5)
-                                Text(
-                                    text = it.second.first,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(10.dp)
-                                )
-                                Text(
-                                    text = it.second.second,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(10.dp)
-                                )
-                                Text(
-                                    text = "Rating: $rating",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(10.dp)
-                                )
-                                RatingBar(
-                                    rating = rating.toFloat(),
-                                    modifier = Modifier
-                                        .padding(10.dp)
-                                        .height(20.dp)
-                                )
+                    SwipeRefresh(
+                        state = swipeRefreshState,
+                        onRefresh = onRefresh,
+                        refreshTriggerDistance = 50.dp
+                    ) {
+                        LazyColumn {
+                            items(items = courseSkills) {
+                                CustomCard {
+                                    val rating =
+                                        Utils.roundRating((it.assessmentRating / it.assessmentTaken) * 5)
+                                    Text(
+                                        text = it.courseName,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
+                                    Text(
+                                        text = it.courseDescription,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
+                                    Text(
+                                        text = "Rating: $rating",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
+                                    RatingBar(
+                                        rating = rating.toFloat(),
+                                        modifier = Modifier
+                                            .padding(10.dp)
+                                            .height(20.dp)
+                                    )
+                                }
                             }
-                        }
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                BlackButton(
-                                    text = "TAKE ASSESSMENT",
-                                    action = { navController.navigate("ChooseAssessment/${user.id}") },
-                                    modifier = Modifier.padding(20.dp),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    BlackButton(
+                                        text = "TAKE ASSESSMENT",
+                                        action = { navController.navigate("ChooseAssessment") },
+                                        modifier = Modifier.padding(20.dp),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
                             }
                         }
                     }

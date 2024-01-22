@@ -29,9 +29,8 @@ import com.serrano.academically.viewmodel.FindTutorViewModel
 fun FilterDialog(
     courseNames: List<FilterDialogStates>,
     search: SearchInfo,
-    context: Context,
-    id: Int,
-    findTutorViewModel: FindTutorViewModel
+    findTutorViewModel: FindTutorViewModel,
+    context: Context
 ) {
     Dialog(onDismissRequest = { findTutorViewModel.toggleDialog(false) }) {
         Column(
@@ -81,7 +80,7 @@ fun FilterDialog(
                 action = {
                     findTutorViewModel.toggleDialog(false)
                     findTutorViewModel.updateSearch(search.copy(isActive = false))
-                    findTutorViewModel.updateMenu(courseNames, search.searchQuery, context, id)
+                    findTutorViewModel.updateMenu(courseNames, search.searchQuery, context)
                 },
                 modifier = Modifier.padding(10.dp),
                 style = MaterialTheme.typography.labelMedium

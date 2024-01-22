@@ -1,48 +1,93 @@
 package com.serrano.academically.viewmodel
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.UserRepository
-import com.serrano.academically.utils.LeaderboardData
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.Leaderboard
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.UserDrawerData
+import com.serrano.academically.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LeaderboardViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _userDrawer = MutableStateFlow(UserDrawerData())
-    val userDrawer: StateFlow<UserDrawerData> = _userDrawer.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
-    private val _leaderboardsData = MutableStateFlow<List<LeaderboardData>>(emptyList())
-    val leaderboardsData: StateFlow<List<LeaderboardData>> = _leaderboardsData.asStateFlow()
+    private val _leaderboardsData = MutableStateFlow<List<Leaderboard>>(emptyList())
+    val leaderboardsData: StateFlow<List<Leaderboard>> = _leaderboardsData.asStateFlow()
 
-    fun getData(id: Int) {
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    fun getData(context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch drawer data
-                _userDrawer.value = userRepository.getUserDataForDrawer(id).first()
+                ActivityCacheManager.profile = null
 
-                // Fetch the users that have top scores base on user role
-                _leaderboardsData.value = when (_userDrawer.value.role) {
-                    "STUDENT" -> userRepository.getStudentLeaderboard().first()
-                    else -> userRepository.getTutorLeaderboard().first()
+                val leaderboardCache = ActivityCacheManager.leaderboard
+                val currentUserCache = ActivityCacheManager.currentUser
+
+                if (leaderboardCache != null && currentUserCache != null) {
+                    _leaderboardsData.value = leaderboardCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(context)
                 }
+
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
+        }
+    }
+
+    fun refreshData(context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(context)
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi(context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            val response = when (val leaderboardsData = academicallyApi.getLeaderboard()) {
+                is WithCurrentUser.Success -> leaderboardsData
+                is WithCurrentUser.Error -> throw IllegalArgumentException(leaderboardsData.error)
+            }
+
+            _leaderboardsData.value = response.data!!
+            _drawerData.value = response.currentUser!!
+
+            ActivityCacheManager.leaderboard = response.data
+            ActivityCacheManager.currentUser = response.currentUser
         }
     }
 }

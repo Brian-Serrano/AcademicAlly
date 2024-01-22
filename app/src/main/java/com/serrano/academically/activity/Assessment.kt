@@ -10,13 +10,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.AssessmentMenu
 import com.serrano.academically.custom_composables.Drawer
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
-import com.serrano.academically.ui.theme.Strings
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AssessmentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +26,6 @@ fun Assessment(
     scope: CoroutineScope,
     drawerState: DrawerState,
     context: Context,
-    id: Int,
     courseId: Int,
     items: String,
     type: String,
@@ -34,19 +33,30 @@ fun Assessment(
     assessmentViewModel: AssessmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        assessmentViewModel.getData(id, courseId, items.toInt(), type, context)
+        assessmentViewModel.getData(courseId, items.toInt(), type)
     }
 
     val user by assessmentViewModel.drawerData.collectAsState()
     val process by assessmentViewModel.processState.collectAsState()
-    val course by assessmentViewModel.courseName.collectAsState()
-    val assessmentData by assessmentViewModel.assessmentData.collectAsState()
+    val assessment by assessmentViewModel.assessment.collectAsState()
     val assessmentAnswers by assessmentViewModel.assessmentAnswers.collectAsState()
     val item by assessmentViewModel.item.collectAsState()
-    val isDrawerShouldAvailable by assessmentViewModel.isDrawerShouldAvailable.collectAsState()
+    val isAuthorized by assessmentViewModel.isAuthorized.collectAsState()
     val nextEnabled by assessmentViewModel.nextButtonEnabled.collectAsState()
+    val isRefreshLoading by assessmentViewModel.isRefreshLoading.collectAsState()
+
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { assessmentViewModel.refreshData(courseId, items.toInt(), type, context) }
 
     val focusManager = LocalFocusManager.current
+
+    val navigate = { score: Int, it: Int, role: String ->
+        navController.navigate("AssessmentResult/$score/$it/$role/$isAuthorized") {
+            popUpTo(navController.graph.id) {
+                inclusive = false
+            }
+        }
+    }
 
     val onBackButtonClick = {
         if (item > 0) {
@@ -56,51 +66,51 @@ fun Assessment(
             assessmentViewModel.moveItem(false)
         }
     }
+
     val onNextButtonClick = {
-        if (item < assessmentData.size - 1) {
+        if (item < assessment.assessmentData.size - 1) {
             if (type == "Identification") {
                 focusManager.clearFocus()
             }
             assessmentViewModel.moveItem(true)
         } else {
-            if (id == 0) {
+            if (isAuthorized) {
+                assessmentViewModel.updateCourseSkill(
+                    result = assessmentViewModel.evaluateAnswers(
+                        assessment.assessmentData,
+                        assessmentAnswers,
+                        type,
+                        courseId
+                    ),
+                    navigate = navigate,
+                    context = context
+                )
+            } else {
                 assessmentViewModel.saveResultToPreferences(
                     result = assessmentViewModel.evaluateAnswers(
-                        assessmentData,
+                        assessment.assessmentData,
                         assessmentAnswers,
                         type,
                         courseId
                     ),
                     context = context,
-                    navigate = { score, item, role -> navController.navigate("AssessmentResult/0/$score/$item/$role") }
-                )
-            } else {
-                assessmentViewModel.updateCourseSkill(
-                    userId = id,
-                    result = assessmentViewModel.evaluateAnswers(
-                        assessmentData,
-                        assessmentAnswers,
-                        type,
-                        courseId
-                    ),
-                    navigate = { score, item, role -> navController.navigate("AssessmentResult/$id/$score/$item/$role") },
-                    context = context
+                    navigate = navigate
                 )
             }
         }
     }
 
-    when (process) {
-        ProcessState.Error -> {
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "ASSESSMENT",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "ASSESSMENT",
                 navController = navController
@@ -109,8 +119,8 @@ fun Assessment(
             }
         }
 
-        ProcessState.Success -> {
-            if (isDrawerShouldAvailable) {
+        is ProcessState.Success -> {
+            if (isAuthorized) {
                 Drawer(
                     scope = scope,
                     drawerState = drawerState,
@@ -130,9 +140,9 @@ fun Assessment(
                         AssessmentMenu(
                             items = items,
                             type = type,
-                            course = course,
+                            course = assessment.name,
                             item = item,
-                            assessmentData = assessmentData,
+                            assessmentData = assessment.assessmentData,
                             assessmentAnswers = assessmentAnswers,
                             onBackButtonClick = onBackButtonClick,
                             onNextButtonClick = onNextButtonClick,
@@ -150,9 +160,9 @@ fun Assessment(
                     AssessmentMenu(
                         items = items,
                         type = type,
-                        course = course,
+                        course = assessment.name,
                         item = item,
-                        assessmentData = assessmentData,
+                        assessmentData = assessment.assessmentData,
                         assessmentAnswers = assessmentAnswers,
                         onBackButtonClick = onBackButtonClick,
                         onNextButtonClick = onNextButtonClick,

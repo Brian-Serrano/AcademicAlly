@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.EditSessionMenu
 import com.serrano.academically.custom_composables.ErrorComposable
@@ -34,31 +35,34 @@ fun CreateSession(
     drawerState: DrawerState,
     context: Context,
     navController: NavController,
-    userId: Int,
     messageId: Int,
     createSessionViewModel: CreateSessionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        createSessionViewModel.getData(userId, messageId)
+        createSessionViewModel.getData(messageId, context)
     }
 
     val user by createSessionViewModel.drawerData.collectAsState()
     val sessionSettings by createSessionViewModel.sessionSettings.collectAsState()
     val process by createSessionViewModel.processState.collectAsState()
-    val message by createSessionViewModel.messageInfo.collectAsState()
+    val message by createSessionViewModel.message.collectAsState()
     val enabled by createSessionViewModel.buttonEnabled.collectAsState()
+    val isRefreshLoading by createSessionViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { createSessionViewModel.refreshData(messageId, context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "CREATE SESSION",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "CREATE SESSION",
                 navController = navController
@@ -67,7 +71,7 @@ fun CreateSession(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -111,19 +115,15 @@ fun CreateSession(
                             onButtonClick = {
                                 createSessionViewModel.createSession(
                                     settings = sessionSettings,
-                                    courseId = message.courseId,
-                                    moduleId = message.moduleId,
-                                    tutorId = userId,
-                                    studentId = message.studentId,
-                                    messageId = messageId,
+                                    message = message,
                                     navigate = {
                                         Toast.makeText(
                                             context,
                                             "Session Created and Student Accepted!",
                                             Toast.LENGTH_LONG
                                         ).show()
-                                        navController.navigateUp()
-                                        navController.navigateUp()
+                                        navController.popBackStack()
+                                        navController.popBackStack()
                                     },
                                     context = context
                                 )

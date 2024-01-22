@@ -2,6 +2,10 @@ package com.serrano.academically.activity
 
 import android.content.Context
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,11 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,10 +26,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.serrano.academically.api.DrawerData
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.CustomTab
 import com.serrano.academically.custom_composables.DrawerAndScaffold
@@ -39,7 +46,6 @@ import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ManageAccountFields
 import com.serrano.academically.utils.PasswordFields
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.UserDrawerData
 import com.serrano.academically.viewmodel.AccountViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -47,14 +53,13 @@ import kotlinx.coroutines.CoroutineScope
 fun Account(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    userId: Int,
     navController: NavController,
     context: Context,
     tabs: List<String> = listOf("Info", "Password", "More"),
     accountViewModel: AccountViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        accountViewModel.getData(userId)
+        accountViewModel.getData(context)
     }
 
     val user by accountViewModel.userData.collectAsState()
@@ -63,18 +68,23 @@ fun Account(
     val passwordFields by accountViewModel.passwordFields.collectAsState()
     val tabIndex by accountViewModel.tabIndex.collectAsState()
     val buttonsEnabled by accountViewModel.buttonsEnabled.collectAsState()
+    val selectedImage by accountViewModel.selectedImage.collectAsState()
+    val isRefreshLoading by accountViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { accountViewModel.refreshData(context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "Manage Account",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "Manage Account",
                 navController = navController
@@ -83,11 +93,11 @@ fun Account(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
-                user = UserDrawerData(user.id, user.name, user.role, user.email, user.degree),
+                user = DrawerData(user.id, user.name, user.role, user.email, user.degree),
                 topBarText = "Manage Account",
                 navController = navController,
                 context = context,
@@ -96,9 +106,7 @@ fun Account(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .verticalScroll(rememberScrollState()),
+                        .padding(paddingValues),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     CustomTab(
@@ -106,39 +114,58 @@ fun Account(
                         tabs = tabs,
                         onTabClick = { accountViewModel.updateTabIndex(it) }
                     )
-                    CustomCard {
+                    SwipeRefresh(
+                        state = swipeRefreshState,
+                        onRefresh = onRefresh,
+                        refreshTriggerDistance = 50.dp
+                    ) {
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(25.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(15.dp)
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.primary)
+                                .verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            when (tabIndex) {
-                                0 -> Info(
-                                    user.id,
-                                    buttonsEnabled[0],
-                                    accountFields,
-                                    accountViewModel
-                                )
+                            CustomCard {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(25.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(15.dp)
+                                ) {
+                                    when (tabIndex) {
+                                        0 -> Info(
+                                            buttonsEnabled[0],
+                                            buttonsEnabled[3],
+                                            accountFields,
+                                            selectedImage,
+                                            context,
+                                            accountViewModel
+                                        )
 
-                                1 -> Password(
-                                    user.id,
-                                    buttonsEnabled[1],
-                                    user.password,
-                                    passwordFields,
-                                    accountViewModel
-                                )
+                                        1 -> Password(
+                                            context,
+                                            buttonsEnabled[1],
+                                            passwordFields,
+                                            accountViewModel
+                                        )
 
-                                2 -> More(buttonsEnabled[2]) {
-                                    accountViewModel.switchRole(
-                                        role = user.role,
-                                        id = user.id,
-                                        navigate = {
-                                            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                                            navController.navigate("Dashboard/${user.id}")
+                                        2 -> More(buttonsEnabled[2]) {
+                                            accountViewModel.switchRole(
+                                                context = context,
+                                                newRole = if (user.role == "STUDENT") "TUTOR" else "STUDENT",
+                                                navigate = {
+                                                    Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                                                    navController.navigate("Dashboard") {
+                                                        popUpTo(navController.graph.id) {
+                                                            inclusive = false
+                                                        }
+                                                    }
+                                                }
+                                            )
                                         }
-                                    )
+                                    }
                                 }
                             }
                         }
@@ -151,25 +178,64 @@ fun Account(
 
 @Composable
 fun Info(
-    id: Int,
     enabled: Boolean,
+    uploadEnabled: Boolean,
     accountFields: ManageAccountFields,
+    selectedImage: ImageBitmap,
+    context: Context,
     accountViewModel: AccountViewModel
 ) {
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { accountViewModel.selectImage(it, context) }
+    )
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        Icon(
-            imageVector = Icons.Filled.AccountCircle,
+        Image(
+            bitmap = selectedImage,
             contentDescription = null,
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier
+                .size(100.dp)
+                .clip(RoundedCornerShape(50.dp))
         )
-        BlackButton(
-            text = "UPLOAD",
-            action = {}
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            BlackButton(
+                text = "PICK IMAGE",
+                action = {
+                    imagePicker.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                }
+            )
+            BlackButton(
+                text = "UPLOAD",
+                action = {
+                    accountViewModel.uploadImage(
+                        imageBitmap = selectedImage,
+                        showMessage = {
+                            accountViewModel.updateAccountFields(
+                                accountFields.copy(
+                                    errorMessage = it.message,
+                                    isError = it.isValid
+                                )
+                            )
+                        },
+                        context = context
+                    )
+                },
+                enabled = uploadEnabled
+            )
+        }
     }
     Text(
         text = "Name",
@@ -260,11 +326,31 @@ fun Info(
         maxLines = 5,
         supportingText = "Should be 30-200 characters"
     )
+    Text(
+        text = "Free Tutoring Time",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(10.dp)
+    )
+    LoginTextField(
+        inputName = "Free Tutoring Time",
+        input = accountFields.freeTutoringTime,
+        onInputChange = {
+            accountViewModel.updateAccountFields(
+                accountFields.copy(
+                    freeTutoringTime = it
+                )
+            )
+        },
+        singleLine = false,
+        minLines = 3,
+        maxLines = 5,
+        supportingText = "Should be 15-100 characters"
+    )
     BlackButton(
         text = "SAVE",
         action = {
             accountViewModel.saveInfo(
-                id = id,
+                context = context,
                 accountFields = accountFields,
                 showMessage = {
                     accountViewModel.updateAccountFields(
@@ -280,16 +366,15 @@ fun Info(
     )
     Text(
         text = accountFields.errorMessage,
-        color = if (accountFields.isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
+        color = if (accountFields.isError) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.bodyMedium
     )
 }
 
 @Composable
 fun Password(
-    id: Int,
+    context: Context,
     enabled: Boolean,
-    currentPassword: String,
     passwordFields: PasswordFields,
     accountViewModel: AccountViewModel
 ) {
@@ -331,8 +416,7 @@ fun Password(
         text = "SAVE",
         action = {
             accountViewModel.savePassword(
-                id = id,
-                currentPassword = currentPassword,
+                context = context,
                 passwordFields = passwordFields,
                 showMessage = {
                     accountViewModel.updatePasswordFields(
@@ -348,7 +432,7 @@ fun Password(
     )
     Text(
         text = passwordFields.errorMessage,
-        color = if (passwordFields.isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
+        color = if (passwordFields.isError) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.bodyMedium
     )
 }

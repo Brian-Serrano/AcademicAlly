@@ -18,10 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.serrano.academically.utils.HelperFunctions
-import com.serrano.academically.utils.SessionNotifications
+import com.serrano.academically.api.SessionNotifications
+import com.serrano.academically.utils.Utils
 
 @Composable
 fun ScheduleBlueCard(
@@ -43,7 +42,7 @@ fun ScheduleBlueCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = HelperFunctions.formatTime(session.startTime, session.endTime),
+                        text = Utils.formatTime(Utils.convertToDate(session.startTime), Utils.convertToDate(session.endTime)),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(start = 15.dp, top = 15.dp)
                     )

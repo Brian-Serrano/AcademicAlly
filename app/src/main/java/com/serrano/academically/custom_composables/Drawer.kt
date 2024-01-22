@@ -34,8 +34,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.serrano.academically.datastore.UpdateUserPref
-import com.serrano.academically.utils.UserDrawerData
+import com.serrano.academically.activity.userDataStore
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.utils.ActivityCacheManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -43,7 +44,7 @@ import kotlinx.coroutines.launch
 fun Drawer(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    user: UserDrawerData,
+    user: DrawerData,
     navController: NavController,
     context: Context,
     selected: String,
@@ -118,20 +119,27 @@ fun Drawer(
                                 scope.launch {
                                     drawerState.close()
                                     when (item.name.substring("Filled.".length)) {
-                                        "Dashboard" -> navController.navigate("Dashboard/${user.id}")
-                                        "Leaderboard" -> navController.navigate("Leaderboard/${user.id}")
-                                        "Analytics" -> navController.navigate("Analytics/${user.id}")
-                                        "Assessment" -> navController.navigate("ChooseAssessment/${user.id}")
-                                        "Notifications" -> navController.navigate("Notifications/${user.id}")
-                                        "Badge" -> navController.navigate("Achievements/${user.id}")
-                                        "ManageAccounts" -> navController.navigate("Account/${user.id}")
-                                        "Archive" -> navController.navigate("Archive/${user.id}")
+                                        "Dashboard" -> navController.navigate("Dashboard")
+                                        "Leaderboard" -> navController.navigate("Leaderboard")
+                                        "Analytics" -> navController.navigate("Analytics")
+                                        "Assessment" -> navController.navigate("ChooseAssessment")
+                                        "Notifications" -> navController.navigate("Notifications")
+                                        "Badge" -> navController.navigate("Achievements")
+                                        "ManageAccounts" -> navController.navigate("Account")
+                                        "Archive" -> navController.navigate("Archive")
                                         "Logout" -> {
-                                            UpdateUserPref.clearDataByLoggingOut(context)
-                                            navController.navigate("Main")
+                                            context.userDataStore.updateData {
+                                                it.copy(authToken = "", role = "")
+                                            }
+                                            ActivityCacheManager.clearCache()
+                                            navController.navigate("Main") {
+                                                popUpTo(navController.graph.id) {
+                                                    inclusive = false
+                                                }
+                                            }
                                         }
 
-                                        else -> navController.navigate("Dashboard/${user.id}")
+                                        else -> navController.navigate("Dashboard")
                                     }
                                 }
                             },

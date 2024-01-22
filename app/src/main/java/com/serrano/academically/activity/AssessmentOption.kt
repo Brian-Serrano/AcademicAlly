@@ -22,6 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.serrano.academically.api.Course
 import com.serrano.academically.custom_composables.Drawer
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.GreenButton
@@ -38,39 +41,48 @@ fun AssessmentOption(
     scope: CoroutineScope,
     drawerState: DrawerState,
     context: Context,
-    id: Int,
     courseId: Int,
     navController: NavController,
     assessmentOptionViewModel: AssessmentOptionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        assessmentOptionViewModel.getData(id, courseId, context)
+        assessmentOptionViewModel.getData(courseId)
     }
 
     val user by assessmentOptionViewModel.drawerData.collectAsState()
     val process by assessmentOptionViewModel.processState.collectAsState()
     val course by assessmentOptionViewModel.course.collectAsState()
-    val isDrawerShouldAvailable by assessmentOptionViewModel.isDrawerShouldAvailable.collectAsState()
+    val isAuthorized by assessmentOptionViewModel.isAuthorized.collectAsState()
     val startEnabled by assessmentOptionViewModel.startButtonEnabled.collectAsState()
+    val isRefreshLoading by assessmentOptionViewModel.isRefreshLoading.collectAsState()
+
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { assessmentOptionViewModel.refreshData(courseId, context) }
 
     val onClick = {
         assessmentOptionViewModel.saveAssessmentType(
             context = context,
-            navigate = { item, type -> navController.navigate("Assessment/$id/$courseId/$item/$type") }
+            navigate = { item, type ->
+                navController.navigate("Assessment/$courseId/$item/$type") {
+                    popUpTo(navController.graph.id) {
+                        inclusive = false
+                    }
+                }
+            }
         )
     }
 
-    when (process) {
-        ProcessState.Error -> {
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "START ASSESSMENT",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "START ASSESSMENT",
                 navController = navController
@@ -79,8 +91,8 @@ fun AssessmentOption(
             }
         }
 
-        ProcessState.Success -> {
-            if (isDrawerShouldAvailable) {
+        is ProcessState.Success -> {
+            if (isAuthorized) {
                 Drawer(
                     scope = scope,
                     drawerState = drawerState,
@@ -124,7 +136,7 @@ fun AssessmentOption(
 
 @Composable
 fun AssessmentOptionMenu(
-    course: Pair<String, String>,
+    course: Course,
     padding: PaddingValues,
     enabled: Boolean,
     onClick: () -> Unit
@@ -140,13 +152,13 @@ fun AssessmentOptionMenu(
     ) {
         CustomCard {
             Text(
-                text = "Course: ${course.first}",
+                text = "Course: ${course.name}",
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(10.dp)
             )
             HorizontalDivider(thickness = 2.dp)
             Text(
-                text = "Description: ${course.second}",
+                text = "Description: ${course.description}",
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(10.dp)
             )

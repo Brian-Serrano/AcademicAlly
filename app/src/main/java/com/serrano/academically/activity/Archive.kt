@@ -1,17 +1,22 @@
 package com.serrano.academically.activity
 
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Cancel
@@ -35,10 +40,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.serrano.academically.api.AssignmentNotifications
+import com.serrano.academically.api.MessageNotifications
+import com.serrano.academically.api.SessionArchive
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.BottomBar
 import com.serrano.academically.custom_composables.CustomSearchBar
@@ -50,10 +61,7 @@ import com.serrano.academically.custom_composables.RateDialog
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
 import com.serrano.academically.custom_composables.CustomCard
-import com.serrano.academically.room.Assignment
-import com.serrano.academically.room.Session
-import com.serrano.academically.utils.HelperFunctions
-import com.serrano.academically.utils.MessageNotifications
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.RateDialogStates
 import com.serrano.academically.viewmodel.ArchiveViewModel
@@ -65,12 +73,11 @@ fun Archive(
     drawerState: DrawerState,
     context: Context,
     navController: NavController,
-    userId: Int,
     tabs: List<String> = listOf("MESSAGES", "SESSIONS", "TASKS"),
     archiveViewModel: ArchiveViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        archiveViewModel.getData(userId, context)
+        archiveViewModel.getData(context)
     }
 
     val rejectedMessages by archiveViewModel.rejectedMessages.collectAsState()
@@ -86,18 +93,23 @@ fun Archive(
     val rating by archiveViewModel.rating.collectAsState()
     val dialogOpen by archiveViewModel.isDialogOpen.collectAsState()
     val search by archiveViewModel.searchInfo.collectAsState()
+    val isRefreshLoading by archiveViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "ARCHIVES",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState) {
+                    archiveViewModel.refreshData(context)
+                }
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "ARCHIVES",
                 navController = navController
@@ -106,7 +118,7 @@ fun Archive(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             Drawer(
                 scope = scope,
                 drawerState = drawerState,
@@ -195,7 +207,7 @@ fun Archive(
                                                 isActive = false
                                             )
                                         )
-                                        archiveViewModel.search(it, context, userId, user.role)
+                                        archiveViewModel.search(it, context)
                                     },
                                     onActiveChange = {
                                         archiveViewModel.updateSearch(
@@ -213,32 +225,38 @@ fun Archive(
                                     }
                                 )
                             }
-                            when (tabIndex) {
-                                0 -> when (navBarIndex) {
-                                    0 -> ArchiveMessages(acceptedMessages)
-                                    1 -> ArchiveMessages(rejectedMessages)
-                                }
+                            SwipeRefresh(
+                                state = swipeRefreshState,
+                                onRefresh = { archiveViewModel.refreshPage(search.searchQuery, context) },
+                                refreshTriggerDistance = 50.dp
+                            ) {
+                                when (tabIndex) {
+                                    0 -> when (navBarIndex) {
+                                        0 -> ArchiveMessages(acceptedMessages)
+                                        1 -> ArchiveMessages(rejectedMessages)
+                                    }
 
-                                1 -> when (navBarIndex) {
-                                    0 -> ArchiveSessions(
-                                        sessions = completedSessions,
-                                        role = user.role,
-                                        isRateButtonEnabled = true,
-                                        onRateButtonClick = {
-                                            archiveViewModel.updateRatingDialog(it)
-                                            archiveViewModel.toggleDialog(true)
-                                        }
-                                    )
+                                    1 -> when (navBarIndex) {
+                                        0 -> ArchiveSessions(
+                                            sessions = completedSessions,
+                                            role = user.role,
+                                            isRateButtonEnabled = true,
+                                            onRateButtonClick = {
+                                                archiveViewModel.updateRatingDialog(it)
+                                                archiveViewModel.toggleDialog(true)
+                                            }
+                                        )
 
-                                    1 -> ArchiveSessions(
-                                        sessions = cancelledSessions,
-                                        role = user.role
-                                    )
-                                }
+                                        1 -> ArchiveSessions(
+                                            sessions = cancelledSessions,
+                                            role = user.role
+                                        )
+                                    }
 
-                                2 -> when (navBarIndex) {
-                                    0 -> ArchiveAssignments(completedTasks)
-                                    1 -> ArchiveAssignments(deadlinedTasks)
+                                    2 -> when (navBarIndex) {
+                                        0 -> ArchiveAssignments(completedTasks)
+                                        1 -> ArchiveAssignments(deadlinedTasks)
+                                    }
                                 }
                             }
                         }
@@ -256,7 +274,7 @@ fun Archive(
                                 onDismissRequest = { archiveViewModel.toggleDialog(false) },
                                 onConfirmClick = {
                                     archiveViewModel.toggleDialog(false)
-                                    archiveViewModel.rateUser(rating, user.id, user.role, context)
+                                    archiveViewModel.rateUser(rating, context)
                                 },
                                 onCancelClick = { archiveViewModel.toggleDialog(false) },
                                 onStarClick = { archiveViewModel.updateRatingDialog(rating.copy(star = it)) }
@@ -271,150 +289,172 @@ fun Archive(
 
 @Composable
 fun ArchiveMessages(
-    messages: List<Triple<MessageNotifications, String, String>>
+    messages: List<MessageNotifications>
 ) {
-    LazyColumn {
-        items(items = messages) {
-            CustomCard {
-                Row(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = null,
+    if (messages.isNotEmpty()) {
+        LazyColumn {
+            items(items = messages) {
+                CustomCard {
+                    Row(
                         modifier = Modifier
-                            .size(60.dp)
-                            .padding(10.dp)
-                    )
-                    Column {
-                        Text(
-                            text = it.second,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(start = 5.dp, top = 5.dp)
+                            .padding(20.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            bitmap = Utils.convertToImage(it.image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(30.dp))
                         )
-                        Text(
-                            text = it.third,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
-                        )
+                        Column {
+                            Text(
+                                text = it.name,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(start = 5.dp, top = 5.dp)
+                            )
+                            Text(
+                                text = it.courseName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
+                            )
+                        }
                     }
                 }
             }
+        }
+    } else {
+        // To make swipe refresh work
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Spacer(modifier = Modifier.padding(100.dp))
         }
     }
 }
 
 @Composable
 fun ArchiveSessions(
-    sessions: List<Triple<Session, String, String>>,
+    sessions: List<SessionArchive>,
     role: String,
     isRateButtonEnabled: Boolean = false,
     onRateButtonClick: (RateDialogStates) -> Unit = {}
 ) {
-    LazyColumn {
-        items(items = sessions) {
-            CustomCard {
-                Row(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = HelperFunctions.formatDate(it.first.startTime),
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(start = 5.dp, top = 5.dp)
-                        )
-                        Text(
-                            text = HelperFunctions.formatTime(it.first.startTime, it.first.endTime),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
-                        Text(
-                            text = it.third,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
-                        Text(
-                            text = it.second,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
-                        )
-                        if (isRateButtonEnabled && !(if (role == "STUDENT") it.first.studentRate else it.first.tutorRate)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                BlackButton(
-                                    text = "Rate ${if (role == "STUDENT") "Tutor" else "Student"}",
-                                    action = {
-                                        onRateButtonClick(
-                                            RateDialogStates(
-                                                userId = if (role == "STUDENT") it.first.tutorId else it.first.studentId,
-                                                sessionId = it.first.sessionId,
-                                                name = it.second,
-                                                star = 0
+    if (sessions.isNotEmpty()) {
+        LazyColumn {
+            items(items = sessions) {
+                CustomCard {
+                    Row(
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = Utils.formatDate(Utils.convertToDate(it.startTime)),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(start = 5.dp, top = 5.dp)
+                            )
+                            Text(
+                                text = Utils.formatTime(Utils.convertToDate(it.startTime), Utils.convertToDate(it.endTime)),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 5.dp)
+                            )
+                            Text(
+                                text = it.courseName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 5.dp)
+                            )
+                            Text(
+                                text = it.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
+                            )
+                            if (isRateButtonEnabled && !(if (role == "STUDENT") it.studentRate else it.tutorRate)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    BlackButton(
+                                        text = "Rate ${if (role == "STUDENT") "Tutor" else "Student"}",
+                                        action = {
+                                            onRateButtonClick(
+                                                RateDialogStates(
+                                                    userId = if (role == "STUDENT") it.tutorId else it.studentId,
+                                                    sessionId = it.sessionId,
+                                                    name = it.name,
+                                                    star = 0
+                                                )
                                             )
-                                        )
-                                    },
-                                    modifier = Modifier.padding(20.dp),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
+                                        },
+                                        modifier = Modifier.padding(20.dp),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    } else {
+        // To make swipe refresh work
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Spacer(modifier = Modifier.padding(100.dp))
+        }
     }
 }
 
 @Composable
 fun ArchiveAssignments(
-    assignments: List<Triple<Assignment, String, String>>
+    assignments: List<AssignmentNotifications>
 ) {
-    LazyColumn {
-        items(items = assignments) {
-            CustomCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "${HelperFunctions.formatDate(it.first.deadLine)} ${
-                                HelperFunctions.toMilitaryTime(
-                                    it.first.deadLine.hour,
-                                    it.first.deadLine.minute
-                                )
-                            }",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(start = 15.dp, top = 15.dp)
-                        )
-                        Text(
-                            text = it.second,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 15.dp)
-                        )
-                        Text(
-                            text = it.first.type,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 15.dp)
-                        )
-                        Text(
-                            text = it.third,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 15.dp)
-                        )
-                        Text(
-                            text = "Student Score: ${it.first.studentScore}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 15.dp, bottom = 15.dp)
-                        )
+    if (assignments.isNotEmpty()) {
+        LazyColumn {
+            items(items = assignments) {
+                CustomCard {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${Utils.formatDate(Utils.convertToDate(it.deadLine))} ${
+                                    Utils.toMilitaryTime(
+                                        Utils.convertToDate(it.deadLine).hour,
+                                        Utils.convertToDate(it.deadLine).minute
+                                    )
+                                }",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(start = 15.dp, top = 15.dp)
+                            )
+                            Text(
+                                text = it.courseName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 15.dp)
+                            )
+                            Text(
+                                text = it.type,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 15.dp)
+                            )
+                            Text(
+                                text = it.moduleName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 15.dp)
+                            )
+                            Text(
+                                text = "Student Score: ${it.studentScore}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 15.dp, bottom = 15.dp)
+                            )
+                        }
                     }
                 }
             }
+        }
+    } else {
+        // To make swipe refresh work
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Spacer(modifier = Modifier.padding(100.dp))
         }
     }
 }

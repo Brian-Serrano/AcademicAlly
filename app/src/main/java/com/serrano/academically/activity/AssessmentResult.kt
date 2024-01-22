@@ -22,15 +22,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import com.serrano.academically.R
 import com.serrano.academically.custom_composables.CircularProgressBar
 import com.serrano.academically.custom_composables.GreenButton
-import com.serrano.academically.ui.theme.Strings
 import com.serrano.academically.viewmodel.AssessmentResultViewModel
 
 @Composable
 fun AssessmentResult(
-    id: Int,
+    isAuthorized: Boolean,
     score: Int,
     items: Int,
     eligibility: String,
@@ -41,6 +41,12 @@ fun AssessmentResult(
 
     LaunchedEffect(Unit) {
         assessmentResultViewModel.playAnimation()
+    }
+
+    val navBuilder: NavOptionsBuilder.() -> Unit = {
+        popUpTo(navController.graph.id) {
+            inclusive = false
+        }
     }
 
     Box(
@@ -83,22 +89,30 @@ fun AssessmentResult(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
         ) {
-            if (id == 0) {
+            if (isAuthorized) {
                 GreenButton(
-                    action = { navController.navigate("Signup/STUDENT") },
-                    text = "STUDENT",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                GreenButton(
-                    action = { navController.navigate("Signup/TUTOR") },
-                    text = "TUTOR",
-                    style = MaterialTheme.typography.titleMedium
+                    action = {
+                        navController.navigate("Dashboard", navBuilder)
+                    },
+                    text = "CONTINUE",
+                    style = MaterialTheme.typography.titleMedium,
                 )
             } else {
                 GreenButton(
-                    action = { navController.navigate("Dashboard/$id") },
-                    text = "CONTINUE",
+                    action = {
+                        navController.navigate("Signup/STUDENT", navBuilder)
+                    },
+                    text = "STUDENT",
                     style = MaterialTheme.typography.titleMedium,
+                    clickable = eligibility == "STUDENT"
+                )
+                GreenButton(
+                    action = {
+                        navController.navigate("Signup/TUTOR", navBuilder)
+                    },
+                    text = "TUTOR",
+                    style = MaterialTheme.typography.titleMedium,
+                    clickable = eligibility == "TUTOR"
                 )
             }
         }

@@ -6,14 +6,14 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import com.serrano.academically.utils.UserDrawerData
+import com.serrano.academically.api.DrawerData
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun DrawerAndScaffold(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    user: UserDrawerData,
+    user: DrawerData,
     topBarText: String,
     navController: NavController,
     context: Context,

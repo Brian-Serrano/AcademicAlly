@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.serrano.academically.api.Course2
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.CustomSearchBar
 import com.serrano.academically.custom_composables.Drawer
@@ -41,31 +43,34 @@ fun ChooseAssessment(
     scope: CoroutineScope,
     drawerState: DrawerState,
     context: Context,
-    id: Int,
     navController: NavController,
     chooseAssessmentViewModel: ChooseAssessmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        chooseAssessmentViewModel.getData(context, id)
+        chooseAssessmentViewModel.getData()
     }
 
     val search by chooseAssessmentViewModel.searchInfo.collectAsState()
     val process by chooseAssessmentViewModel.processState.collectAsState()
     val user by chooseAssessmentViewModel.drawerData.collectAsState()
-    val courses by chooseAssessmentViewModel.courses.collectAsState()
-    val isDrawerShouldAvailable by chooseAssessmentViewModel.isDrawerShouldAvailable.collectAsState()
+    val courses by chooseAssessmentViewModel.coursesRender.collectAsState()
+    val isAuthorized by chooseAssessmentViewModel.isAuthorized.collectAsState()
+    val isRefreshLoading by chooseAssessmentViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { chooseAssessmentViewModel.refreshData(context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "START ASSESSMENT",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "START ASSESSMENT",
                 navController = navController
@@ -74,8 +79,8 @@ fun ChooseAssessment(
             }
         }
 
-        ProcessState.Success -> {
-            if (isDrawerShouldAvailable) {
+        is ProcessState.Success -> {
+            if (isAuthorized) {
                 Drawer(
                     scope = scope,
                     drawerState = drawerState,
@@ -93,8 +98,6 @@ fun ChooseAssessment(
                         )
                     ) {
                         ChooseAssessmentMenu(
-                            id = id,
-                            context = context,
                             navController = navController,
                             search = search,
                             courses = courses,
@@ -109,8 +112,6 @@ fun ChooseAssessment(
                     navController = navController
                 ) {
                     ChooseAssessmentMenu(
-                        id = id,
-                        context = context,
                         navController = navController,
                         search = search,
                         courses = courses,
@@ -125,11 +126,9 @@ fun ChooseAssessment(
 
 @Composable
 fun ChooseAssessmentMenu(
-    id: Int,
-    context: Context,
     navController: NavController,
     search: SearchInfo,
-    courses: List<List<String>>,
+    courses: List<Course2>,
     padding: PaddingValues,
     chooseAssessmentViewModel: ChooseAssessmentViewModel
 ) {
@@ -156,7 +155,7 @@ fun ChooseAssessmentMenu(
                             isActive = false
                         )
                     )
-                    chooseAssessmentViewModel.search(it, context)
+                    chooseAssessmentViewModel.search(it)
                 },
                 onActiveChange = { chooseAssessmentViewModel.updateSearch(search.copy(isActive = it)) },
                 onTrailingIconClick = {
@@ -172,18 +171,18 @@ fun ChooseAssessmentMenu(
             items(items = courses) {
                 CustomCard {
                     Text(
-                        text = it[1],
+                        text = it.name,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(10.dp)
                     )
                     Text(
-                        text = it[2],
+                        text = it.description,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(10.dp)
                     )
                     BlackButton(
                         text = "SELECT",
-                        action = { navController.navigate("AssessmentOption/$id/${it[0]}") },
+                        action = { navController.navigate("AssessmentOption/${it.id}") },
                         modifier = Modifier.padding(20.dp)
                     )
                 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.DropDown
@@ -40,12 +41,11 @@ fun MessageTutor(
     drawerState: DrawerState,
     context: Context,
     navController: NavController,
-    userId: Int,
     tutorId: Int,
     messageTutorViewModel: MessageTutorViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        messageTutorViewModel.getData(userId, tutorId, context)
+        messageTutorViewModel.getData(tutorId, context)
     }
 
     val courses by messageTutorViewModel.coursesDropdown.collectAsState()
@@ -53,16 +53,20 @@ fun MessageTutor(
     val message by messageTutorViewModel.message.collectAsState()
     val process by messageTutorViewModel.processState.collectAsState()
     val user by messageTutorViewModel.drawerData.collectAsState()
-    val tutorName by messageTutorViewModel.tutorName.collectAsState()
+    val tutorCourses by messageTutorViewModel.tutorCourses.collectAsState()
     val requestEnabled by messageTutorViewModel.requestButtonEnabled.collectAsState()
+    val isRefreshLoading by messageTutorViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { messageTutorViewModel.refreshData(tutorId, context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "MESSAGE TUTOR",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
@@ -80,7 +84,7 @@ fun MessageTutor(
                 scope = scope,
                 drawerState = drawerState,
                 user = user,
-                topBarText = "MESSAGE $tutorName",
+                topBarText = "MESSAGE ${tutorCourses.tutorName}",
                 navController = navController,
                 context = context,
                 selected = "FindTutor"
@@ -95,7 +99,7 @@ fun MessageTutor(
                 ) {
                     CustomCard {
                         Text(
-                            text = "Message $tutorName",
+                            text = "Message ${tutorCourses.tutorName}",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(15.dp)
                         )
@@ -180,12 +184,12 @@ fun MessageTutor(
                                     messageTutorViewModel.sendRequest(
                                         course = courses,
                                         module = modules,
-                                        studentId = userId,
+                                        studentId = user.id,
                                         tutorId = tutorId,
                                         message = message,
                                         navigate = {
                                             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                                            navController.navigateUp()
+                                            navController.popBackStack()
                                         },
                                         context = context
                                     )

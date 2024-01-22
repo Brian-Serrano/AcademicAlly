@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,9 +39,7 @@ import com.serrano.academically.R
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DiagonalBackground
 import com.serrano.academically.custom_composables.LoginTextField
-import com.serrano.academically.datastore.UserPref
-import com.serrano.academically.datastore.dataStore
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.datastore.UserCache
 import com.serrano.academically.viewmodel.LoginViewModel
 
 @Composable
@@ -54,14 +51,15 @@ fun Login(
 ) {
     val loginInput by loginViewModel.loginInput.collectAsState()
     val enabled by loginViewModel.buttonEnabled.collectAsState()
-    val userPref by context.dataStore.data.collectAsState(initial = UserPref())
+    val forgotClickable by loginViewModel.forgotClickable.collectAsState()
+    val userCache by context.userDataStore.data.collectAsState(initial = UserCache())
 
     LaunchedEffect(Unit) {
-        if (userPref.isRemember) {
+        if (userCache.isRemember) {
             loginViewModel.updateInput(
                 loginInput.copy(
-                    email = userPref.email,
-                    password = userPref.password,
+                    email = userCache.email,
+                    password = userCache.password,
                     remember = true
                 )
             )
@@ -95,7 +93,7 @@ fun Login(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(20.dp)
-                    .clickable { navController.navigateUp() }
+                    .clickable { navController.popBackStack() }
             )
             Column(
                 verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterVertically),
@@ -144,19 +142,39 @@ fun Login(
                     Text(
                         text = "Forgot Password",
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable {
+                            if (forgotClickable) {
+                                loginViewModel.forgotPassword(
+                                    loginInput.email,
+                                    error = {
+                                        loginViewModel.updateInput(
+                                            loginInput.copy(
+                                                email = "",
+                                                password = "",
+                                                error = it
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                        }
                     )
                 }
                 BlackButton(
                     text = "SIGN IN",
                     action = {
-                        loginViewModel.validateUserLoginAsynchronously(
+                        loginViewModel.login(
                             context = context,
                             role = user,
                             li = loginInput,
                             navigate = {
-                                Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
-                                navController.navigate("Dashboard/${it.id}")
+                                Toast.makeText(context, "User Logged In", Toast.LENGTH_LONG).show()
+                                navController.navigate("Dashboard") {
+                                    popUpTo(navController.graph.id) {
+                                        inclusive = false
+                                    }
+                                }
                             },
                             error = {
                                 loginViewModel.updateInput(
@@ -166,7 +184,8 @@ fun Login(
                                         error = it
                                     )
                                 )
-                            })
+                            }
+                        )
                     },
                     modifier = Modifier
                         .padding(horizontal = 30.dp)

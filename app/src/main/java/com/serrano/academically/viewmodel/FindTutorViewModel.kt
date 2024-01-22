@@ -1,18 +1,20 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.datastore.UpdateUserPref
-import com.serrano.academically.datastore.dataStore
-import com.serrano.academically.room.CourseSkillRepository
-import com.serrano.academically.room.UserRepository
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.FindTutor
+import com.serrano.academically.api.NoCurrentUser
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.FilterDialogStates
-import com.serrano.academically.utils.FindTutorData
-import com.serrano.academically.utils.GetCourses
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.SearchInfo
-import com.serrano.academically.utils.UserDrawerData
+import com.serrano.academically.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,8 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FindTutorViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val courseSkillRepository: CourseSkillRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
     private val _searchInfo = MutableStateFlow(SearchInfo())
@@ -33,17 +35,20 @@ class FindTutorViewModel @Inject constructor(
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _drawerData = MutableStateFlow(UserDrawerData())
-    val drawerData: StateFlow<UserDrawerData> = _drawerData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
-    private val _findTutorData = MutableStateFlow<List<FindTutorData>>(emptyList())
-    val findTutorData: StateFlow<List<FindTutorData>> = _findTutorData.asStateFlow()
+    private val _findTutorData = MutableStateFlow(FindTutor())
+    val findTutorData: StateFlow<FindTutor> = _findTutorData.asStateFlow()
 
     private val _filterState = MutableStateFlow<List<FilterDialogStates>>(emptyList())
     val filterState: StateFlow<List<FilterDialogStates>> = _filterState.asStateFlow()
 
     private val _isFilterDialogOpen = MutableStateFlow(false)
     val isFilterDialogOpen: StateFlow<Boolean> = _isFilterDialogOpen.asStateFlow()
+
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
     fun updateSearch(newSearch: SearchInfo) {
         _searchInfo.value = newSearch
@@ -53,111 +58,108 @@ class FindTutorViewModel @Inject constructor(
         _filterState.value = newFilterState
     }
 
-    private suspend fun updateHistory(context: Context) {
-        updateSearch(_searchInfo.value.copy(history = context.dataStore.data.first().searchTutorHistory))
+    private suspend fun updateHistory() {
+        updateSearch(_searchInfo.value.copy(history = userCacheRepository.userDataStore.data.first().searchTutorHistory))
     }
 
-    fun getData(context: Context, id: Int) {
+    fun getData(context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch user drawer data
-                _drawerData.value = userRepository.getUserDataForDrawer(id).first()
+                val findTutorCache = ActivityCacheManager.findTutor
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Fetch user/student courses id
-                val userCourses = courseSkillRepository
-                    .getCourseSkillsOfUserNoRating(id, _drawerData.value.role)
-                    .first()
+                if (findTutorCache != null && currentUserCache != null) {
+                    _findTutorData.value = findTutorCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(context)
+                }
 
-                // Fetch search history from preferences
-                updateHistory(context)
-
-                // Enable checkboxes for user/student courses in filter dialog
-                _filterState.value = GetCourses
-                    .getAllCourses(context)
-                    .map { course ->
-                        FilterDialogStates(
-                            course[0].toInt(),
-                            course[1],
-                            userCourses.any { it == course[0].toInt() }
-                        )
-                    }
-
-                // Filter tutors base on filter options and search query
-                updateTutorMenu(_filterState.value, _searchInfo.value.searchQuery, context, id)
+                _filterState.value = _findTutorData.value.courses.map { course ->
+                    FilterDialogStates(
+                        course.id,
+                        course.name,
+                        _findTutorData.value.studentCourseIds.any { course.id == it }
+                    )
+                }
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun updateMenu(
-        filterDialogStates: List<FilterDialogStates>,
-        searchQuery: String,
-        context: Context,
-        id: Int
-    ) {
+    fun refreshData(context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(context)
+
+                _filterState.value = _findTutorData.value.courses.map { course ->
+                    FilterDialogStates(
+                        course.id,
+                        course.name,
+                        _findTutorData.value.studentCourseIds.any { course.id == it }
+                    )
+                }
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi(context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            when (val findTutorData = academicallyApi.getTutors()) {
+                is WithCurrentUser.Success -> {
+                    _findTutorData.value = findTutorData.data!!
+                    _drawerData.value = findTutorData.currentUser!!
+
+                    ActivityCacheManager.findTutor = findTutorData.data
+                    ActivityCacheManager.currentUser = findTutorData.currentUser
+                }
+                is WithCurrentUser.Error -> throw IllegalArgumentException(findTutorData.error)
+            }
+        }
+    }
+
+    fun updateMenu(filterDialogStates: List<FilterDialogStates>, searchQuery: String, context: Context) {
         viewModelScope.launch {
             try {
                 _processState.value = ProcessState.Loading
 
-                // Filter tutors base on filter options and search query
-                updateTutorMenu(filterDialogStates, searchQuery, context, id)
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+                    if (searchQuery.isNotEmpty()) {
+                        userCacheRepository.addSearchTutorHistory(searchQuery)
+                        updateHistory()
+                    }
+
+                    val apiResponse = academicallyApi.searchTutor(
+                        filterDialogStates.filter { it.isEnabled }.map { it.id }.joinToString(separator = ","),
+                        searchQuery
+                    )
+
+                    _findTutorData.value = _findTutorData.value.copy(
+                        tutors = when (apiResponse) {
+                            is NoCurrentUser.Success -> apiResponse.data!!
+                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                        }
+                    )
+
+                    ActivityCacheManager.findTutor = _findTutorData.value
+                }
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
-        }
-    }
-
-    private suspend fun updateTutorMenu(
-        filterDialogStates: List<FilterDialogStates>,
-        searchQuery: String,
-        context: Context,
-        id: Int
-    ) {
-        // Filter tutors base on filter options and search query
-        _findTutorData.value = search(
-            data = filterDialogStates
-                .filter { it.isEnabled }
-                .map { it.id }
-                .flatMap { courseSkillRepository.getCourseSkillsForTutorByCourse(it).first() }
-                .groupBy { it.userId }
-                .map { course ->
-                    FindTutorData(
-                        tutorId = course.key,
-                        tutorName = userRepository.getUserName(course.key).first(),
-                        courses = course.value.map {
-                            GetCourses.getCourseNameById(
-                                it.courseId,
-                                context
-                            )
-                        },
-                        rating = course.value.map { (it.assessmentRating / it.assessmentTaken) * 5 },
-                        performance = userRepository.getTutorRating(course.key).first()
-                    )
-                }
-                .filter { id != it.tutorId },
-            searchQuery = searchQuery,
-            context = context
-        )
-    }
-
-    private suspend fun search(
-        data: List<FindTutorData>,
-        searchQuery: String,
-        context: Context
-    ): List<FindTutorData> {
-        // Filter the tutors base on search query and add the search query in the preferences and re-fetch
-        return if (searchQuery.isEmpty()) {
-            data
-        } else {
-            UpdateUserPref.addSearchTutorHistory(context, searchQuery)
-            updateHistory(context)
-            val regex = Regex(searchQuery, RegexOption.IGNORE_CASE)
-            data.filter { regex.containsMatchIn(it.tutorName) }
         }
     }
 

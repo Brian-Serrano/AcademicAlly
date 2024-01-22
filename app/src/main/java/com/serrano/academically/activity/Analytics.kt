@@ -23,6 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.serrano.academically.api.DrawerData
 import com.serrano.academically.custom_composables.BarGraph
 import com.serrano.academically.custom_composables.CoursesRating
 import com.serrano.academically.custom_composables.DrawerAndScaffold
@@ -34,9 +37,8 @@ import com.serrano.academically.custom_composables.DataGroup
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ChartData
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.UserDrawerData
 import com.serrano.academically.viewmodel.AnalyticsViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -44,33 +46,36 @@ import kotlinx.coroutines.CoroutineScope
 fun Analytics(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    userId: Int,
     navController: NavController,
     context: Context,
     analyticsViewModel: AnalyticsViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        analyticsViewModel.getData(userId, context)
+        analyticsViewModel.getData(context)
     }
 
-    val courses by analyticsViewModel.userCourses.collectAsState()
-    val user by analyticsViewModel.userData.collectAsState()
+    val user by analyticsViewModel.drawerData.collectAsState()
+    val userData by analyticsViewModel.userData.collectAsState()
     val process by analyticsViewModel.processState.collectAsState()
     val animationPlayed by analyticsViewModel.animationPlayed.collectAsState()
     val chartTab by analyticsViewModel.chartTabIndex.collectAsState()
     val chartState by analyticsViewModel.chartState.collectAsState()
+    val isRefreshLoading by analyticsViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { analyticsViewModel.refreshData(context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "ANALYTICS",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "ANALYTICS",
                 navController = navController
@@ -79,7 +84,7 @@ fun Analytics(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
 
             LaunchedEffect(chartTab) {
                 analyticsViewModel.toggleAnimation(true)
@@ -93,216 +98,161 @@ fun Analytics(
                 "Assignment Points"
             )
             val chartPointNames = pointsNames.map { it.replace(" Points", "") }
-            var dataNames: List<String>
-            var chartDataNames: List<String>
-            var points: List<Double>
-            var data: List<Int>
-            var yValuesMapper: Double
-            var yValuesMapperData: Double
+            val dataNames = listOf(
+                "Sessions Completed",
+                if (user.role == "STUDENT") "Requests Sent" else "Requests Received",
+                "Requests Accepted",
+                "Requests Denied",
+                if (user.role == "STUDENT") "Assignments Taken" else "Assignments Created",
+                "Assessments Taken",
+                "Rates Obtained",
+                if (user.role == "STUDENT") "Tutors Rated" else "Students Rated",
+                "Badges Collected"
+            )
+            val chartDataNames = listOf(
+                "Sessions",
+                if (user.role == "STUDENT") "Sent" else "Received",
+                "Accepted",
+                "Denied",
+                "Assignments",
+                "Assessments",
+                "Rates",
+                "Rated",
+                "Badges"
+            )
+            val points = listOf(
+                userData.points,
+                userData.assessmentPoints,
+                userData.requestPoints,
+                userData.sessionPoints,
+                userData.assignmentPoints
+            ).map { Utils.roundRating(it) }
+            val data = listOf(
+                userData.sessionsCompleted,
+                userData.requestsSentReceived,
+                userData.requestsAccepted,
+                userData.requestsDenied,
+                userData.assignments,
+                userData.assessments,
+                userData.rateNumber,
+                userData.ratedUsers,
+                userData.badgesCompleted
+            )
+            val yValuesMapper = Utils.roundRating((points.max() * 1.5) / 4)
+            val yValuesMapperData = Utils.roundRating((data.max() * 1.5) / 4)
 
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
-                user = UserDrawerData(user.id, user.name, user.role, user.email, user.degree),
+                user = DrawerData(user.id, user.name, user.role, user.email, user.degree),
                 topBarText = "ANALYTICS",
                 navController = navController,
                 context = context,
                 selected = "Analytics"
             ) { values ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(values)
-                        .verticalScroll(rememberScrollState())
+                SwipeRefresh(
+                    state = swipeRefreshState,
+                    onRefresh = onRefresh,
+                    refreshTriggerDistance = 50.dp,
+                    modifier = Modifier.padding(values)
                 ) {
-                    when (user.role) {
-                        "STUDENT" -> {
-                            points = listOf(
-                                user.studentPoints,
-                                user.studentAssessmentPoints,
-                                user.studentRequestPoints,
-                                user.studentSessionPoints,
-                                user.studentAssignmentPoints
-                            ).map { HelperFunctions.roundRating(it) }
-                            dataNames = listOf(
-                                "Sessions Completed",
-                                "Requests Sent",
-                                "Requests Accepted",
-                                "Requests Denied",
-                                "Assignments Taken",
-                                "Assessments Taken",
-                                "Rates Obtained",
-                                "Tutors Rated",
-                                "Badges Collected"
+                    Column(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primary)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        CustomCard {
+                            Text(
+                                text = "Progress Graph",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
                             )
-                            chartDataNames = listOf(
-                                "Sessions",
-                                "Sent",
-                                "Accepted",
-                                "Denied",
-                                "Assignments",
-                                "Assessments",
-                                "Rates",
-                                "Rated",
-                                "Badges"
-                            )
-                            data = listOf(
-                                user.sessionsCompletedAsStudent,
-                                user.requestsSent,
-                                user.acceptedRequests,
-                                user.deniedRequests,
-                                user.assignmentsTaken,
-                                user.assessmentsTakenAsStudent,
-                                user.numberOfRatesAsStudent,
-                                user.tutorsRated,
-                                user.badgeProgressAsStudent.count { it >= 100 }
-                            )
-                        }
+                            when (chartTab) {
+                                0 -> BarGraph(
+                                    text = "Points",
+                                    yValues = List(4) { yValuesMapper * (it + 1) },
+                                    data = points.mapIndexed { idx, value ->
+                                        ChartData(
+                                            chartPointNames[idx],
+                                            animateFloatAsState(
+                                                targetValue = if (animationPlayed) value.toFloat() else 0f,
+                                                animationSpec = tween(
+                                                    durationMillis = 1000
+                                                ),
+                                                label = ""
+                                            ),
+                                            Utils.generateRandomColor(idx)
+                                        )
+                                    },
+                                    verticalStep = yValuesMapper.toFloat(),
+                                    chartState = chartState,
+                                    onChartStateChange = { analyticsViewModel.updateChartState(it) }
+                                )
 
-                        else -> {
-                            points = listOf(
-                                user.tutorPoints,
-                                user.tutorAssessmentPoints,
-                                user.tutorRequestPoints,
-                                user.tutorSessionPoints,
-                                user.tutorAssignmentPoints
-                            ).map { HelperFunctions.roundRating(it) }
-                            dataNames = listOf(
-                                "Sessions Completed",
-                                "Requests Received",
-                                "Accepted Student Requests",
-                                "Denied Student Requests",
-                                "Assignments Created",
-                                "Assessments Taken",
-                                "Rates Obtained",
-                                "Students Rated",
-                                "Badges Collected"
-                            )
-                            chartDataNames = listOf(
-                                "Sessions",
-                                "Received",
-                                "Accepted",
-                                "Denied",
-                                "Assignments",
-                                "Assessments",
-                                "Rates",
-                                "Rated",
-                                "Badges"
-                            )
-                            data = listOf(
-                                user.sessionsCompletedAsTutor,
-                                user.requestsReceived,
-                                user.requestsAccepted,
-                                user.requestsDenied,
-                                user.assignmentsTaken,
-                                user.assessmentsTakenAsTutor,
-                                user.numberOfRatesAsTutor,
-                                user.studentsRated,
-                                user.badgeProgressAsTutor.count { it >= 100 }
-                            )
+                                1 -> BarGraph(
+                                    text = "Statistics",
+                                    yValues = List(4) { yValuesMapperData * (it + 1) },
+                                    data = data.mapIndexed { idx, value ->
+                                        ChartData(
+                                            chartDataNames[idx],
+                                            animateFloatAsState(
+                                                targetValue = if (animationPlayed) value.toFloat() else 0f,
+                                                animationSpec = tween(
+                                                    durationMillis = 1000
+                                                ),
+                                                label = ""
+                                            ),
+                                            Utils.generateRandomColor(idx)
+                                        )
+                                    },
+                                    verticalStep = yValuesMapperData.toFloat(),
+                                    chartState = chartState,
+                                    onChartStateChange = { analyticsViewModel.updateChartState(it) }
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                GreenButton(
+                                    action = { analyticsViewModel.updateChartTab(0) },
+                                    text = "POINTS",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                GreenButton(
+                                    action = { analyticsViewModel.updateChartTab(1) },
+                                    text = "DATA",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
                         }
-                    }
-                    yValuesMapper = HelperFunctions.roundRating((points.max() * 1.5) / 4)
-                    yValuesMapperData = HelperFunctions.roundRating((data.max() * 1.5) / 4)
-                    CustomCard {
-                        Text(
-                            text = "Progress Graph",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        when (chartTab) {
-                            0 -> BarGraph(
+                        CustomCard {
+                            Text(
                                 text = "Points",
-                                yValues = List(4) { yValuesMapper * (it + 1) },
-                                data = points.mapIndexed { idx, value ->
-                                    ChartData(
-                                        chartPointNames[idx],
-                                        animateFloatAsState(
-                                            targetValue = if (animationPlayed) value.toFloat() else 0f,
-                                            animationSpec = tween(
-                                                durationMillis = 1000
-                                            ),
-                                            label = ""
-                                        ),
-                                        HelperFunctions.generateRandomColor(idx)
-                                    )
-                                },
-                                verticalStep = yValuesMapper.toFloat(),
-                                chartState = chartState,
-                                onChartStateChange = { analyticsViewModel.updateChartState(it) }
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
                             )
-
-                            1 -> BarGraph(
+                            DataGroup(names = pointsNames, values = points.map { it.toString() })
+                        }
+                        CustomCard {
+                            Text(
                                 text = "Statistics",
-                                yValues = List(4) { yValuesMapperData * (it + 1) },
-                                data = data.mapIndexed { idx, value ->
-                                    ChartData(
-                                        chartDataNames[idx],
-                                        animateFloatAsState(
-                                            targetValue = if (animationPlayed) value.toFloat() else 0f,
-                                            animationSpec = tween(
-                                                durationMillis = 1000
-                                            ),
-                                            label = ""
-                                        ),
-                                        HelperFunctions.generateRandomColor(idx)
-                                    )
-                                },
-                                verticalStep = yValuesMapperData.toFloat(),
-                                chartState = chartState,
-                                onChartStateChange = { analyticsViewModel.updateChartState(it) }
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
                             )
+                            DataGroup(names = dataNames, values = data.map { it.toString() })
                         }
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            GreenButton(
-                                action = { analyticsViewModel.updateChartTab(0) },
-                                text = "POINTS",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            GreenButton(
-                                action = { analyticsViewModel.updateChartTab(1) },
-                                text = "DATA",
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                        CustomCard {
+                            RatingCard(text = "Performance Rating", rating = Utils.roundRating((if (userData.rateNumber > 0) userData.rating / userData.rateNumber else 0.0) * 5))
                         }
-                    }
-                    CustomCard {
-                        Text(
-                            text = "Points",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        DataGroup(names = pointsNames, values = points.map { it.toString() })
-                    }
-                    CustomCard {
-                        Text(
-                            text = "Statistics",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        DataGroup(names = dataNames, values = data.map { it.toString() })
-                    }
-                    CustomCard {
-                        val rating = if (user.role == "STUDENT") {
-                            HelperFunctions.roundRating((if (user.numberOfRatesAsStudent > 0) user.totalRatingAsStudent / user.numberOfRatesAsStudent else 0.0) * 5)
-                        } else {
-                            HelperFunctions.roundRating((if (user.numberOfRatesAsTutor > 0) user.totalRatingAsTutor / user.numberOfRatesAsTutor else 0.0) * 5)
+                        CustomCard {
+                            val avgRating = Utils.roundRating(if (userData.courses.isNotEmpty()) userData.courses.map { (it.assessmentRating / it.assessmentTaken) * 5 }.average() else 0.0)
+                            RatingCard(text = "Overall Course Rating", rating = avgRating)
                         }
-                        RatingCard(text = "Performance Rating", rating = rating)
-                    }
-                    CustomCard {
-                        val avgRating =
-                            HelperFunctions.roundRating(if (courses.isNotEmpty()) courses.map { (it.first.assessmentRating / it.first.assessmentTaken) * 5 }
-                                .average() else 0.0)
-                        RatingCard(text = "Overall Course Rating", rating = avgRating)
-                    }
-                    CustomCard {
-                        CoursesRating(courses)
+                        CustomCard {
+                            CoursesRating(userData.courses)
+                        }
                     }
                 }
             }

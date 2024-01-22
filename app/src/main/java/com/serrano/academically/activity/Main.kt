@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.serrano.academically.R
 import com.serrano.academically.custom_composables.MainButton
-import com.serrano.academically.ui.theme.Strings
 
 @Composable
 fun Main(navController: NavController) {
@@ -89,7 +88,7 @@ fun Main(navController: NavController) {
                 Text(
                     text = "Not quite sure? Let us help you!",
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.clickable { navController.navigate("ChooseAssessment/0") }
+                    modifier = Modifier.clickable { navController.navigate("ChooseAssessment") }
                 )
             }
         }

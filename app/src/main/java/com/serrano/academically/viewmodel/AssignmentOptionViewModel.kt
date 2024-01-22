@@ -1,83 +1,102 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.Session
-import com.serrano.academically.room.SessionRepository
-import com.serrano.academically.room.UserRepository
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.SessionForAssignment
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.DeadlineField
 import com.serrano.academically.utils.DropDownState
-import com.serrano.academically.utils.GetCourses
-import com.serrano.academically.utils.GetModules
-import com.serrano.academically.utils.MessageCourse
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.UserDrawerData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
 class AssignmentOptionViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val sessionRepository: SessionRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _drawerData = MutableStateFlow(UserDrawerData())
-    val drawerData: StateFlow<UserDrawerData> = _drawerData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
-    private val _itemsDropdown =
-        MutableStateFlow(DropDownState(listOf("5", "10", "15"), "5", false))
+    private val _itemsDropdown = MutableStateFlow(DropDownState(listOf("5", "10", "15"), "5", false))
     val itemsDropdown: StateFlow<DropDownState> = _itemsDropdown.asStateFlow()
 
-    private val _typeDropdown = MutableStateFlow(
-        DropDownState(
-            listOf("Multiple Choice", "Identification", "True or False"),
-            "Multiple Choice",
-            false
-        )
-    )
+    private val _typeDropdown = MutableStateFlow(DropDownState(listOf("Multiple Choice", "Identification", "True or False"), "Multiple Choice", false))
     val typeDropdown: StateFlow<DropDownState> = _typeDropdown.asStateFlow()
 
     private val _deadlineField = MutableStateFlow(DeadlineField())
     val deadlineField: StateFlow<DeadlineField> = _deadlineField.asStateFlow()
 
-    private val _sessionInfo = MutableStateFlow(Pair(Session(), MessageCourse()))
-    val sessionInfo: StateFlow<Pair<Session, MessageCourse>> = _sessionInfo.asStateFlow()
+    private val _session = MutableStateFlow(SessionForAssignment())
+    val session: StateFlow<SessionForAssignment> = _session.asStateFlow()
 
-    fun getData(id: Int, sessionId: Int, context: Context) {
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    fun getData(sessionId: Int, context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch drawer data
-                _drawerData.value = userRepository.getUserDataForDrawer(id).first()
+                val sessionCache = ActivityCacheManager.assignmentOption[sessionId]
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Fetch session information
-                val session = sessionRepository.getSession(sessionId).first()
-                _sessionInfo.value = Pair(
-                    session,
-                    MessageCourse(
-                        courseName = GetCourses.getCourseNameById(session.courseId, context),
-                        moduleName = GetModules.getModuleByCourseAndModuleId(
-                            session.courseId,
-                            session.moduleId,
-                            context
-                        )
-                    )
-                )
+                if (sessionCache != null && currentUserCache != null) {
+                    _session.value = sessionCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(sessionId, context)
+                }
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
+        }
+    }
+
+    fun refreshData(sessionId: Int, context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(sessionId, context)
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi(sessionId: Int, context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            val response = when (val session = academicallyApi.getSessionForAssignment(sessionId)) {
+                is WithCurrentUser.Success -> session
+                is WithCurrentUser.Error -> throw IllegalArgumentException(session.error)
+            }
+
+            _session.value = response.data!!
+            _drawerData.value = response.currentUser!!
+
+            ActivityCacheManager.assignmentOption[sessionId] = response.data
+            ActivityCacheManager.currentUser = response.currentUser
         }
     }
 
@@ -98,11 +117,7 @@ class AssignmentOptionViewModel @Inject constructor(
         navigate: (String) -> Unit
     ) {
         try {
-            val dateString = LocalDateTime.parse(
-                "${deadlineField.date} ${deadlineField.time}",
-                DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a")
-            ).toString()
-            navigate(dateString)
+            navigate(Utils.validateDateAndNavigate("${deadlineField.date} ${deadlineField.time}"))
         } catch (e: Exception) {
             updateDeadline(deadlineField.copy(error = "Invalid time"))
         }

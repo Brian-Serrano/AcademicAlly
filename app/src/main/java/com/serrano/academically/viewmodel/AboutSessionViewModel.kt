@@ -1,68 +1,93 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.Session
-import com.serrano.academically.room.SessionRepository
-import com.serrano.academically.room.UserRepository
-import com.serrano.academically.utils.GetCourses
-import com.serrano.academically.utils.GetModules
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.Session
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.SessionInfo
-import com.serrano.academically.utils.UserDrawerData
+import com.serrano.academically.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AboutSessionViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
-    private val userRepository: UserRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
-    private val _sessionDetails = MutableStateFlow(Pair(Session(), SessionInfo()))
-    val sessionDetails: StateFlow<Pair<Session, SessionInfo>> = _sessionDetails.asStateFlow()
+    private val _session = MutableStateFlow(Session())
+    val session: StateFlow<Session> = _session.asStateFlow()
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _userData = MutableStateFlow(UserDrawerData())
-    val userData: StateFlow<UserDrawerData> = _userData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
-    fun getData(userId: Int, sessionId: Int, context: Context) {
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    fun getData(sessionId: Int, context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch drawer data
-                _userData.value = userRepository.getUserDataForDrawer(userId).first()
+                ActivityCacheManager.profile = null
 
-                // Fetch session
-                val session = sessionRepository.getSession(sessionId).first()
-                _sessionDetails.value = Pair(
-                    session,
-                    SessionInfo(
-                        courseName = GetCourses.getCourseNameById(session.courseId, context),
-                        tutorName = userRepository.getUserName(session.tutorId).first(),
-                        studentName = userRepository.getUserName(session.studentId).first(),
-                        moduleName = GetModules.getModuleByCourseAndModuleId(
-                            session.courseId,
-                            session.moduleId,
-                            context
-                        )
-                    )
-                )
+                val sessionCache = ActivityCacheManager.aboutSession[sessionId]
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Mark session as seen by student
-                sessionRepository.updateStudentView(sessionId)
+                if (sessionCache != null && currentUserCache != null) {
+                    _session.value = sessionCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(sessionId, context)
+                }
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
+        }
+    }
+
+    fun refreshData(sessionId: Int, context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(sessionId, context)
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi(sessionId: Int, context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            val response = when (val session = academicallyApi.getSession(sessionId)) {
+                is WithCurrentUser.Success -> session
+                is WithCurrentUser.Error -> throw IllegalArgumentException(session.error)
+            }
+
+            _session.value = response.data!!
+            _drawerData.value = response.currentUser!!
+
+            ActivityCacheManager.aboutSession[sessionId] = response.data
+            ActivityCacheManager.currentUser = response.currentUser
         }
     }
 }

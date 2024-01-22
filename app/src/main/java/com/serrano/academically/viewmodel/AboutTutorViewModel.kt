@@ -1,67 +1,93 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.room.CourseSkill
-import com.serrano.academically.room.CourseSkillRepository
-import com.serrano.academically.room.UserRepository
-import com.serrano.academically.utils.GetCourses
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.WithCurrentUser
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.Tutor
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.Rating
-import com.serrano.academically.utils.UserDrawerData
-import com.serrano.academically.utils.UserInfo
+import com.serrano.academically.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AboutTutorViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val courseSkillRepository: CourseSkillRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _userData = MutableStateFlow(UserDrawerData())
-    val userData: StateFlow<UserDrawerData> = _userData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
-    private val _tutorInfo = MutableStateFlow(UserInfo())
-    val tutorInfo: StateFlow<UserInfo> = _tutorInfo.asStateFlow()
+    private val _tutor = MutableStateFlow(Tutor())
+    val tutor: StateFlow<Tutor> = _tutor.asStateFlow()
 
-    private val _tutorRating = MutableStateFlow(Rating())
-    val tutorRating: StateFlow<Rating> = _tutorRating.asStateFlow()
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    private val _tutorCourses = MutableStateFlow<List<Pair<CourseSkill, String>>>(emptyList())
-    val tutorCourses: StateFlow<List<Pair<CourseSkill, String>>> = _tutorCourses.asStateFlow()
-
-    fun getData(userId: Int, tutorId: Int, context: Context) {
+    fun getData(tutorId: Int, context: Context) {
         viewModelScope.launch {
             try {
-                // Fetch drawer data
-                _userData.value = userRepository.getUserDataForDrawer(userId).first()
+                ActivityCacheManager.profile = null
 
-                // Fetch tutor information
-                _tutorInfo.value = userRepository.getUserInfo(tutorId).first()
+                val tutorCache = ActivityCacheManager.aboutTutor[tutorId]
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Fetch tutor performance rating
-                _tutorRating.value = userRepository.getTutorRating(tutorId).first()
-
-                // Fetch tutor courses
-                _tutorCourses.value = courseSkillRepository
-                    .getCourseSkillsOfUser(tutorId, "TUTOR")
-                    .first()
-                    .map { Pair(it, GetCourses.getCourseNameById(it.courseId, context)) }
+                if (tutorCache != null && currentUserCache != null) {
+                    _tutor.value = tutorCache
+                    _drawerData.value = currentUserCache
+                } else {
+                    callApi(tutorId, context)
+                }
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
+        }
+    }
+
+    fun refreshData(tutorId: Int, context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi(tutorId, context)
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi(tutorId: Int, context: Context) {
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
+            val response = when (val tutor = academicallyApi.getTutor(tutorId)) {
+                is WithCurrentUser.Success -> tutor
+                is WithCurrentUser.Error -> throw IllegalArgumentException(tutor.error)
+            }
+
+            _tutor.value = response.data!!
+            _drawerData.value = response.currentUser!!
+
+            ActivityCacheManager.aboutTutor[tutorId] = response.data
+            ActivityCacheManager.currentUser = response.currentUser
         }
     }
 }

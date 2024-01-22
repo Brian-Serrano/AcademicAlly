@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.ErrorComposable
@@ -30,7 +32,7 @@ import com.serrano.academically.custom_composables.InfoCard
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
-import com.serrano.academically.utils.HelperFunctions
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.viewmodel.AboutSessionViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -39,31 +41,34 @@ import kotlinx.coroutines.CoroutineScope
 fun AboutSession(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    userId: Int,
     sessionId: Int,
     navController: NavController,
     context: Context,
     aboutSessionViewModel: AboutSessionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        aboutSessionViewModel.getData(userId, sessionId, context)
+        aboutSessionViewModel.getData(sessionId, context)
     }
 
-    val session by aboutSessionViewModel.sessionDetails.collectAsState()
-    val user by aboutSessionViewModel.userData.collectAsState()
+    val session by aboutSessionViewModel.session.collectAsState()
+    val user by aboutSessionViewModel.drawerData.collectAsState()
     val process by aboutSessionViewModel.processState.collectAsState()
+    val isRefreshLoading by aboutSessionViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { aboutSessionViewModel.refreshData(sessionId, context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "ABOUT SESSION",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "ABOUT SESSION",
                 navController = navController
@@ -72,7 +77,7 @@ fun AboutSession(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -82,59 +87,64 @@ fun AboutSession(
                 context = context,
                 selected = "Notifications"
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(it)
-                        .verticalScroll(rememberScrollState())
+                SwipeRefresh(
+                    state = swipeRefreshState,
+                    onRefresh = onRefresh,
+                    refreshTriggerDistance = 50.dp,
+                    modifier = Modifier.padding(it)
                 ) {
-                    CustomCard {
-                        Text(
-                            text = session.second.courseName,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .clickable {
-                                    navController.navigate("Profile/${user.id}/${if (user.role == "STUDENT") session.first.tutorId else session.first.studentId}")
-                                }
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primary)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        CustomCard {
                             Text(
-                                text = if (user.role == "STUDENT") "Tutor: ${session.second.tutorName}" else "Student: ${session.second.studentName}",
+                                text = session.courseName,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .clickable {
+                                        navController.navigate("Profile/${if (user.role == "STUDENT") session.tutorId else session.studentId}")
+                                    }
+                            ) {
+                                Text(
+                                    text = if (user.role == "STUDENT") "Tutor: ${session.tutorName}" else "Student: ${session.studentName}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                            Text(
+                                text = "Module: ${session.moduleName}",
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(10.dp)
                             )
                         }
-                        Text(
-                            text = "Module: ${session.second.moduleName}",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
+                        InfoCard(
+                            title = "SCHEDULE",
+                            description = "Date: ${Utils.formatDate(Utils.convertToDate(session.startTime))}\n" +
+                                    "Time: ${
+                                        Utils.formatTime(
+                                            Utils.convertToDate(session.startTime),
+                                            Utils.convertToDate(session.endTime)
+                                        )
+                                    }"
                         )
-                    }
-                    InfoCard(
-                        title = "SCHEDULE",
-                        description = "Date: ${HelperFunctions.formatDate(session.first.startTime)}\n" +
-                                "Time: ${
-                                    HelperFunctions.formatTime(
-                                        session.first.startTime,
-                                        session.first.endTime
-                                    )
-                                }"
-                    )
-                    InfoCard(title = "LOCATION", description = session.first.location)
+                        InfoCard(title = "LOCATION", description = session.location)
 
-                    if (user.role == "TUTOR") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            BlackButton(
-                                text = "EDIT",
-                                action = { navController.navigate("EditSession/$userId/$sessionId") },
-                                modifier = Modifier.padding(15.dp)
-                            )
+                        if (user.role == "TUTOR") {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                BlackButton(
+                                    text = "EDIT",
+                                    action = { navController.navigate("EditSession/$sessionId") },
+                                    modifier = Modifier.padding(15.dp)
+                                )
+                            }
                         }
                     }
                 }

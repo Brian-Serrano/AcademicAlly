@@ -1,15 +1,18 @@
 package com.serrano.academically.viewmodel
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serrano.academically.datastore.UpdateUserPref
-import com.serrano.academically.datastore.dataStore
-import com.serrano.academically.room.UserRepository
-import com.serrano.academically.utils.GetCourses
+import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.Course2
+import com.serrano.academically.api.DrawerData
+import com.serrano.academically.api.OptionalCurrentUser
+import com.serrano.academically.datastore.UserCacheRepository
+import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.SearchInfo
-import com.serrano.academically.utils.UserDrawerData
+import com.serrano.academically.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChooseAssessmentViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val academicallyApi: AcademicallyApi,
+    private val userCacheRepository: UserCacheRepository
 ) : ViewModel() {
 
     private val _searchInfo = MutableStateFlow(SearchInfo())
@@ -29,65 +33,114 @@ class ChooseAssessmentViewModel @Inject constructor(
     private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
     val processState: StateFlow<ProcessState> = _processState.asStateFlow()
 
-    private val _drawerData = MutableStateFlow(UserDrawerData())
-    val drawerData: StateFlow<UserDrawerData> = _drawerData.asStateFlow()
+    private val _drawerData = MutableStateFlow(DrawerData())
+    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
-    private val _courses = MutableStateFlow<List<List<String>>>(emptyList())
-    val courses: StateFlow<List<List<String>>> = _courses.asStateFlow()
+    private val _courses = MutableStateFlow<List<Course2>>(emptyList())
+    val courses: StateFlow<List<Course2>> = _courses.asStateFlow()
 
-    private val _isDrawerShouldAvailable = MutableStateFlow(false)
-    val isDrawerShouldAvailable: StateFlow<Boolean> = _isDrawerShouldAvailable.asStateFlow()
+    private val _coursesRender = MutableStateFlow<List<Course2>>(emptyList())
+    val coursesRender: StateFlow<List<Course2>> = _coursesRender.asStateFlow()
+
+    private val _isAuthorized = MutableStateFlow(false)
+    val isAuthorized: StateFlow<Boolean> = _isAuthorized.asStateFlow()
+
+    private val _isRefreshLoading = MutableStateFlow(false)
+    val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
     fun updateSearch(newSearch: SearchInfo) {
         _searchInfo.value = newSearch
     }
 
-    private suspend fun updateHistory(context: Context) {
-        updateSearch(_searchInfo.value.copy(history = context.dataStore.data.first().searchCourseHistory))
+    private suspend fun updateHistory() {
+        updateSearch(_searchInfo.value.copy(history = userCacheRepository.userDataStore.data.first().searchCourseHistory))
     }
 
-    fun getData(context: Context, id: Int) {
+    fun getData() {
         viewModelScope.launch {
             try {
-                // Fetch all courses
-                _courses.value = GetCourses.getAllCourses(context)
+                val coursesCache = ActivityCacheManager.chooseAssessment
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                // Fetch search history from preferences
-                updateHistory(context)
-
-                // Fetch and enable drawer data base on login state of user
-                if (id != 0) {
-                    _drawerData.value = userRepository.getUserDataForDrawer(id).first()
-                    _isDrawerShouldAvailable.value = true
+                if (coursesCache != null && currentUserCache != null) {
+                    _courses.value = coursesCache
+                    _drawerData.value = currentUserCache
+                    _isAuthorized.value = Utils.checkToken(userCacheRepository.userDataStore.data.first().authToken)
+                } else {
+                    callApi()
                 }
+
+                _coursesRender.value = _courses.value
+
+                updateHistory()
+
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                e.printStackTrace()
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun search(searchQuery: String, context: Context) {
+    fun refreshData(context: Context) {
+        viewModelScope.launch {
+            try {
+                _isRefreshLoading.value = true
+
+                callApi()
+
+                _coursesRender.value = _courses.value
+
+                updateHistory()
+
+                _isRefreshLoading.value = false
+
+                _processState.value = ProcessState.Success
+            } catch (e: Exception) {
+                _isRefreshLoading.value = false
+                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private suspend fun callApi() {
+        when (val courses = academicallyApi.getCourses()) {
+            is OptionalCurrentUser.CurrentUserData -> {
+                _courses.value = courses.data!!
+                _drawerData.value = courses.currentUser!!
+                _isAuthorized.value = true
+
+                ActivityCacheManager.chooseAssessment = courses.data
+                ActivityCacheManager.currentUser = courses.currentUser
+            }
+            is OptionalCurrentUser.UserData -> {
+                _courses.value = courses.data!!
+
+                ActivityCacheManager.chooseAssessment = courses.data
+                ActivityCacheManager.currentUser = _drawerData.value
+            }
+            is OptionalCurrentUser.Error -> throw IllegalArgumentException(courses.error)
+        }
+    }
+
+    fun search(searchQuery: String) {
         viewModelScope.launch {
             try {
                 _processState.value = ProcessState.Loading
 
-                // Filter courses base on search query and add the search query to preferences and re-fetch
                 if (searchQuery.isEmpty()) {
-                    _courses.value = GetCourses.getAllCourses(context)
+                    _coursesRender.value = _courses.value
                 } else {
                     val regex = Regex(searchQuery, RegexOption.IGNORE_CASE)
-                    UpdateUserPref.addSearchCourseHistory(context, searchQuery)
-                    _courses.value =
-                        GetCourses.getAllCourses(context).filter { regex.containsMatchIn(it[1]) }
+                    userCacheRepository.addSearchCourseHistory(searchQuery)
+                    _coursesRender.value = _courses.value.filter { regex.containsMatchIn(it.name) }
                 }
 
-                // Fetch search history from preferences
-                updateHistory(context)
+                updateHistory()
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error
+                _processState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }

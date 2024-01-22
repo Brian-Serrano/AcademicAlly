@@ -28,9 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.serrano.academically.R
-import com.serrano.academically.datastore.UserPref
-import com.serrano.academically.datastore.dataStore
-import com.serrano.academically.ui.theme.Strings
+import com.serrano.academically.datastore.UserCache
 import kotlinx.coroutines.delay
 
 @Composable
@@ -38,7 +36,7 @@ fun Splash(
     navController: NavController,
     context: Context
 ) {
-    val userPref by context.dataStore.data.collectAsState(initial = UserPref())
+    val userCache by context.userDataStore.data.collectAsState(initial = UserCache())
 
     var startAnimation by remember { mutableStateOf(false) }
     val alphaAnimation = animateFloatAsState(
@@ -53,8 +51,8 @@ fun Splash(
         navController.popBackStack()
 
         when {
-            userPref.isLoggedIn -> navController.navigate("Dashboard/${userPref.id}")
-            userPref.isNotFirstTimeUser -> navController.navigate("Main")
+            userCache.authToken.isNotEmpty() -> navController.navigate("Dashboard")
+            userCache.isNotFirstTimeUser -> navController.navigate("Main")
             else -> navController.navigate("About")
         }
     }
@@ -87,7 +85,7 @@ fun Splash(
             verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
         ) {
             Text(
-                text = "STI COLLEGE LAOAG, BSCS-3",
+                text = "STI COLLEGE LAOAG, BSCS-4",
                 style = MaterialTheme.typography.labelMedium
             )
             Text(

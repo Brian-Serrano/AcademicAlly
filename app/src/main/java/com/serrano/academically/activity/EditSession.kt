@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.ConfirmDialog
 import com.serrano.academically.custom_composables.DrawerAndScaffold
@@ -42,34 +43,36 @@ fun EditSession(
     drawerState: DrawerState,
     context: Context,
     navController: NavController,
-    userId: Int,
     sessionId: Int,
     editSessionViewModel: EditSessionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        editSessionViewModel.getData(userId, sessionId)
+        editSessionViewModel.getData(sessionId, context)
     }
 
     val user by editSessionViewModel.drawerData.collectAsState()
     val process by editSessionViewModel.processState.collectAsState()
     val sessionSettings by editSessionViewModel.sessionSettings.collectAsState()
     val dialogOpen by editSessionViewModel.isFilterDialogOpen.collectAsState()
-    val session by editSessionViewModel.session.collectAsState()
     val rateDialogOpen by editSessionViewModel.isRateDialogOpen.collectAsState()
     val rateDialogStates by editSessionViewModel.rateDialogStates.collectAsState()
     val enabled by editSessionViewModel.buttonEnabled.collectAsState()
+    val isRefreshLoading by editSessionViewModel.isRefreshLoading.collectAsState()
 
-    when (process) {
-        ProcessState.Error -> {
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
+    val onRefresh = { editSessionViewModel.refreshData(sessionId, context) }
+
+    when (val p = process) {
+        is ProcessState.Error -> {
             ScaffoldNoDrawer(
                 text = "EDIT SESSION",
                 navController = navController
             ) {
-                ErrorComposable(navController, it)
+                ErrorComposable(navController, it, p.message, swipeRefreshState, onRefresh)
             }
         }
 
-        ProcessState.Loading -> {
+        is ProcessState.Loading -> {
             ScaffoldNoDrawer(
                 text = "EDIT SESSION",
                 navController = navController
@@ -78,7 +81,7 @@ fun EditSession(
             }
         }
 
-        ProcessState.Success -> {
+        is ProcessState.Success -> {
             DrawerAndScaffold(
                 scope = scope,
                 drawerState = drawerState,
@@ -135,6 +138,7 @@ fun EditSession(
                                 },
                                 onButtonClick = {
                                     editSessionViewModel.updateSession(
+                                        context = context,
                                         settings = sessionSettings,
                                         sessionId = sessionId,
                                         navigate = {
@@ -143,8 +147,8 @@ fun EditSession(
                                                 "Session Updated!",
                                                 Toast.LENGTH_LONG
                                             ).show()
-                                            navController.navigateUp()
-                                            navController.navigateUp()
+                                            navController.popBackStack()
+                                            navController.popBackStack()
                                         }
                                     )
                                 },
@@ -187,11 +191,11 @@ fun EditSession(
                             onDismissRequest = { editSessionViewModel.toggleRateDialog(false) },
                             onConfirmClick = {
                                 editSessionViewModel.toggleRateDialog(false)
-                                navController.navigate("AssignmentOption/$userId/${session.sessionId}/${rateDialogStates.star}")
+                                navController.navigate("AssignmentOption/$sessionId/${rateDialogStates.star}")
                             },
                             onCancelClick = {
                                 editSessionViewModel.toggleRateDialog(false)
-                                navController.navigate("AssignmentOption/$userId/${session.sessionId}/0")
+                                navController.navigate("AssignmentOption/$sessionId/0")
                             },
                             onStarClick = {
                                 editSessionViewModel.updateRateDialogStates(
