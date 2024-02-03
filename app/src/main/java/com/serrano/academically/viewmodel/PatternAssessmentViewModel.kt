@@ -107,17 +107,17 @@ class PatternAssessmentViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (val assessmentData = academicallyApi.getLearningPatternAssessment()) {
-                is WithCurrentUser.Success -> {
-                    _assessmentData.value = assessmentData.data!!
-                    _drawerData.value = assessmentData.currentUser!!
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.patternAssessment = assessmentData.data
-                    ActivityCacheManager.currentUser = assessmentData.currentUser
-                }
-                is WithCurrentUser.Error -> throw IllegalArgumentException(assessmentData.error)
+        when (val assessmentData = academicallyApi.getLearningPatternAssessment()) {
+            is WithCurrentUser.Success -> {
+                _assessmentData.value = assessmentData.data!!
+                _drawerData.value = assessmentData.currentUser!!
+
+                ActivityCacheManager.patternAssessment = assessmentData.data
+                ActivityCacheManager.currentUser = assessmentData.currentUser
             }
+            is WithCurrentUser.Error -> throw IllegalArgumentException(assessmentData.error)
         }
     }
 
@@ -126,29 +126,29 @@ class PatternAssessmentViewModel @Inject constructor(
             try {
                 _nextButtonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val result = _assessmentAnswers.value.mapIndexed { idx, ans ->
-                        when (ans) {
-                            "A" -> _assessmentData.value[idx].choices[0].type
-                            "B" -> _assessmentData.value[idx].choices[1].type
-                            "C" -> _assessmentData.value[idx].choices[2].type
-                            "D" -> _assessmentData.value[idx].choices[3].type
-                            else -> ""
-                        }
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+                val result = _assessmentAnswers.value.mapIndexed { idx, ans ->
+                    when (ans) {
+                        "A" -> _assessmentData.value[idx].choices[0].type
+                        "B" -> _assessmentData.value[idx].choices[1].type
+                        "C" -> _assessmentData.value[idx].choices[2].type
+                        "D" -> _assessmentData.value[idx].choices[3].type
+                        else -> ""
                     }
-
-                    academicallyApi.completeLearningPatternAssessment(
-                        PatternAssessmentBody(
-                            result.count { it == "Collaborative" },
-                            result.count { it == "Independent" },
-                            result.count { it == "Experiential" },
-                            result.count { it == "Dependent" }
-                        )
-                    )
-
-                    ActivityCacheManager.patternAssessment = null
-                    ActivityCacheManager.currentUser = null
                 }
+
+                academicallyApi.completeLearningPatternAssessment(
+                    PatternAssessmentBody(
+                        result.count { it == "Collaborative" },
+                        result.count { it == "Independent" },
+                        result.count { it == "Experiential" },
+                        result.count { it == "Dependent" }
+                    )
+                )
+
+                ActivityCacheManager.patternAssessment = null
+                ActivityCacheManager.currentUser = null
 
                 _nextButtonEnabled.value = true
 

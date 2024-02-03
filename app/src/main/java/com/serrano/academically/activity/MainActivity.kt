@@ -9,12 +9,13 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.datastore.dataStore
 import androidx.navigation.compose.rememberNavController
+import com.serrano.academically.datastore.CryptoManager
 import com.serrano.academically.datastore.UserCacheSerializer
 import com.serrano.academically.ui.theme.AcademicAllyPrototypeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 
-val Context.userDataStore by dataStore("user-cache.json", UserCacheSerializer())
+val Context.userDataStore by dataStore("user-cache.json", UserCacheSerializer(CryptoManager()))
 
 
 @AndroidEntryPoint

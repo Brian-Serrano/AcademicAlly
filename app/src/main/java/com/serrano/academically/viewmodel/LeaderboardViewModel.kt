@@ -77,17 +77,17 @@ class LeaderboardViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val leaderboardsData = academicallyApi.getLeaderboard()) {
-                is WithCurrentUser.Success -> leaderboardsData
-                is WithCurrentUser.Error -> throw IllegalArgumentException(leaderboardsData.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _leaderboardsData.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.leaderboard = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val leaderboardsData = academicallyApi.getLeaderboard()) {
+            is WithCurrentUser.Success -> leaderboardsData
+            is WithCurrentUser.Error -> throw IllegalArgumentException(leaderboardsData.error)
         }
+
+        _leaderboardsData.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.leaderboard = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 }

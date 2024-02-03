@@ -84,17 +84,17 @@ class CreateSessionViewModel @Inject constructor(
     }
 
     private suspend fun callApi(messageId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (val message = academicallyApi.getMessage(messageId)) {
-                is WithCurrentUser.Success -> {
-                    _message.value = message.data!!
-                    _drawerData.value = message.currentUser!!
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.createSession[messageId] = message.data
-                    ActivityCacheManager.currentUser = message.currentUser
-                }
-                is WithCurrentUser.Error -> throw IllegalArgumentException(message.error)
+        when (val message = academicallyApi.getMessage(messageId)) {
+            is WithCurrentUser.Success -> {
+                _message.value = message.data!!
+                _drawerData.value = message.currentUser!!
+
+                ActivityCacheManager.createSession[messageId] = message.data
+                ActivityCacheManager.currentUser = message.currentUser
             }
+            is WithCurrentUser.Error -> throw IllegalArgumentException(message.error)
         }
     }
 
@@ -112,33 +112,33 @@ class CreateSessionViewModel @Inject constructor(
             try {
                 _buttonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val apiResponse = academicallyApi.createSession(
-                        CreateSessionBody(
-                            Utils.validateDate("${settings.date} ${settings.startTime}"),
-                            Utils.validateDate("${settings.date} ${settings.endTime}"),
-                            message.messageId,
-                            message.studentId,
-                            message.tutorId,
-                            message.courseId,
-                            message.moduleId,
-                            settings.location
-                        )
-                    )
-                    Utils.showToast(
-                        when (apiResponse) {
-                            is NoCurrentUser.Success -> apiResponse.data!!
-                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
-                        },
-                        context
-                    )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.createSession.remove(message.messageId)
-                    ActivityCacheManager.aboutStudent.remove(message.messageId)
-                    ActivityCacheManager.notificationsSessions = null
-                    ActivityCacheManager.notificationsMessages = null
-                    ActivityCacheManager.archiveAcceptedMessages = null
-                }
+                val apiResponse = academicallyApi.createSession(
+                    CreateSessionBody(
+                        Utils.validateDate("${settings.date} ${settings.startTime}"),
+                        Utils.validateDate("${settings.date} ${settings.endTime}"),
+                        message.messageId,
+                        message.studentId,
+                        message.tutorId,
+                        message.courseId,
+                        message.moduleId,
+                        settings.location
+                    )
+                )
+                Utils.showToast(
+                    when (apiResponse) {
+                        is NoCurrentUser.Success -> apiResponse.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                    },
+                    context
+                )
+
+                ActivityCacheManager.createSession.remove(message.messageId)
+                ActivityCacheManager.aboutStudent.remove(message.messageId)
+                ActivityCacheManager.notificationsSessions = null
+                ActivityCacheManager.notificationsMessages = null
+                ActivityCacheManager.archiveAcceptedMessages = null
 
                 _buttonEnabled.value = true
 

@@ -28,17 +28,18 @@ fun ErrorComposable(
     swipeRefreshState: SwipeRefreshState,
     onRefresh: () -> Unit
 ) {
-    Box(
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = onRefresh,
+        refreshTriggerDistance = 50.dp,
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center
+            .background(MaterialTheme.colorScheme.primary)
     ) {
-        SwipeRefresh(
-            state = swipeRefreshState,
-            onRefresh = onRefresh,
-            refreshTriggerDistance = 50.dp
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),

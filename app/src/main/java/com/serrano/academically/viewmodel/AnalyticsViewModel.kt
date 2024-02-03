@@ -84,14 +84,14 @@ class AnalyticsViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val userData = academicallyApi.getAnalytics()) {
-                is NoCurrentUser.Success -> userData
-                is NoCurrentUser.Error -> throw IllegalArgumentException(userData.error)
-            }
-            _userData.value = response.data!!
-            ActivityCacheManager.analytics = response.data
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+        val response = when (val userData = academicallyApi.getAnalytics()) {
+            is NoCurrentUser.Success -> userData
+            is NoCurrentUser.Error -> throw IllegalArgumentException(userData.error)
         }
+        _userData.value = response.data!!
+        ActivityCacheManager.analytics = response.data
     }
 
     fun updateChartState(newState: ChartState) {

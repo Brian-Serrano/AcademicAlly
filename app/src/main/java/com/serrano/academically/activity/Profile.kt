@@ -100,11 +100,12 @@ fun Profile(
                     state = swipeRefreshState,
                     onRefresh = onRefresh,
                     refreshTriggerDistance = 50.dp,
-                    modifier = Modifier.padding(values)
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.primary)
+                        .fillMaxSize()
+                        .padding(values)
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.background(MaterialTheme.colorScheme.primary)
-                    ) {
+                    LazyColumn {
                         item {
                             Column(
                                 modifier = Modifier

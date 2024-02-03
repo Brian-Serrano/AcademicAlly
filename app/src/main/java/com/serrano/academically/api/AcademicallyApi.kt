@@ -146,4 +146,10 @@ interface AcademicallyApi {
     @Unauthorized
     suspend fun forgotPassword(@Body emailBody: EmailBody): NoCurrentUser<Success>
 
+    @POST("/post_routes/send_support_message")
+    suspend fun sendSupportMessage(@Body supportBody: SupportBody): NoCurrentUser<Success>
+
+    @GET("/get_routes/get_support_messages")
+    suspend fun getSupportMessages(): WithCurrentUser<List<SupportMessage>>
+
 }

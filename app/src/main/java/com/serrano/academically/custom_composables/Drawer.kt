@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Support
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +60,7 @@ fun Drawer(
         Icons.Default.Badge,
         Icons.Default.ManageAccounts,
         Icons.Default.Archive,
+        Icons.Default.Support,
         Icons.Default.Logout
     )
     SelectionContainer {
@@ -127,6 +129,7 @@ fun Drawer(
                                         "Badge" -> navController.navigate("Achievements")
                                         "ManageAccounts" -> navController.navigate("Account")
                                         "Archive" -> navController.navigate("Archive")
+                                        "Support" -> navController.navigate("Support")
                                         "Logout" -> {
                                             context.userDataStore.updateData {
                                                 it.copy(authToken = "", role = "")

@@ -200,5 +200,14 @@ fun NavigationGraph(
         composable(route = "PatternAssessment") {
             PatternAssessment(scope, drawerState, context, navController)
         }
+        composable(route = "Support") {
+            Support(navController)
+        }
+        composable(
+            route = "SupportChat/{topicId}",
+            arguments = listOf(navArgument("topicId") { type = NavType.IntType })
+        ) {
+            SupportChat(scope, drawerState, navController, context, it.arguments?.getInt("topicId") ?: 0)
+        }
     }
 }

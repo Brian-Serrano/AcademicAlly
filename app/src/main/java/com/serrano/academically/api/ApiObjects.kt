@@ -216,7 +216,7 @@ data class Assignment(
     val name: String = "",
     val description: String = "",
     val type: String = "Multiple Choice",
-    val data: String = ""
+    val data: List<AssessmentBody> = emptyList()
 )
 
 data class AssignmentBody(
@@ -236,10 +236,21 @@ data class CreateAssignmentBody(
     val tutorId: Int,
     val courseId: Int,
     val moduleId: Int,
-    val data: String,
+    val data: List<AssessmentBody>,
     val type: String,
     val deadLine: String,
     val rate: Int
+)
+
+data class AssessmentBody(
+    val question: String,
+    val answer: String,
+    val letterA: String? = null,
+    val letterB: String? = null,
+    val letterC: String? = null,
+    val letterD: String? = null,
+    val module: String,
+    val creator: String
 )
 
 data class Message(
@@ -440,4 +451,18 @@ data class Course3(
 
 data class EmailBody(
     val email: String
+)
+
+data class SupportMessage(
+    val chatId: Int,
+    val message: String,
+    val fromId: Int,
+    val toId: Int,
+    val date: String
+)
+
+data class SupportBody(
+    val message: String,
+    val fromId: Int,
+    val toId: Int
 )

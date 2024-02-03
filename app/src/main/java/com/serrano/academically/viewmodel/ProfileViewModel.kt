@@ -78,18 +78,18 @@ class ProfileViewModel @Inject constructor(
     }
 
     private suspend fun callApi(otherId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val userData = academicallyApi.getProfile(otherId)) {
-                is WithCurrentUser.Success -> userData
-                is WithCurrentUser.Error -> throw IllegalArgumentException(userData.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _userData.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.profile = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val userData = academicallyApi.getProfile(otherId)) {
+            is WithCurrentUser.Success -> userData
+            is WithCurrentUser.Error -> throw IllegalArgumentException(userData.error)
         }
+
+        _userData.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.profile = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 
     fun updateTabIndex(newIdx: Int) {

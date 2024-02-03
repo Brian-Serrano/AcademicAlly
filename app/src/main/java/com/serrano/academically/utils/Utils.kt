@@ -141,11 +141,18 @@ object Utils {
         return try { JWT.decode(authToken).expiresAt.before(Date()) } catch (e: Exception) { true }
     }
 
+    fun getFieldId(field: AssessmentType): Int {
+        return when (field) {
+            is AssessmentType.MultipleChoiceFields -> field.id
+            is AssessmentType.IdentificationFields -> field.id
+            is AssessmentType.TrueOrFalseFields -> field.id
+        }
+    }
+
     suspend fun checkAuthentication(
         context: Context,
         userCacheRepository: UserCacheRepository,
-        academicallyApi: AcademicallyApi,
-        success: suspend () -> Unit
+        academicallyApi: AcademicallyApi
     ) {
         val preferences = userCacheRepository.userDataStore.data.first()
 
@@ -164,10 +171,6 @@ object Utils {
             userCacheRepository.updateAuthToken(refreshedToken)
 
             Toast.makeText(context, "Your token not valid, refreshing Login.", Toast.LENGTH_LONG).show()
-
-            success()
-        } else {
-            success()
         }
     }
 }

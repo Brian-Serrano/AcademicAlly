@@ -102,17 +102,17 @@ class MessageTutorViewModel @Inject constructor(
     }
 
     private suspend fun callApi(tutorId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (val tutorCourses = academicallyApi.getTutorEligibleCourses(tutorId)) {
-                is WithCurrentUser.Success -> {
-                    _tutorCourses.value = tutorCourses.data!!
-                    _drawerData.value = tutorCourses.currentUser!!
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.messageTutor[tutorId] = tutorCourses.data
-                    ActivityCacheManager.currentUser = tutorCourses.currentUser
-                }
-                is WithCurrentUser.Error -> throw IllegalArgumentException(tutorCourses.error)
+        when (val tutorCourses = academicallyApi.getTutorEligibleCourses(tutorId)) {
+            is WithCurrentUser.Success -> {
+                _tutorCourses.value = tutorCourses.data!!
+                _drawerData.value = tutorCourses.currentUser!!
+
+                ActivityCacheManager.messageTutor[tutorId] = tutorCourses.data
+                ActivityCacheManager.currentUser = tutorCourses.currentUser
             }
+            is WithCurrentUser.Error -> throw IllegalArgumentException(tutorCourses.error)
         }
     }
 
@@ -147,26 +147,26 @@ class MessageTutorViewModel @Inject constructor(
             try {
                 _requestButtonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val courseObj = _tutorCourses.value.tutorCourses.first { course.selected == it.courseName }
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    when (val messageResponse = academicallyApi.sendTutorRequest(TutorRequestBody(studentId, tutorId, courseObj.courseId, courseObj.modules.indexOf(module.selected), message))) {
-                        is MessageResponse.AchievementResponse -> {
-                            Utils.showToast(messageResponse.achievements, context)
-                            ActivityCacheManager.messageTutor.remove(tutorId)
-                            ActivityCacheManager.notificationsMessages = null
-                            _requestButtonEnabled.value = true
-                            navigate("Message Sent!")
-                        }
-                        is MessageResponse.DuplicateMessageResponse -> {
-                            ActivityCacheManager.messageTutor.remove(tutorId)
-                            ActivityCacheManager.notificationsMessages = null
-                            _requestButtonEnabled.value = true
-                            navigate(messageResponse.message)
-                        }
-                        is MessageResponse.ErrorResponse -> {
-                            throw IllegalArgumentException(messageResponse.error)
-                        }
+                val courseObj = _tutorCourses.value.tutorCourses.first { course.selected == it.courseName }
+
+                when (val messageResponse = academicallyApi.sendTutorRequest(TutorRequestBody(studentId, tutorId, courseObj.courseId, courseObj.modules.indexOf(module.selected), message))) {
+                    is MessageResponse.AchievementResponse -> {
+                        Utils.showToast(messageResponse.achievements, context)
+                        ActivityCacheManager.messageTutor.remove(tutorId)
+                        ActivityCacheManager.notificationsMessages = null
+                        _requestButtonEnabled.value = true
+                        navigate("Message Sent!")
+                    }
+                    is MessageResponse.DuplicateMessageResponse -> {
+                        ActivityCacheManager.messageTutor.remove(tutorId)
+                        ActivityCacheManager.notificationsMessages = null
+                        _requestButtonEnabled.value = true
+                        navigate(messageResponse.message)
+                    }
+                    is MessageResponse.ErrorResponse -> {
+                        throw IllegalArgumentException(messageResponse.error)
                     }
                 }
             } catch (e: Exception) {

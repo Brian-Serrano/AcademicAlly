@@ -77,17 +77,17 @@ class AboutTutorViewModel @Inject constructor(
     }
 
     private suspend fun callApi(tutorId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val tutor = academicallyApi.getTutor(tutorId)) {
-                is WithCurrentUser.Success -> tutor
-                is WithCurrentUser.Error -> throw IllegalArgumentException(tutor.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _tutor.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.aboutTutor[tutorId] = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val tutor = academicallyApi.getTutor(tutorId)) {
+            is WithCurrentUser.Success -> tutor
+            is WithCurrentUser.Error -> throw IllegalArgumentException(tutor.error)
         }
+
+        _tutor.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.aboutTutor[tutorId] = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 }

@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.AssessmentBody
 import com.serrano.academically.api.WithCurrentUser
 import com.serrano.academically.api.Assignment
 import com.serrano.academically.api.AssignmentBody
@@ -19,8 +20,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @HiltViewModel
@@ -74,7 +73,7 @@ class AssignmentViewModel @Inject constructor(
                     callApi(assignmentId, context)
                 }
 
-                _assessmentData.value = deserializeAssignmentData(_assignment.value.data)
+                _assessmentData.value = mapAssignmentData(_assignment.value.data, _assignment.value.type)
 
                 _assessmentAnswers.value = List(_assessmentData.value.size) { "" }
 
@@ -92,7 +91,7 @@ class AssignmentViewModel @Inject constructor(
 
                 callApi(assignmentId, context)
 
-                _assessmentData.value = deserializeAssignmentData(_assignment.value.data)
+                _assessmentData.value = mapAssignmentData(_assignment.value.data, _assignment.value.type)
 
                 _assessmentAnswers.value = List(_assessmentData.value.size) { "" }
 
@@ -107,18 +106,18 @@ class AssignmentViewModel @Inject constructor(
     }
 
     private suspend fun callApi(assignmentId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val assignment = academicallyApi.getAssignment(assignmentId)) {
-                is WithCurrentUser.Success -> assignment
-                is WithCurrentUser.Error -> throw IllegalArgumentException(assignment.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _assignment.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.assignment[assignmentId] = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val assignment = academicallyApi.getAssignment(assignmentId)) {
+            is WithCurrentUser.Success -> assignment
+            is WithCurrentUser.Error -> throw IllegalArgumentException(assignment.error)
         }
+
+        _assignment.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.assignment[assignmentId] = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 
     fun completeAssignment(
@@ -131,20 +130,20 @@ class AssignmentViewModel @Inject constructor(
             try {
                 _nextButtonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val apiResponse = academicallyApi.completeAssignment(AssignmentBody(assignmentId, score))
-                    Utils.showToast(
-                        when (apiResponse) {
-                            is NoCurrentUser.Success -> apiResponse.data!!
-                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
-                        },
-                        context
-                    )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.assignment.remove(assignmentId)
-                    ActivityCacheManager.notificationsAssignments = null
-                    ActivityCacheManager.archiveCompletedTasks = null
-                }
+                val apiResponse = academicallyApi.completeAssignment(AssignmentBody(assignmentId, score))
+                Utils.showToast(
+                    when (apiResponse) {
+                        is NoCurrentUser.Success -> apiResponse.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                    },
+                    context
+                )
+
+                ActivityCacheManager.assignment.remove(assignmentId)
+                ActivityCacheManager.notificationsAssignments = null
+                ActivityCacheManager.archiveCompletedTasks = null
 
                 _nextButtonEnabled.value = true
 
@@ -156,7 +155,15 @@ class AssignmentViewModel @Inject constructor(
         }
     }
 
-    private fun deserializeAssignmentData(assessment: String): List<List<String>> {
-        return Json.decodeFromString<List<List<String>>>(assessment)
+    private fun mapAssignmentData(assessment: List<AssessmentBody>, type: String): List<List<String>> {
+        return when (type) {
+            "Multiple Choice" -> assessment.map {
+                listOf(it.module, it.question, it.letterA!!, it.letterB!!, it.letterC!!, it.letterD!!, it.answer, it.creator)
+            }
+            "Identification", "True or False" -> assessment.map {
+                listOf(it.module, it.question, it.answer, it.creator)
+            }
+            else -> throw IllegalArgumentException()
+        }
     }
 }

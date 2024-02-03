@@ -85,18 +85,18 @@ class DashboardViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val dashboard = academicallyApi.getDashboardData()) {
-                is WithCurrentUser.Success -> dashboard
-                is WithCurrentUser.Error -> throw IllegalArgumentException(dashboard.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _dashboard.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.dashboard = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val dashboard = academicallyApi.getDashboardData()) {
+            is WithCurrentUser.Success -> dashboard
+            is WithCurrentUser.Error -> throw IllegalArgumentException(dashboard.error)
         }
+
+        _dashboard.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.dashboard = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 
     fun playAnimation() {

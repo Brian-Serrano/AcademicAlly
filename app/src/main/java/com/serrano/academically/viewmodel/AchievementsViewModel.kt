@@ -76,17 +76,17 @@ class AchievementsViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val achievements = academicallyApi.getAchievements()) {
-                is WithCurrentUser.Success -> achievements
-                is WithCurrentUser.Error -> throw IllegalArgumentException(achievements.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _achievements.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.achievements = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val achievements = academicallyApi.getAchievements()) {
+            is WithCurrentUser.Success -> achievements
+            is WithCurrentUser.Error -> throw IllegalArgumentException(achievements.error)
         }
+
+        _achievements.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.achievements = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 }

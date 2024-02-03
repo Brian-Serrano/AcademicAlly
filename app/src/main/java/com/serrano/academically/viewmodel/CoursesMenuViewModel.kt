@@ -75,17 +75,17 @@ class CoursesMenuViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val courseSkills = academicallyApi.getCourseEligibility()) {
-                is WithCurrentUser.Success -> courseSkills
-                is WithCurrentUser.Error -> throw IllegalArgumentException(courseSkills.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _courseSkills.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.coursesMenu = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val courseSkills = academicallyApi.getCourseEligibility()) {
+            is WithCurrentUser.Success -> courseSkills
+            is WithCurrentUser.Error -> throw IllegalArgumentException(courseSkills.error)
         }
+
+        _courseSkills.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.coursesMenu = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 }

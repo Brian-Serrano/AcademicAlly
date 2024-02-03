@@ -58,13 +58,14 @@ fun BarGraph(
         val lineColor = MaterialTheme.colorScheme.background
 
         val transformState = rememberTransformableState { zoom, pan, _ ->
+            val newScale = (chartState.scale * zoom).coerceIn(1f, 2f)
             onChartStateChange(
                 chartState.copy(
                     camera = Offset(
-                        x = ((chartState.camera.x - (chartState.scale * pan.x)) + zoom).coerceIn(0f, chartState.size.x - chartState.viewSize.x),
-                        y = ((chartState.camera.y - (chartState.scale * pan.y)) + zoom).coerceIn(0f, chartState.size.y - chartState.viewSize.y)
+                        x = ((chartState.camera.x - (chartState.scale * pan.x)) + (if (newScale == chartState.scale) 1f else (chartState.viewSize.x * (zoom - 1)))).coerceIn(0f, chartState.size.x - chartState.viewSize.x),
+                        y = ((chartState.camera.y - (chartState.scale * pan.y)) + (if (newScale == chartState.scale) 1f else (chartState.viewSize.y * (zoom - 1)))).coerceIn(0f, chartState.size.y - chartState.viewSize.y)
                     ),
-                    scale = (chartState.scale * zoom).coerceIn(1f, 2f)
+                    scale = newScale
                 )
             )
         }

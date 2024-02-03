@@ -116,17 +116,17 @@ class FindTutorViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (val findTutorData = academicallyApi.getTutors()) {
-                is WithCurrentUser.Success -> {
-                    _findTutorData.value = findTutorData.data!!
-                    _drawerData.value = findTutorData.currentUser!!
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.findTutor = findTutorData.data
-                    ActivityCacheManager.currentUser = findTutorData.currentUser
-                }
-                is WithCurrentUser.Error -> throw IllegalArgumentException(findTutorData.error)
+        when (val findTutorData = academicallyApi.getTutors()) {
+            is WithCurrentUser.Success -> {
+                _findTutorData.value = findTutorData.data!!
+                _drawerData.value = findTutorData.currentUser!!
+
+                ActivityCacheManager.findTutor = findTutorData.data
+                ActivityCacheManager.currentUser = findTutorData.currentUser
             }
+            is WithCurrentUser.Error -> throw IllegalArgumentException(findTutorData.error)
         }
     }
 
@@ -135,26 +135,26 @@ class FindTutorViewModel @Inject constructor(
             try {
                 _processState.value = ProcessState.Loading
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    if (searchQuery.isNotEmpty()) {
-                        userCacheRepository.addSearchTutorHistory(searchQuery)
-                        updateHistory()
-                    }
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    val apiResponse = academicallyApi.searchTutor(
-                        filterDialogStates.filter { it.isEnabled }.map { it.id }.joinToString(separator = ","),
-                        searchQuery
-                    )
-
-                    _findTutorData.value = _findTutorData.value.copy(
-                        tutors = when (apiResponse) {
-                            is NoCurrentUser.Success -> apiResponse.data!!
-                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
-                        }
-                    )
-
-                    ActivityCacheManager.findTutor = _findTutorData.value
+                if (searchQuery.isNotEmpty()) {
+                    userCacheRepository.addSearchTutorHistory(searchQuery)
+                    updateHistory()
                 }
+
+                val apiResponse = academicallyApi.searchTutor(
+                    filterDialogStates.filter { it.isEnabled }.map { it.id }.joinToString(separator = ","),
+                    searchQuery
+                )
+
+                _findTutorData.value = _findTutorData.value.copy(
+                    tutors = when (apiResponse) {
+                        is NoCurrentUser.Success -> apiResponse.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                    }
+                )
+
+                ActivityCacheManager.findTutor = _findTutorData.value
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {

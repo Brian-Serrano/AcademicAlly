@@ -52,42 +52,42 @@ class NotificationsViewModel @Inject constructor(
     fun getData(context: Context) {
         viewModelScope.launch {
             try {
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val currentUserCache = ActivityCacheManager.currentUser
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    if (currentUserCache != null) {
-                        _drawerData.value = currentUserCache
-                    } else {
-                        _drawerData.value = when (val drawerData = academicallyApi.getCurrentUser()) {
-                            is NoCurrentUser.Success -> drawerData.data!!
-                            is NoCurrentUser.Error -> throw IllegalArgumentException(drawerData.error)
-                        }
-                        ActivityCacheManager.currentUser = _drawerData.value
+                val currentUserCache = ActivityCacheManager.currentUser
+
+                if (currentUserCache != null) {
+                    _drawerData.value = currentUserCache
+                } else {
+                    _drawerData.value = when (val drawerData = academicallyApi.getCurrentUser()) {
+                        is NoCurrentUser.Success -> drawerData.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(drawerData.error)
                     }
+                    ActivityCacheManager.currentUser = _drawerData.value
+                }
 
-                    val messagesCache = ActivityCacheManager.notificationsMessages
+                val messagesCache = ActivityCacheManager.notificationsMessages
 
-                    if (messagesCache != null) {
-                        _message.value = messagesCache
-                    } else {
-                        getMessagesFromApi()
-                    }
+                if (messagesCache != null) {
+                    _message.value = messagesCache
+                } else {
+                    getMessagesFromApi()
+                }
 
-                    val sessionsCache = ActivityCacheManager.notificationsSessions
+                val sessionsCache = ActivityCacheManager.notificationsSessions
 
-                    if (sessionsCache != null) {
-                        _session.value = sessionsCache
-                    } else {
-                        getSessionsFromApi()
-                    }
+                if (sessionsCache != null) {
+                    _session.value = sessionsCache
+                } else {
+                    getSessionsFromApi()
+                }
 
-                    val assignmentsCache = ActivityCacheManager.notificationsAssignments
+                val assignmentsCache = ActivityCacheManager.notificationsAssignments
 
-                    if (assignmentsCache != null) {
-                        _assignment.value = assignmentsCache
-                    } else {
-                        getAssignmentsFromApi()
-                    }
+                if (assignmentsCache != null) {
+                    _assignment.value = assignmentsCache
+                } else {
+                    getAssignmentsFromApi()
                 }
 
                 _processState.value = ProcessState.Success
@@ -119,11 +119,11 @@ class NotificationsViewModel @Inject constructor(
             try {
                 _isRefreshLoading.value = true
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    getMessagesFromApi()
-                    getSessionsFromApi()
-                    getAssignmentsFromApi()
-                }
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+                getMessagesFromApi()
+                getSessionsFromApi()
+                getAssignmentsFromApi()
 
                 _isRefreshLoading.value = false
             } catch (e: Exception) {
@@ -134,12 +134,12 @@ class NotificationsViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (_tabIndex.value) {
-                0 -> getMessagesFromApi()
-                1 -> getSessionsFromApi()
-                2 -> getAssignmentsFromApi()
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+        when (_tabIndex.value) {
+            0 -> getMessagesFromApi()
+            1 -> getSessionsFromApi()
+            2 -> getAssignmentsFromApi()
         }
     }
 

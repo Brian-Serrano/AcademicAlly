@@ -23,6 +23,7 @@ import com.serrano.academically.api.SessionData
 import com.serrano.academically.api.SessionForAssignment
 import com.serrano.academically.api.SessionNotifications
 import com.serrano.academically.api.Student
+import com.serrano.academically.api.SupportMessage
 import com.serrano.academically.api.Tutor
 import com.serrano.academically.api.TutorCourses
 
@@ -86,6 +87,8 @@ object ActivityCacheManager {
 
     var profile: Profile? = null
 
+    var supportChat: List<SupportMessage>? = null
+
     var currentUser: DrawerData? = null
 
     fun clearCache() {
@@ -118,6 +121,7 @@ object ActivityCacheManager {
         notificationsAssignments = null
         patternAssessment = null
         profile = null
+        supportChat = null
         currentUser = null
     }
 }

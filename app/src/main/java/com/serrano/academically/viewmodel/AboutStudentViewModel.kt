@@ -82,18 +82,18 @@ class AboutStudentViewModel @Inject constructor(
     }
 
     private suspend fun callApi(messageId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val message = academicallyApi.getStudent(messageId)) {
-                is WithCurrentUser.Success -> message
-                is WithCurrentUser.Error -> throw IllegalArgumentException(message.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _message.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.aboutStudent[messageId] = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val message = academicallyApi.getStudent(messageId)) {
+            is WithCurrentUser.Success -> message
+            is WithCurrentUser.Error -> throw IllegalArgumentException(message.error)
         }
+
+        _message.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.aboutStudent[messageId] = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 
     fun respond(studentId: Int, tutorId: Int, messageId: Int, context: Context, navigate: () -> Unit) {
@@ -101,20 +101,20 @@ class AboutStudentViewModel @Inject constructor(
             try {
                 _rejectButtonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val apiResponse = academicallyApi.rejectStudent(RejectStudentBody(messageId, studentId, tutorId))
-                    Utils.showToast(
-                        when (apiResponse) {
-                            is NoCurrentUser.Success -> apiResponse.data!!
-                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
-                        },
-                        context
-                    )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.aboutStudent.remove(messageId)
-                    ActivityCacheManager.notificationsMessages = null
-                    ActivityCacheManager.archiveRejectedMessages = null
-                }
+                val apiResponse = academicallyApi.rejectStudent(RejectStudentBody(messageId, studentId, tutorId))
+                Utils.showToast(
+                    when (apiResponse) {
+                        is NoCurrentUser.Success -> apiResponse.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                    },
+                    context
+                )
+
+                ActivityCacheManager.aboutStudent.remove(messageId)
+                ActivityCacheManager.notificationsMessages = null
+                ActivityCacheManager.archiveRejectedMessages = null
 
                 _rejectButtonEnabled.value = true
 

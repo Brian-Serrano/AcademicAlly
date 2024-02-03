@@ -116,14 +116,14 @@ class AccountViewModel @Inject constructor(
     }
 
     private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val userData = academicallyApi.getInfo()) {
-                is NoCurrentUser.Success -> userData
-                is NoCurrentUser.Error -> throw IllegalArgumentException(userData.error)
-            }
-            _userData.value = response.data!!
-            ActivityCacheManager.account = response.data
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+        val response = when (val userData = academicallyApi.getInfo()) {
+            is NoCurrentUser.Success -> userData
+            is NoCurrentUser.Error -> throw IllegalArgumentException(userData.error)
         }
+        _userData.value = response.data!!
+        ActivityCacheManager.account = response.data
     }
 
     fun selectImage(uri: Uri?, context: Context) {
@@ -153,31 +153,31 @@ class AccountViewModel @Inject constructor(
             try {
                 toggleButtons(0, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val response = academicallyApi.updateInfo(
-                        InfoBody(
-                            name = accountFields.name,
-                            age = accountFields.age.toInt(),
-                            degree = accountFields.degree,
-                            address = accountFields.address,
-                            contactNumber = accountFields.contactNumber,
-                            summary = accountFields.summary,
-                            educationalBackground = accountFields.educationalBackground,
-                            freeTutoringTime = accountFields.freeTutoringTime
-                        )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+                val response = academicallyApi.updateInfo(
+                    InfoBody(
+                        name = accountFields.name,
+                        age = accountFields.age.toInt(),
+                        degree = accountFields.degree,
+                        address = accountFields.address,
+                        contactNumber = accountFields.contactNumber,
+                        summary = accountFields.summary,
+                        educationalBackground = accountFields.educationalBackground,
+                        freeTutoringTime = accountFields.freeTutoringTime
                     )
-                    val validation = when (response) {
-                        is NoCurrentUser.Success -> response.data!!
-                        is NoCurrentUser.Error -> throw IllegalArgumentException(response.error)
-                    }
-
-                    ActivityCacheManager.account = null
-                    ActivityCacheManager.currentUser = null
-
-                    toggleButtons(0, true)
-
-                    showMessage(validation)
+                )
+                val validation = when (response) {
+                    is NoCurrentUser.Success -> response.data!!
+                    is NoCurrentUser.Error -> throw IllegalArgumentException(response.error)
                 }
+
+                ActivityCacheManager.account = null
+                ActivityCacheManager.currentUser = null
+
+                toggleButtons(0, true)
+
+                showMessage(validation)
             } catch (e: Exception) {
                 toggleButtons(0, true)
                 showMessage(Validation(false, e.message ?: ""))
@@ -190,25 +190,25 @@ class AccountViewModel @Inject constructor(
             try {
                 toggleButtons(1, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val response = academicallyApi.updatePassword(
-                        PasswordBody(
-                            passwordFields.currentPassword,
-                            passwordFields.newPassword,
-                            passwordFields.confirmPassword
-                        )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+                val response = academicallyApi.updatePassword(
+                    PasswordBody(
+                        passwordFields.currentPassword,
+                        passwordFields.newPassword,
+                        passwordFields.confirmPassword
                     )
-                    val validation = when (response) {
-                        is NoCurrentUser.Success -> response.data!!
-                        is NoCurrentUser.Error -> throw IllegalArgumentException(response.error)
-                    }
-
-                    userCacheRepository.updatePassword(passwordFields.newPassword)
-
-                    toggleButtons(1, true)
-
-                    showMessage(validation)
+                )
+                val validation = when (response) {
+                    is NoCurrentUser.Success -> response.data!!
+                    is NoCurrentUser.Error -> throw IllegalArgumentException(response.error)
                 }
+
+                userCacheRepository.updatePassword(passwordFields.newPassword)
+
+                toggleButtons(1, true)
+
+                showMessage(validation)
             } catch (e: Exception) {
                 toggleButtons(1, true)
                 showMessage(Validation(false, e.message ?: ""))
@@ -221,13 +221,13 @@ class AccountViewModel @Inject constructor(
             try {
                 toggleButtons(2, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    academicallyApi.switchRole()
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    userCacheRepository.updateRole(newRole)
+                academicallyApi.switchRole()
 
-                    ActivityCacheManager.clearCache()
-                }
+                userCacheRepository.updateRole(newRole)
+
+                ActivityCacheManager.clearCache()
 
                 toggleButtons(2, true)
 
@@ -244,13 +244,13 @@ class AccountViewModel @Inject constructor(
             try {
                 toggleButtons(3, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val file = Utils.bitmapToFile(imageBitmap, context)
-                    val imagePart = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody("image/*".toMediaTypeOrNull()))
-                    academicallyApi.uploadImage(imagePart)
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.account = null
-                }
+                val file = Utils.bitmapToFile(imageBitmap, context)
+                val imagePart = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody("image/*".toMediaTypeOrNull()))
+                academicallyApi.uploadImage(imagePart)
+
+                ActivityCacheManager.account = null
 
                 toggleButtons(3, true)
 

@@ -91,12 +91,13 @@ fun AboutSession(
                     state = swipeRefreshState,
                     onRefresh = onRefresh,
                     refreshTriggerDistance = 50.dp,
-                    modifier = Modifier.padding(it)
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.primary)
+                        .fillMaxSize()
+                        .padding(it)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.primary)
-                            .verticalScroll(rememberScrollState())
+                        modifier = Modifier.verticalScroll(rememberScrollState())
                     ) {
                         CustomCard {
                             Text(

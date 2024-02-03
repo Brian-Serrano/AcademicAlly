@@ -107,12 +107,13 @@ fun AboutTutor(
                     state = swipeRefreshState,
                     onRefresh = onRefresh,
                     refreshTriggerDistance = 50.dp,
-                    modifier = Modifier.padding(values)
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.primary)
+                        .fillMaxSize()
+                        .padding(values)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.primary)
-                            .verticalScroll(rememberScrollState())
+                        modifier = Modifier.verticalScroll(rememberScrollState())
                     ) {
                         CustomCard {
                             Column {

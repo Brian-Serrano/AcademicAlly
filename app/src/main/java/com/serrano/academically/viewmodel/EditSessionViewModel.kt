@@ -121,17 +121,17 @@ class EditSessionViewModel @Inject constructor(
     }
 
     private suspend fun callApi(sessionId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (val sessionResponse = academicallyApi.getSessionSettings(sessionId)) {
-                is WithCurrentUser.Success -> {
-                    _sessionData.value = sessionResponse.data!!
-                    _drawerData.value = sessionResponse.currentUser!!
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.editSession[sessionId] = sessionResponse.data
-                    ActivityCacheManager.currentUser = sessionResponse.currentUser
-                }
-                is WithCurrentUser.Error -> throw IllegalArgumentException(sessionResponse.error)
+        when (val sessionResponse = academicallyApi.getSessionSettings(sessionId)) {
+            is WithCurrentUser.Success -> {
+                _sessionData.value = sessionResponse.data!!
+                _drawerData.value = sessionResponse.currentUser!!
+
+                ActivityCacheManager.editSession[sessionId] = sessionResponse.data
+                ActivityCacheManager.currentUser = sessionResponse.currentUser
             }
+            is WithCurrentUser.Error -> throw IllegalArgumentException(sessionResponse.error)
         }
     }
 
@@ -144,19 +144,19 @@ class EditSessionViewModel @Inject constructor(
             try {
                 _buttonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    academicallyApi.updateSession(
-                        UpdateSessionBody(
-                            sessionId,
-                            Utils.validateDate("${settings.date} ${settings.startTime}"),
-                            Utils.validateDate("${settings.date} ${settings.endTime}"),
-                            settings.location
-                        )
-                    )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.editSession.remove(sessionId)
-                    ActivityCacheManager.notificationsSessions = null
-                }
+                academicallyApi.updateSession(
+                    UpdateSessionBody(
+                        sessionId,
+                        Utils.validateDate("${settings.date} ${settings.startTime}"),
+                        Utils.validateDate("${settings.date} ${settings.endTime}"),
+                        settings.location
+                    )
+                )
+
+                ActivityCacheManager.editSession.remove(sessionId)
+                ActivityCacheManager.notificationsSessions = null
 
                 _buttonEnabled.value = true
 

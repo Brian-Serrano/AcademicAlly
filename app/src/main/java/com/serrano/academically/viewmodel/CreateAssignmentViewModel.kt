@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serrano.academically.api.AcademicallyApi
+import com.serrano.academically.api.AssessmentBody
 import com.serrano.academically.api.WithCurrentUser
 import com.serrano.academically.api.CreateAssignmentBody
 import com.serrano.academically.api.DrawerData
@@ -15,10 +16,7 @@ import com.serrano.academically.utils.ActivityCacheManager
 import com.serrano.academically.utils.AssessmentType
 import com.serrano.academically.utils.DropDownState
 import com.serrano.academically.utils.Utils
-import com.serrano.academically.utils.IdentificationFields
-import com.serrano.academically.utils.MultipleChoiceFields
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.TrueOrFalseFields
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -99,24 +97,24 @@ class CreateAssignmentViewModel @Inject constructor(
     }
 
     private suspend fun callApi(sessionId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (val session = academicallyApi.getSessionForAssignment(sessionId)) {
-                is WithCurrentUser.Success -> {
-                    _session.value = session.data!!
-                    _drawerData.value = session.currentUser!!
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    ActivityCacheManager.createAssignment[sessionId] = session.data
-                    ActivityCacheManager.currentUser = session.currentUser
-                }
-                is WithCurrentUser.Error -> throw IllegalArgumentException(session.error)
+        when (val session = academicallyApi.getSessionForAssignment(sessionId)) {
+            is WithCurrentUser.Success -> {
+                _session.value = session.data!!
+                _drawerData.value = session.currentUser!!
+
+                ActivityCacheManager.createAssignment[sessionId] = session.data
+                ActivityCacheManager.currentUser = session.currentUser
             }
+            is WithCurrentUser.Error -> throw IllegalArgumentException(session.error)
         }
     }
 
     private fun refreshQuizFields(items: Int, type: String) {
         _quizFields.value = when (type) {
             "Multiple Choice" -> List(items) {
-                MultipleChoiceFields(
+                AssessmentType.MultipleChoiceFields(
                     id = it,
                     question = "",
                     choices = listOf("", "", "", ""),
@@ -125,7 +123,7 @@ class CreateAssignmentViewModel @Inject constructor(
             }
 
             "Identification" -> List(items) {
-                IdentificationFields(
+                AssessmentType.IdentificationFields(
                     id = it,
                     question = "",
                     answer = ""
@@ -133,7 +131,7 @@ class CreateAssignmentViewModel @Inject constructor(
             }
 
             "True or False" -> List(items) {
-                TrueOrFalseFields(
+                AssessmentType.TrueOrFalseFields(
                     id = it,
                     question = "",
                     answer = DropDownState(listOf("TRUE", "FALSE"), "TRUE", false)
@@ -171,43 +169,41 @@ class CreateAssignmentViewModel @Inject constructor(
                 val validationResult = validateAssignment(assessment)
                 if (validationResult.all { it }) {
 
-                    Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                        val apiResponse = academicallyApi.completeSessionAndCreateAssignment(
-                            CreateAssignmentBody(
-                                session.sessionId,
-                                session.studentId,
-                                session.tutorId,
-                                session.courseId,
-                                session.moduleId,
-                                serializeAssignmentData(
-                                    assessment,
-                                    session.moduleName,
-                                    name
-                                ),
-                                type,
-                                deadLine.format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a")),
-                                rate
-                            )
-                        )
-                        Utils.showToast(
-                            when (apiResponse) {
-                                is NoCurrentUser.Success -> apiResponse.data!!
-                                is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
-                            },
-                            context
-                        )
+                    Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                        ActivityCacheManager.createAssignment.remove(session.sessionId)
-                        ActivityCacheManager.assignmentOption.remove(session.sessionId)
-                        ActivityCacheManager.aboutSession.remove(session.sessionId)
-                        ActivityCacheManager.notificationsAssignments = null
-                        ActivityCacheManager.notificationsSessions = null
-                        ActivityCacheManager.archiveCompletedSessions = null
-                    }
+                    val apiResponse = academicallyApi.completeSessionAndCreateAssignment(
+                        CreateAssignmentBody(
+                            session.sessionId,
+                            session.studentId,
+                            session.tutorId,
+                            session.courseId,
+                            session.moduleId,
+                            mapAssignment(assessment, session.moduleName, name),
+                            type,
+                            deadLine.format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a")),
+                            rate
+                        )
+                    )
+                    Utils.showToast(
+                        when (apiResponse) {
+                            is NoCurrentUser.Success -> apiResponse.data!!
+                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                        },
+                        context
+                    )
+
+                    ActivityCacheManager.createAssignment.remove(session.sessionId)
+                    ActivityCacheManager.assignmentOption.remove(session.sessionId)
+                    ActivityCacheManager.aboutSession.remove(session.sessionId)
+                    ActivityCacheManager.notificationsAssignments = null
+                    ActivityCacheManager.notificationsSessions = null
+                    ActivityCacheManager.archiveCompletedSessions = null
 
                     navigate()
                 } else {
-                    val itemsInvalid = assessment.map { it.id + 1 }
+                    val itemsInvalid = assessment.map {
+                        Utils.getFieldId(it) + 1
+                    }
                         .filterIndexed { idx, _ -> !validationResult[idx] }
                     Toast.makeText(
                         context,
@@ -224,54 +220,47 @@ class CreateAssignmentViewModel @Inject constructor(
     private fun validateAssignment(assessment: List<AssessmentType>): List<Boolean> {
         return assessment.map {
             when (it) {
-                is MultipleChoiceFields -> {
+                is AssessmentType.MultipleChoiceFields -> {
                     it.question.isNotEmpty() && it.choices.all { ch -> ch.isNotEmpty() } && it.question.length >= 15
                 }
 
-                is IdentificationFields -> {
+                is AssessmentType.IdentificationFields -> {
                     it.question.isNotEmpty() && it.answer.isNotEmpty() && it.question.length >= 15
                 }
 
-                is TrueOrFalseFields -> {
+                is AssessmentType.TrueOrFalseFields -> {
                     it.question.isNotEmpty() && it.question.length >= 15
                 }
-
-                else -> throw IllegalArgumentException()
             }
         }
     }
 
-    private fun serializeAssignmentData(
-        assessment: List<AssessmentType>,
-        moduleName: String,
-        creator: String
-    ): String {
-        val serializedData = assessment.map {
+    private fun mapAssignment(assessment: List<AssessmentType>, moduleName: String, creator: String): List<AssessmentBody> {
+        return assessment.map {
             when (it) {
-                is MultipleChoiceFields -> {
-                    listOf(
-                        moduleName,
-                        it.question,
-                        it.choices[0],
-                        it.choices[1],
-                        it.choices[2],
-                        it.choices[3],
-                        it.answer.selected,
-                        creator
-                    )
-                }
-
-                is IdentificationFields -> {
-                    listOf(moduleName, it.question, it.answer, creator)
-                }
-
-                is TrueOrFalseFields -> {
-                    listOf(moduleName, it.question, it.answer.selected, creator)
-                }
-
-                else -> throw IllegalArgumentException()
+                is AssessmentType.MultipleChoiceFields -> AssessmentBody(
+                    question = it.question,
+                    answer = it.answer.selected,
+                    letterA = it.choices[0],
+                    letterB = it.choices[1],
+                    letterC = it.choices[2],
+                    letterD = it.choices[3],
+                    module = moduleName,
+                    creator = creator
+                )
+                is AssessmentType.IdentificationFields -> AssessmentBody(
+                    question = it.question,
+                    answer = it.answer,
+                    module = moduleName,
+                    creator = creator
+                )
+                is AssessmentType.TrueOrFalseFields -> AssessmentBody(
+                    question = it.question,
+                    answer = it.answer.selected,
+                    module = moduleName,
+                    creator = creator
+                )
             }
         }
-        return Json.encodeToString(serializedData)
     }
 }

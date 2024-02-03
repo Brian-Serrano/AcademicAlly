@@ -7,7 +7,9 @@ import java.io.InputStream
 import java.io.OutputStream
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class UserCacheSerializer : Serializer<UserCache> {
+class UserCacheSerializer(
+    private val cryptoManager: CryptoManager
+) : Serializer<UserCache> {
 
     override val defaultValue: UserCache
         get() = UserCache()
@@ -16,7 +18,7 @@ class UserCacheSerializer : Serializer<UserCache> {
         return try {
             Json.decodeFromString(
                 deserializer = UserCache.serializer(),
-                string = input.readBytes().decodeToString()
+                string = cryptoManager.decrypt(input).decodeToString()
             )
         } catch (se: SerializationException) {
             defaultValue
@@ -24,11 +26,12 @@ class UserCacheSerializer : Serializer<UserCache> {
     }
 
     override suspend fun writeTo(t: UserCache, output: OutputStream) {
-        output.write(
-            Json.encodeToString(
+        cryptoManager.encrypt(
+            bytes = Json.encodeToString(
                 serializer = UserCache.serializer(),
                 value = t
-            ).encodeToByteArray()
+            ).encodeToByteArray(),
+            outputStream = output
         )
     }
 }

@@ -86,65 +86,65 @@ class ArchiveViewModel @Inject constructor(
     fun getData(context: Context) {
         viewModelScope.launch {
             try {
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val currentUserCache = ActivityCacheManager.currentUser
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    if (currentUserCache != null) {
-                        _drawerData.value = currentUserCache
-                    } else {
-                        getCurrentUser()
-                    }
+                val currentUserCache = ActivityCacheManager.currentUser
 
-                    val acceptedMessagesCache = ActivityCacheManager.archiveAcceptedMessages
-
-                    if (acceptedMessagesCache != null) {
-                        _acceptedMessages.value = acceptedMessagesCache
-                    } else {
-                        getAcceptedMessagesFromApi("")
-                    }
-
-                    val rejectedMessagesCache = ActivityCacheManager.archiveRejectedMessages
-
-                    if (rejectedMessagesCache != null) {
-                        _rejectedMessages.value = rejectedMessagesCache
-                    } else {
-                        getRejectedMessagesFromApi("")
-                    }
-
-                    val completedSessionsCache = ActivityCacheManager.archiveCompletedSessions
-
-                    if (completedSessionsCache != null) {
-                        _completedSessions.value = completedSessionsCache
-                    } else {
-                        getCompletedSessionsFromApi("")
-                    }
-
-                    val cancelledSessionsCache = ActivityCacheManager.archiveCancelledSessions
-
-                    if (cancelledSessionsCache != null) {
-                        _cancelledSessions.value = cancelledSessionsCache
-                    } else {
-                        getCancelledSessionsFromApi("")
-                    }
-
-                    val completedTasksCache = ActivityCacheManager.archiveCompletedTasks
-
-                    if (completedTasksCache != null) {
-                        _completedTasks.value = completedTasksCache
-                    } else {
-                        getCompletedTasksFromApi("")
-                    }
-
-                    val deadlinedTasksCache = ActivityCacheManager.archiveDeadlinedTasks
-
-                    if (deadlinedTasksCache != null) {
-                        _deadlinedTasks.value = deadlinedTasksCache
-                    } else {
-                        getDeadlinedTasksFromApi("")
-                    }
-
-                    updateHistory()
+                if (currentUserCache != null) {
+                    _drawerData.value = currentUserCache
+                } else {
+                    getCurrentUser()
                 }
+
+                val acceptedMessagesCache = ActivityCacheManager.archiveAcceptedMessages
+
+                if (acceptedMessagesCache != null) {
+                    _acceptedMessages.value = acceptedMessagesCache
+                } else {
+                    getAcceptedMessagesFromApi("")
+                }
+
+                val rejectedMessagesCache = ActivityCacheManager.archiveRejectedMessages
+
+                if (rejectedMessagesCache != null) {
+                    _rejectedMessages.value = rejectedMessagesCache
+                } else {
+                    getRejectedMessagesFromApi("")
+                }
+
+                val completedSessionsCache = ActivityCacheManager.archiveCompletedSessions
+
+                if (completedSessionsCache != null) {
+                    _completedSessions.value = completedSessionsCache
+                } else {
+                    getCompletedSessionsFromApi("")
+                }
+
+                val cancelledSessionsCache = ActivityCacheManager.archiveCancelledSessions
+
+                if (cancelledSessionsCache != null) {
+                    _cancelledSessions.value = cancelledSessionsCache
+                } else {
+                    getCancelledSessionsFromApi("")
+                }
+
+                val completedTasksCache = ActivityCacheManager.archiveCompletedTasks
+
+                if (completedTasksCache != null) {
+                    _completedTasks.value = completedTasksCache
+                } else {
+                    getCompletedTasksFromApi("")
+                }
+
+                val deadlinedTasksCache = ActivityCacheManager.archiveDeadlinedTasks
+
+                if (deadlinedTasksCache != null) {
+                    _deadlinedTasks.value = deadlinedTasksCache
+                } else {
+                    getDeadlinedTasksFromApi("")
+                }
+
+                updateHistory()
 
                 _processState.value = ProcessState.Success
             } catch (e: Exception) {
@@ -193,14 +193,14 @@ class ArchiveViewModel @Inject constructor(
             try {
                 _isRefreshLoading.value = true
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    getAcceptedMessagesFromApi("")
-                    getRejectedMessagesFromApi("")
-                    getCompletedSessionsFromApi("")
-                    getCancelledSessionsFromApi("")
-                    getCompletedTasksFromApi("")
-                    getDeadlinedTasksFromApi("")
-                }
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+
+                getAcceptedMessagesFromApi("")
+                getRejectedMessagesFromApi("")
+                getCompletedSessionsFromApi("")
+                getCancelledSessionsFromApi("")
+                getCompletedTasksFromApi("")
+                getDeadlinedTasksFromApi("")
 
                 _isRefreshLoading.value = false
 
@@ -213,22 +213,22 @@ class ArchiveViewModel @Inject constructor(
     }
 
     private suspend fun callApi(searchQuery: String, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            when (_tabIndex.value) {
-                0 -> when (_navBarIndex.value) {
-                    0 -> getAcceptedMessagesFromApi(searchQuery)
-                    1 -> getRejectedMessagesFromApi(searchQuery)
-                }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                1 -> when (_navBarIndex.value) {
-                    0 -> getCompletedSessionsFromApi(searchQuery)
-                    1 -> getCancelledSessionsFromApi(searchQuery)
-                }
+        when (_tabIndex.value) {
+            0 -> when (_navBarIndex.value) {
+                0 -> getAcceptedMessagesFromApi(searchQuery)
+                1 -> getRejectedMessagesFromApi(searchQuery)
+            }
 
-                2 -> when (_navBarIndex.value) {
-                    0 -> getCompletedTasksFromApi(searchQuery)
-                    1 -> getDeadlinedTasksFromApi(searchQuery)
-                }
+            1 -> when (_navBarIndex.value) {
+                0 -> getCompletedSessionsFromApi(searchQuery)
+                1 -> getCancelledSessionsFromApi(searchQuery)
+            }
+
+            2 -> when (_navBarIndex.value) {
+                0 -> getCompletedTasksFromApi(searchQuery)
+                1 -> getDeadlinedTasksFromApi(searchQuery)
             }
         }
     }
@@ -236,20 +236,20 @@ class ArchiveViewModel @Inject constructor(
     fun rateUser(rating: RateDialogStates, context: Context) {
         viewModelScope.launch {
             try {
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-                    val apiResponse = academicallyApi.rateUser(RateBody(rating.sessionId, rating.userId))
-                    Utils.showToast(
-                        when (apiResponse) {
-                            is NoCurrentUser.Success -> apiResponse.data!!
-                            is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
-                        },
-                        context
-                    )
+                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                    Toast.makeText(context, "${rating.name} Rated Successfully!", Toast.LENGTH_LONG).show()
+                val apiResponse = academicallyApi.rateUser(RateBody(rating.sessionId, rating.userId))
+                Utils.showToast(
+                    when (apiResponse) {
+                        is NoCurrentUser.Success -> apiResponse.data!!
+                        is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
+                    },
+                    context
+                )
 
-                    refreshSessionAfterRate()
-                }
+                Toast.makeText(context, "${rating.name} Rated Successfully!", Toast.LENGTH_LONG).show()
+
+                refreshSessionAfterRate()
             } catch (e: Exception) {
                 Toast.makeText(context, "Something went wrong", Toast.LENGTH_LONG).show()
             }

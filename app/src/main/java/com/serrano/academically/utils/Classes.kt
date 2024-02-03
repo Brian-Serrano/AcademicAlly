@@ -12,6 +12,27 @@ sealed class ProcessState {
     data class Error(val message: String) : ProcessState()
 }
 
+sealed class AssessmentType {
+    data class MultipleChoiceFields(
+        var id: Int,
+        var question: String,
+        var choices: List<String>,
+        var answer: DropDownState
+    ) : AssessmentType()
+
+    data class IdentificationFields(
+        var id: Int,
+        var question: String,
+        var answer: String
+    ) : AssessmentType()
+
+    data class TrueOrFalseFields(
+        var id: Int,
+        var question: String,
+        var answer: DropDownState
+    ) : AssessmentType()
+}
+
 data class AboutText(
     var title: String,
     var description: String
@@ -78,30 +99,6 @@ data class RateDialogStates(
     var name: String = "",
     var star: Int = 0
 )
-
-interface AssessmentType {
-    var id: Int
-    var question: String
-}
-
-data class MultipleChoiceFields(
-    override var id: Int,
-    override var question: String,
-    var choices: List<String>,
-    var answer: DropDownState
-) : AssessmentType
-
-data class IdentificationFields(
-    override var id: Int,
-    override var question: String,
-    var answer: String
-) : AssessmentType
-
-data class TrueOrFalseFields(
-    override var id: Int,
-    override var question: String,
-    var answer: DropDownState
-) : AssessmentType
 
 data class ManageAccountFields(
     var name: String = "",

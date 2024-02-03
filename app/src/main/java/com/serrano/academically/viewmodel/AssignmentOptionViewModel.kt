@@ -86,18 +86,18 @@ class AssignmentOptionViewModel @Inject constructor(
     }
 
     private suspend fun callApi(sessionId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi) {
-            val response = when (val session = academicallyApi.getSessionForAssignment(sessionId)) {
-                is WithCurrentUser.Success -> session
-                is WithCurrentUser.Error -> throw IllegalArgumentException(session.error)
-            }
+        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-            _session.value = response.data!!
-            _drawerData.value = response.currentUser!!
-
-            ActivityCacheManager.assignmentOption[sessionId] = response.data
-            ActivityCacheManager.currentUser = response.currentUser
+        val response = when (val session = academicallyApi.getSessionForAssignment(sessionId)) {
+            is WithCurrentUser.Success -> session
+            is WithCurrentUser.Error -> throw IllegalArgumentException(session.error)
         }
+
+        _session.value = response.data!!
+        _drawerData.value = response.currentUser!!
+
+        ActivityCacheManager.assignmentOption[sessionId] = response.data
+        ActivityCacheManager.currentUser = response.currentUser
     }
 
     fun updateItemsDropdown(newDropDownState: DropDownState) {

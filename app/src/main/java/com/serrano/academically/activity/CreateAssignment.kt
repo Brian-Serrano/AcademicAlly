@@ -40,10 +40,7 @@ import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAn
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.AssessmentType
 import com.serrano.academically.utils.Utils
-import com.serrano.academically.utils.IdentificationFields
-import com.serrano.academically.utils.MultipleChoiceFields
 import com.serrano.academically.utils.ProcessState
-import com.serrano.academically.utils.TrueOrFalseFields
 import com.serrano.academically.viewmodel.CreateAssignmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDateTime
@@ -86,7 +83,13 @@ fun CreateAssignment(
             createAssignmentViewModel.moveItem(true)
         }
     }
-    val onFieldEdit = { quiz: AssessmentType -> createAssignmentViewModel.updateFields(assessmentFields.map { if (quiz.id == it.id) quiz else it }) }
+    val onFieldEdit = { quiz: AssessmentType ->
+        createAssignmentViewModel.updateFields(
+            assessmentFields.map {
+                if (Utils.getFieldId(quiz) == Utils.getFieldId(it)) quiz else it
+            }
+        )
+    }
     val onSaveButtonClick = { createAssignmentViewModel.toggleDialog(true) }
 
     val deadlineLocalDate = LocalDateTime.parse(deadline)
@@ -166,19 +169,19 @@ fun CreateAssignment(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.verticalScroll(rememberScrollState())
                         ) {
-                            when (type) {
-                                "Multiple Choice" -> MultipleChoiceEditor(
-                                    assessmentFields = assessmentFields[item] as MultipleChoiceFields,
+                            when (val a = assessmentFields[item]) {
+                                is AssessmentType.MultipleChoiceFields -> MultipleChoiceEditor(
+                                    assessmentFields = a,
                                     onFieldEdit = onFieldEdit
                                 )
 
-                                "Identification" -> IdentificationEditor(
-                                    assessmentFields = assessmentFields[item] as IdentificationFields,
+                                is AssessmentType.IdentificationFields -> IdentificationEditor(
+                                    assessmentFields = a,
                                     onFieldEdit = onFieldEdit
                                 )
 
-                                "True or False" -> TrueOrFalseEditor(
-                                    assessmentFields = assessmentFields[item] as TrueOrFalseFields,
+                                is AssessmentType.TrueOrFalseFields -> TrueOrFalseEditor(
+                                    assessmentFields = a,
                                     onFieldEdit = onFieldEdit
                                 )
                             }
@@ -247,8 +250,8 @@ fun CreateAssignment(
 
 @Composable
 fun MultipleChoiceEditor(
-    assessmentFields: MultipleChoiceFields,
-    onFieldEdit: (MultipleChoiceFields) -> Unit,
+    assessmentFields: AssessmentType.MultipleChoiceFields,
+    onFieldEdit: (AssessmentType.MultipleChoiceFields) -> Unit,
     choices: List<String> = listOf("A", "B", "C", "D")
 ) {
     CustomCard {
@@ -327,8 +330,8 @@ fun MultipleChoiceEditor(
 
 @Composable
 fun IdentificationEditor(
-    assessmentFields: IdentificationFields,
-    onFieldEdit: (IdentificationFields) -> Unit
+    assessmentFields: AssessmentType.IdentificationFields,
+    onFieldEdit: (AssessmentType.IdentificationFields) -> Unit
 ) {
     CustomCard {
         Text(
@@ -360,8 +363,8 @@ fun IdentificationEditor(
 
 @Composable
 fun TrueOrFalseEditor(
-    assessmentFields: TrueOrFalseFields,
-    onFieldEdit: (TrueOrFalseFields) -> Unit
+    assessmentFields: AssessmentType.TrueOrFalseFields,
+    onFieldEdit: (AssessmentType.TrueOrFalseFields) -> Unit
 ) {
     CustomCard {
         Text(
