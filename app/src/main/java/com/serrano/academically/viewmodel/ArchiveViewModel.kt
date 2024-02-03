@@ -238,7 +238,7 @@ class ArchiveViewModel @Inject constructor(
             try {
                 Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
 
-                val apiResponse = academicallyApi.rateUser(RateBody(rating.sessionId, rating.userId))
+                val apiResponse = academicallyApi.rateUser(RateBody(rating.sessionId, rating.userId, rating.star))
                 Utils.showToast(
                     when (apiResponse) {
                         is NoCurrentUser.Success -> apiResponse.data!!

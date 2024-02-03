@@ -424,7 +424,8 @@ data class SessionArchive(
 
 data class RateBody(
     val sessionId: Int,
-    val otherId: Int
+    val otherId: Int,
+    val rate: Int
 )
 
 data class PatternAssessment(
