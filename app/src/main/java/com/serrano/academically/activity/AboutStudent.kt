@@ -186,13 +186,13 @@ fun AboutStudent(
                             )
                             HorizontalDivider(thickness = 2.dp)
                             Text(
-                                text = "Primary pattern learning ${if (message.primaryLearning == user.primaryLearning) "" else "don't "}matched.",
+                                text = "${message.name} is ${if (message.primaryLearning == user.primaryLearning) "also" else "not"} ${user.primaryLearning}.",
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(10.dp),
                                 color = if (message.primaryLearning == user.primaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
                             )
                             Text(
-                                text = "Secondary pattern learning ${if (message.secondaryLearning == user.secondaryLearning) "" else "don't "}matched.",
+                                text = "${message.name} is ${if (message.secondaryLearning == user.secondaryLearning) "also" else "not"} ${user.secondaryLearning}.",
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(10.dp),
                                 color = if (message.secondaryLearning == user.secondaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error

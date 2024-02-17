@@ -48,7 +48,8 @@ data class LoginInput(
     var email: String = "",
     var password: String = "",
     var error: String = "",
-    var remember: Boolean = false
+    var remember: Boolean = false,
+    var passwordVisibility: Boolean = false
 )
 
 data class SignupInput(
@@ -56,7 +57,15 @@ data class SignupInput(
     var email: String = "",
     var password: String = "",
     var confirmPassword: String = "",
-    var error: String = ""
+    var error: String = "",
+    var passwordVisibility: Boolean = false,
+    var confirmPasswordVisibility: Boolean = false
+)
+
+data class PatternAssessmentState(
+    var dialogOpen: Boolean = false,
+    var primaryPattern: AboutText = AboutText("", ""),
+    var secondaryPattern: AboutText = AboutText("", "")
 )
 
 data class SearchInfo(

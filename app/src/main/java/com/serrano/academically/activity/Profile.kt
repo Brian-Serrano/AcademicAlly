@@ -158,12 +158,12 @@ fun Profile(
                                     color = MaterialTheme.colorScheme.onSecondary
                                 )
                                 Text(
-                                    text = "Primary pattern learning ${if (profile.primaryLearning == user.primaryLearning) "" else "don't "}matched.",
+                                    text = "${profile.user.name} is ${if (profile.primaryLearning == user.primaryLearning) "also" else "not"} ${user.primaryLearning}.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = if (profile.primaryLearning == user.primaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
                                 )
                                 Text(
-                                    text = "Secondary pattern learning ${if (profile.secondaryLearning == user.secondaryLearning) "" else "don't "}matched.",
+                                    text = "${profile.user.name} is ${if (profile.secondaryLearning == user.secondaryLearning) "also" else "not"} ${user.secondaryLearning}.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = if (profile.secondaryLearning == user.secondaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
                                 )

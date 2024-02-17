@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.serrano.academically.utils.SessionSettings
 
@@ -28,7 +27,7 @@ fun EditSessionMenu(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(15.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Date",
         input = sessionSettings.date,
         onInputChange = onDateInputChange,
@@ -40,7 +39,7 @@ fun EditSessionMenu(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(15.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Start Time",
         input = sessionSettings.startTime,
         onInputChange = onStartTimeInputChange,
@@ -52,7 +51,7 @@ fun EditSessionMenu(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(15.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "End Time",
         input = sessionSettings.endTime,
         onInputChange = onEndTimeInputChange,
@@ -64,7 +63,7 @@ fun EditSessionMenu(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(15.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Location",
         input = sessionSettings.location,
         onInputChange = onLocationInputChange,

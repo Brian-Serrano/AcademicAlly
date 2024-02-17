@@ -40,7 +40,7 @@ import com.serrano.academically.custom_composables.CustomTab
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ManageAccountFields
@@ -242,7 +242,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Name",
         input = accountFields.name,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(name = it)) },
@@ -253,7 +253,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Program",
         input = accountFields.degree,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(degree = it)) },
@@ -264,7 +264,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Age",
         input = accountFields.age,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(age = it)) },
@@ -275,7 +275,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Address",
         input = accountFields.address,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(address = it)) },
@@ -286,7 +286,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Contact Number",
         input = accountFields.contactNumber,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(contactNumber = it)) },
@@ -297,7 +297,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Summary",
         input = accountFields.summary,
         onInputChange = { accountViewModel.updateAccountFields(accountFields.copy(summary = it)) },
@@ -311,7 +311,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Educational Background",
         input = accountFields.educationalBackground,
         onInputChange = {
@@ -331,7 +331,7 @@ fun Info(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Free Tutoring Time",
         input = accountFields.freeTutoringTime,
         onInputChange = {
@@ -383,7 +383,7 @@ fun Password(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Current Password",
         input = passwordFields.currentPassword,
         onInputChange = { accountViewModel.updatePasswordFields(passwordFields.copy(currentPassword = it)) },
@@ -394,7 +394,7 @@ fun Password(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "New Password",
         input = passwordFields.newPassword,
         onInputChange = { accountViewModel.updatePasswordFields(passwordFields.copy(newPassword = it)) },
@@ -406,7 +406,7 @@ fun Password(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    LoginTextField(
+    CustomInputField(
         inputName = "Confirm Password",
         input = passwordFields.confirmPassword,
         onInputChange = { accountViewModel.updatePasswordFields(passwordFields.copy(confirmPassword = it)) },

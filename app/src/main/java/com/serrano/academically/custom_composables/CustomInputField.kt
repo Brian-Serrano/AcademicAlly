@@ -6,11 +6,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
-fun LoginTextField(
+fun CustomInputField(
     inputName: String,
     input: String,
     onInputChange: (String) -> Unit,
@@ -19,7 +18,8 @@ fun LoginTextField(
     singleLine: Boolean = true,
     minLines: Int = 1,
     maxLines: Int = 1,
-    supportingText: String = ""
+    supportingText: String = "",
+    trailingIcon: @Composable (() -> Unit)? = null
 ) {
     TextField(
         value = input,
@@ -45,6 +45,7 @@ fun LoginTextField(
         modifier = modifier.fillMaxWidth(),
         supportingText = {
             Text(text = supportingText)
-        }
+        },
+        trailingIcon = trailingIcon
     )
 }

@@ -28,7 +28,7 @@ import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.DropDown
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
@@ -168,7 +168,7 @@ fun MessageTutor(
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(15.dp)
                         )
-                        LoginTextField(
+                        CustomInputField(
                             inputName = "Message",
                             input = message,
                             onInputChange = { messageTutorViewModel.updateMessage(it) },

@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -28,17 +31,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.serrano.academically.R
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DiagonalBackground
-import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.datastore.UserCache
 import com.serrano.academically.viewmodel.LoginViewModel
 
@@ -105,18 +110,27 @@ fun Login(
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.titleMedium
                 )
-                LoginTextField(
+                CustomInputField(
                     inputName = "Email",
                     input = loginInput.email,
                     onInputChange = { loginViewModel.updateInput(loginInput.copy(email = it)) },
                     modifier = Modifier.padding(horizontal = 30.dp)
                 )
-                LoginTextField(
+                CustomInputField(
                     inputName = "Password",
                     input = loginInput.password,
                     onInputChange = { loginViewModel.updateInput(loginInput.copy(password = it)) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.padding(horizontal = 30.dp)
+                    visualTransformation = if (loginInput.passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    trailingIcon = {
+                        IconButton(onClick = { loginViewModel.updateInput(loginInput.copy(passwordVisibility = !loginInput.passwordVisibility)) }) {
+                            Icon(
+                                if (loginInput.passwordVisibility) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = Color.Black
+                            )
+                        }
+                    }
                 )
                 Text(
                     text = loginInput.error,

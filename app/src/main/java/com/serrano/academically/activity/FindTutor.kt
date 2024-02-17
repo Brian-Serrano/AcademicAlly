@@ -203,13 +203,13 @@ fun FindTutor(
                                                             modifier = Modifier.padding(10.dp)
                                                         )
                                                         Text(
-                                                            text = "Primary pattern learning ${if (it.primaryPattern == user.primaryLearning) "" else "don't "}matched.",
+                                                            text = "${it.tutorName} is ${if (it.primaryPattern == user.primaryLearning) "also" else "not"} ${user.primaryLearning}.",
                                                             style = MaterialTheme.typography.labelMedium,
                                                             modifier = Modifier.padding(10.dp),
                                                             color = if (it.primaryPattern == user.primaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
                                                         )
                                                         Text(
-                                                            text = "Secondary pattern learning ${if (it.secondaryPattern == user.secondaryLearning) "" else "don't "}matched.",
+                                                            text = "${it.tutorName} is ${if (it.secondaryPattern == user.secondaryLearning) "also" else "not"} ${user.secondaryLearning}.",
                                                             style = MaterialTheme.typography.labelMedium,
                                                             modifier = Modifier.padding(10.dp),
                                                             color = if (it.secondaryPattern == user.secondaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error

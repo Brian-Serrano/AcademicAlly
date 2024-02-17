@@ -20,14 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.serrano.academically.custom_composables.DrawerAndScaffold
 import com.serrano.academically.custom_composables.DropDown
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.GreenButton
 import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
@@ -169,7 +168,7 @@ fun AssignmentOption(
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
-                        LoginTextField(
+                        CustomInputField(
                             inputName = "Date",
                             input = deadline.date,
                             onInputChange = {
@@ -188,7 +187,7 @@ fun AssignmentOption(
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(10.dp)
                         )
-                        LoginTextField(
+                        CustomInputField(
                             inputName = "Time",
                             input = deadline.time,
                             onInputChange = {

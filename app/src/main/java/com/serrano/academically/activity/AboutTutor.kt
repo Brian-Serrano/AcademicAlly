@@ -178,13 +178,13 @@ fun AboutTutor(
                             )
                             HorizontalDivider(thickness = 2.dp)
                             Text(
-                                text = "Primary pattern learning ${if (tutor.primaryLearning == user.primaryLearning) "" else "don't "}matched.",
+                                text = "${tutor.name} is ${if (tutor.primaryLearning == user.primaryLearning) "also" else "not"} ${user.primaryLearning}.",
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(10.dp),
                                 color = if (tutor.primaryLearning == user.primaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
                             )
                             Text(
-                                text = "Secondary pattern learning ${if (tutor.secondaryLearning == user.secondaryLearning) "" else "don't "}matched.",
+                                text = "${tutor.name} is ${if (tutor.secondaryLearning == user.secondaryLearning) "also" else "not"} ${user.secondaryLearning}.",
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(10.dp),
                                 color = if (tutor.secondaryLearning == user.secondaryLearning) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error

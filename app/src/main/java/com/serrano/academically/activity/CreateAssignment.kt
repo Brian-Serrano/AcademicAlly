@@ -33,7 +33,7 @@ import com.serrano.academically.custom_composables.DropDown
 import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.GreenButton
 import com.serrano.academically.custom_composables.Loading
-import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.custom_composables.QuizInfo
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAnim
@@ -260,7 +260,7 @@ fun MultipleChoiceEditor(
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(all = 20.dp)
         )
-        LoginTextField(
+        CustomInputField(
             inputName = "Question",
             input = assessmentFields.question,
             onInputChange = { onFieldEdit(assessmentFields.copy(question = it)) },
@@ -273,7 +273,7 @@ fun MultipleChoiceEditor(
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(all = 20.dp)
             )
-            LoginTextField(
+            CustomInputField(
                 inputName = "Letter $choice",
                 input = assessmentFields.choices[index],
                 onInputChange = { newString ->
@@ -339,7 +339,7 @@ fun IdentificationEditor(
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(all = 20.dp)
         )
-        LoginTextField(
+        CustomInputField(
             inputName = "Question",
             input = assessmentFields.question,
             onInputChange = { onFieldEdit(assessmentFields.copy(question = it)) },
@@ -351,7 +351,7 @@ fun IdentificationEditor(
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(all = 20.dp)
         )
-        LoginTextField(
+        CustomInputField(
             inputName = "Answer",
             input = assessmentFields.answer,
             onInputChange = { onFieldEdit(assessmentFields.copy(answer = it)) },
@@ -372,7 +372,7 @@ fun TrueOrFalseEditor(
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(all = 20.dp)
         )
-        LoginTextField(
+        CustomInputField(
             inputName = "Question",
             input = assessmentFields.question,
             onInputChange = { onFieldEdit(assessmentFields.copy(question = it)) },

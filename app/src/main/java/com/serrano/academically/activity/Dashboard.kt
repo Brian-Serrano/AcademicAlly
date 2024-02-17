@@ -2,6 +2,7 @@ package com.serrano.academically.activity
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -159,7 +160,8 @@ fun Dashboard(
                                     modifier = Modifier
                                         .padding(10.dp)
                                         .size(105.dp)
-                                        .clip(MaterialTheme.shapes.extraSmall),
+                                        .clip(MaterialTheme.shapes.extraSmall)
+                                        .clickable { navController.navigate(it.route) },
                                     colors = CardDefaults.cardColors(
                                         containerColor = MaterialTheme.colorScheme.tertiary
                                     )
@@ -169,17 +171,12 @@ fun Dashboard(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        IconButton(
-                                            onClick = { navController.navigate(it.route) },
-                                            modifier = Modifier.size(50.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = it.icon,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(50.dp),
-                                                tint = MaterialTheme.colorScheme.onSecondary
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = it.icon,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(50.dp),
+                                            tint = MaterialTheme.colorScheme.onSecondary
+                                        )
                                         Text(
                                             text = it.name,
                                             fontFamily = montserrat,

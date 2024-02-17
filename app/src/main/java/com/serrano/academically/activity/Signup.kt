@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,17 +29,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.serrano.academically.R
 import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DiagonalBackground
-import com.serrano.academically.custom_composables.LoginTextField
+import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.viewmodel.SignupViewModel
 
 @Composable
@@ -88,34 +93,52 @@ fun Signup(
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.labelMedium
                 )
-                LoginTextField(
+                CustomInputField(
                     inputName = "Username",
                     input = signupInput.name,
                     onInputChange = { signupViewModel.updateInput(signupInput.copy(name = it)) },
                     supportingText = "Should be 5-20 characters",
                     modifier = Modifier.padding(horizontal = 30.dp)
                 )
-                LoginTextField(
+                CustomInputField(
                     inputName = "Email",
                     input = signupInput.email,
                     onInputChange = { signupViewModel.updateInput(signupInput.copy(email = it)) },
                     supportingText = "Should be 15-40 characters",
                     modifier = Modifier.padding(horizontal = 30.dp)
                 )
-                LoginTextField(
+                CustomInputField(
                     inputName = "Password",
                     input = signupInput.password,
                     onInputChange = { signupViewModel.updateInput(signupInput.copy(password = it)) },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (signupInput.passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                     supportingText = "Should have at least one letter and number, and 8-20 characters",
-                    modifier = Modifier.padding(horizontal = 30.dp)
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    trailingIcon = {
+                        IconButton(onClick = { signupViewModel.updateInput(signupInput.copy(passwordVisibility = !signupInput.passwordVisibility)) }) {
+                            Icon(
+                                if (signupInput.passwordVisibility) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = Color.Black
+                            )
+                        }
+                    }
                 )
-                LoginTextField(
+                CustomInputField(
                     inputName = "Confirm Password",
                     input = signupInput.confirmPassword,
                     onInputChange = { signupViewModel.updateInput(signupInput.copy(confirmPassword = it)) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.padding(horizontal = 30.dp)
+                    visualTransformation = if (signupInput.confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    trailingIcon = {
+                        IconButton(onClick = { signupViewModel.updateInput(signupInput.copy(confirmPasswordVisibility = !signupInput.confirmPasswordVisibility)) }) {
+                            Icon(
+                                if (signupInput.confirmPasswordVisibility) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = Color.Black
+                            )
+                        }
+                    }
                 )
                 Text(
                     text = signupInput.error,

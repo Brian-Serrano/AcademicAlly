@@ -181,7 +181,7 @@ fun Identification(
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(all = 20.dp)
         )
-        LoginTextField(
+        CustomInputField(
             inputName = "Answer",
             input = answer,
             onInputChange = { onAddAnswer(it) },
