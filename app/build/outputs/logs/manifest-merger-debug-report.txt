@@ -139,9 +139,9 @@ MERGED from [com.google.android.play:core-common:2.0.2] C:\Users\brian\.gradle\c
 	android:extractNativeLibs
 		INJECTED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml
 	android:roundIcon
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:19:9-54
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:19:9-60
 	android:icon
-		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:15:9-43
+		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:15:9-49
 	android:networkSecurityConfig
 		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:17:9-69
 	android:appComponentFactory
