@@ -1,5 +1,6 @@
 package com.serrano.academically.custom_composables
 
+import android.app.Activity
 import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -18,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -40,8 +42,14 @@ fun TopBar(
                 )
             },
             navigationIcon = {
+                val activity = LocalContext.current as Activity
+
                 IconButton(
-                    onClick = { navController.navigateUp() }
+                    onClick = {
+                        if (!navController.popBackStack()) {
+                            activity.finish()
+                        }
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,

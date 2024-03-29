@@ -1,5 +1,6 @@
 package com.serrano.academically.custom_composables
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -28,6 +30,8 @@ fun ErrorComposable(
     swipeRefreshState: SwipeRefreshState,
     onRefresh: () -> Unit
 ) {
+    val activity = LocalContext.current as Activity
+
     SwipeRefresh(
         state = swipeRefreshState,
         onRefresh = onRefresh,
@@ -58,7 +62,11 @@ fun ErrorComposable(
                 )
                 BlackButton(
                     text = "Go back",
-                    action = { navController.navigateUp() },
+                    action = {
+                        if (!navController.popBackStack()) {
+                            activity.finish()
+                        }
+                    },
                     modifier = Modifier.padding(10.dp)
                 )
             }
