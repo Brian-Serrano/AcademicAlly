@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -26,17 +27,12 @@ import javax.inject.Inject
 @HiltViewModel
 class FindTutorViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _searchInfo = MutableStateFlow(SearchInfo())
     val searchInfo: StateFlow<SearchInfo> = _searchInfo.asStateFlow()
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
     private val _findTutorData = MutableStateFlow(FindTutor())
     val findTutorData: StateFlow<FindTutor> = _findTutorData.asStateFlow()
@@ -62,7 +58,7 @@ class FindTutorViewModel @Inject constructor(
         updateSearch(_searchInfo.value.copy(history = userCacheRepository.userDataStore.data.first().searchTutorHistory))
     }
 
-    fun getData(context: Context) {
+    fun getData() {
         viewModelScope.launch {
             try {
                 val findTutorCache = ActivityCacheManager.findTutor
@@ -70,9 +66,9 @@ class FindTutorViewModel @Inject constructor(
 
                 if (findTutorCache != null && currentUserCache != null) {
                     _findTutorData.value = findTutorCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(context)
+                    callApi()
                 }
 
                 _filterState.value = _findTutorData.value.courses.map { course ->
@@ -83,19 +79,19 @@ class FindTutorViewModel @Inject constructor(
                     )
                 }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(context: Context) {
+    fun refreshData() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(context)
+                callApi()
 
                 _filterState.value = _findTutorData.value.courses.map { course ->
                     FilterDialogStates(
@@ -107,21 +103,21 @@ class FindTutorViewModel @Inject constructor(
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi() {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         when (val findTutorData = academicallyApi.getTutors()) {
             is WithCurrentUser.Success -> {
                 _findTutorData.value = findTutorData.data!!
-                _drawerData.value = findTutorData.currentUser!!
+                mutableDrawerData.value = findTutorData.currentUser!!
 
                 ActivityCacheManager.findTutor = findTutorData.data
                 ActivityCacheManager.currentUser = findTutorData.currentUser
@@ -130,12 +126,12 @@ class FindTutorViewModel @Inject constructor(
         }
     }
 
-    fun updateMenu(filterDialogStates: List<FilterDialogStates>, searchQuery: String, context: Context) {
+    fun updateMenu(filterDialogStates: List<FilterDialogStates>, searchQuery: String) {
         viewModelScope.launch {
             try {
-                _processState.value = ProcessState.Loading
+                mutableProcessState.value = ProcessState.Loading
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 if (searchQuery.isNotEmpty()) {
                     userCacheRepository.addSearchTutorHistory(searchQuery)
@@ -156,9 +152,9 @@ class FindTutorViewModel @Inject constructor(
 
                 ActivityCacheManager.findTutor = _findTutorData.value
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }

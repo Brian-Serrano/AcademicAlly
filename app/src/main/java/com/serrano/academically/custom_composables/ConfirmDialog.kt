@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,26 +26,28 @@ fun ConfirmDialog(
     onClickingNo: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
-        Column(
-            modifier = Modifier
-                .size(300.dp, 200.dp)
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.onBackground),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(20.dp),
-                color = MaterialTheme.colorScheme.background
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+        SelectionContainer {
+            Column(
+                modifier = Modifier
+                    .size(300.dp, 200.dp)
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.onBackground),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                BlackButton(text = "No", action = onClickingNo)
-                BlackButton(text = "Yes", action = onClickingYes)
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(20.dp),
+                    color = MaterialTheme.colorScheme.background
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    BlackButton(text = "No", action = onClickingNo)
+                    BlackButton(text = "Yes", action = onClickingYes)
+                }
             }
         }
     }

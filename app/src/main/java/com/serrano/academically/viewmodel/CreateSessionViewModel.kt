@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -25,14 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateSessionViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _sessionSettings = MutableStateFlow(SessionSettings())
     val sessionSettings: StateFlow<SessionSettings> = _sessionSettings.asStateFlow()
@@ -46,7 +42,7 @@ class CreateSessionViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(messageId: Int, context: Context) {
+    fun getData(messageId: Int) {
         viewModelScope.launch {
             try {
                 val messageCache = ActivityCacheManager.createSession[messageId]
@@ -54,42 +50,42 @@ class CreateSessionViewModel @Inject constructor(
 
                 if (messageCache != null && currentUserCache != null) {
                     _message.value = messageCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(messageId, context)
+                    callApi(messageId)
                 }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(messageId: Int, context: Context) {
+    fun refreshData(messageId: Int) {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(messageId, context)
+                callApi(messageId)
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(messageId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi(messageId: Int) {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         when (val message = academicallyApi.getMessage(messageId)) {
             is WithCurrentUser.Success -> {
                 _message.value = message.data!!
-                _drawerData.value = message.currentUser!!
+                mutableDrawerData.value = message.currentUser!!
 
                 ActivityCacheManager.createSession[messageId] = message.data
                 ActivityCacheManager.currentUser = message.currentUser
@@ -102,17 +98,12 @@ class CreateSessionViewModel @Inject constructor(
         _sessionSettings.value = newSessionSettings
     }
 
-    fun createSession(
-        settings: SessionSettings,
-        message: Message,
-        navigate: () -> Unit,
-        context: Context
-    ) {
+    fun createSession(settings: SessionSettings, message: Message, navigate: () -> Unit) {
         viewModelScope.launch {
             try {
                 _buttonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 val apiResponse = academicallyApi.createSession(
                     CreateSessionBody(
@@ -131,7 +122,7 @@ class CreateSessionViewModel @Inject constructor(
                         is NoCurrentUser.Success -> apiResponse.data!!
                         is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
                     },
-                    context
+                    getApplication()
                 )
 
                 ActivityCacheManager.createSession.remove(message.messageId)

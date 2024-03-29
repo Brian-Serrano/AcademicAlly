@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -25,14 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AssessmentViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _isAuthorized = MutableStateFlow(false)
     val isAuthorized: StateFlow<Boolean> = _isAuthorized.asStateFlow()
@@ -67,14 +63,14 @@ class AssessmentViewModel @Inject constructor(
 
                 _assessmentAnswers.value = List(items) { "" }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(courseId: Int, items: Int, type: String, context: Context) {
+    fun refreshData(courseId: Int, items: Int, type: String) {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
@@ -85,10 +81,10 @@ class AssessmentViewModel @Inject constructor(
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -97,7 +93,7 @@ class AssessmentViewModel @Inject constructor(
         when (val assessment = academicallyApi.getAssessment(courseId, items, type)) {
             is OptionalCurrentUser.CurrentUserData -> {
                 _assessment.value = assessment.data!!
-                _drawerData.value = assessment.currentUser!!
+                mutableDrawerData.value = assessment.currentUser!!
                 _isAuthorized.value = true
             }
             is OptionalCurrentUser.UserData -> {
@@ -131,7 +127,7 @@ class AssessmentViewModel @Inject constructor(
         )
     }
 
-    fun saveResultToPreferences(result: AssessmentResult, context: Context, navigate: (Int, Int, String) -> Unit) {
+    fun saveResultToPreferences(result: AssessmentResult, navigate: (Int, Int, String) -> Unit) {
         viewModelScope.launch {
             try {
                 _nextButtonEnabled.value = false
@@ -151,15 +147,14 @@ class AssessmentViewModel @Inject constructor(
                 navigate(result.score, result.items, result.eligibility)
             } catch (e: Exception) {
                 _nextButtonEnabled.value = true
-                Toast.makeText(context, "Something went wrong saving your assessment.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Something went wrong saving your assessment.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     fun updateCourseSkill(
         result: AssessmentResult,
-        navigate: (Int, Int, String) -> Unit,
-        context: Context
+        navigate: (Int, Int, String) -> Unit
     ) {
         viewModelScope.launch {
             try {
@@ -177,7 +172,7 @@ class AssessmentViewModel @Inject constructor(
                         is NoCurrentUser.Success -> apiResponse.data!!
                         is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
                     },
-                    context
+                    getApplication()
                 )
 
                 userCacheRepository.clearAssessmentType()
@@ -187,7 +182,7 @@ class AssessmentViewModel @Inject constructor(
                 navigate(result.score, result.items, result.eligibility)
             } catch (e: Exception) {
                 _nextButtonEnabled.value = true
-                Toast.makeText(context, "Something went wrong saving your assessment.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Something went wrong saving your assessment.", Toast.LENGTH_LONG).show()
             }
         }
     }

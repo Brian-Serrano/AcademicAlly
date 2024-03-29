@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -25,8 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MessageTutorViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _coursesDropdown = MutableStateFlow(DropDownState(emptyList(), "", false))
     val coursesDropdown: StateFlow<DropDownState> = _coursesDropdown.asStateFlow()
@@ -37,12 +39,6 @@ class MessageTutorViewModel @Inject constructor(
     private val _message = MutableStateFlow("")
     val message: StateFlow<String> = _message.asStateFlow()
 
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
-
     private val _tutorCourses = MutableStateFlow(TutorCourses())
     val tutorCourses: StateFlow<TutorCourses> = _tutorCourses.asStateFlow()
 
@@ -52,7 +48,7 @@ class MessageTutorViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(tutorId: Int, context: Context) {
+    fun getData(tutorId: Int) {
         viewModelScope.launch {
             try {
                 val tutorCoursesCache = ActivityCacheManager.messageTutor[tutorId]
@@ -60,35 +56,35 @@ class MessageTutorViewModel @Inject constructor(
 
                 if (tutorCoursesCache != null && currentUserCache != null) {
                     _tutorCourses.value = tutorCoursesCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(tutorId, context)
+                    callApi(tutorId)
                 }
 
                 refreshDropdowns()
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(tutorId: Int, context: Context) {
+    fun refreshData(tutorId: Int) {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(tutorId, context)
+                callApi(tutorId)
 
                 refreshDropdowns()
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -101,13 +97,13 @@ class MessageTutorViewModel @Inject constructor(
         _modulesDropdown.value = DropDownState(modules, modules[0], false)
     }
 
-    private suspend fun callApi(tutorId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi(tutorId: Int) {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         when (val tutorCourses = academicallyApi.getTutorEligibleCourses(tutorId)) {
             is WithCurrentUser.Success -> {
                 _tutorCourses.value = tutorCourses.data!!
-                _drawerData.value = tutorCourses.currentUser!!
+                mutableDrawerData.value = tutorCourses.currentUser!!
 
                 ActivityCacheManager.messageTutor[tutorId] = tutorCourses.data
                 ActivityCacheManager.currentUser = tutorCourses.currentUser
@@ -140,20 +136,19 @@ class MessageTutorViewModel @Inject constructor(
         studentId: Int,
         tutorId: Int,
         message: String,
-        navigate: (String) -> Unit,
-        context: Context
+        navigate: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
                 _requestButtonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 val courseObj = _tutorCourses.value.tutorCourses.first { course.selected == it.courseName }
 
                 when (val messageResponse = academicallyApi.sendTutorRequest(TutorRequestBody(studentId, tutorId, courseObj.courseId, courseObj.modules.indexOf(module.selected), message))) {
                     is MessageResponse.AchievementResponse -> {
-                        Utils.showToast(messageResponse.achievements, context)
+                        Utils.showToast(messageResponse.achievements, getApplication())
                         ActivityCacheManager.messageTutor.remove(tutorId)
                         ActivityCacheManager.notificationsMessages = null
                         _requestButtonEnabled.value = true
@@ -171,7 +166,7 @@ class MessageTutorViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _requestButtonEnabled.value = true
-                Toast.makeText(context, "Something went wrong", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Something went wrong", Toast.LENGTH_LONG).show()
             }
         }
     }

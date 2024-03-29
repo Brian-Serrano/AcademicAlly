@@ -45,6 +45,7 @@ import com.serrano.academically.custom_composables.BlackButton
 import com.serrano.academically.custom_composables.DiagonalBackground
 import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.datastore.UserCache
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.LoginViewModel
 
 @Composable
@@ -179,12 +180,11 @@ fun Login(
                     text = "SIGN IN",
                     action = {
                         loginViewModel.login(
-                            context = context,
                             role = user,
                             li = loginInput,
                             navigate = {
                                 Toast.makeText(context, "User Logged In", Toast.LENGTH_LONG).show()
-                                navController.navigate("Dashboard") {
+                                navController.navigate(Routes.DASHBOARD) {
                                     popUpTo(navController.graph.id) {
                                         inclusive = false
                                     }
@@ -220,7 +220,7 @@ fun Login(
                         color = MaterialTheme.colorScheme.tertiaryContainer,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { navController.navigate("Signup/$user") }
+                        modifier = Modifier.clickable { navController.navigate("${Routes.SIGNUP}/$user") }
                     )
                 }
                 Spacer(modifier = Modifier.size(100.dp))

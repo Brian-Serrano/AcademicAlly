@@ -1,5 +1,6 @@
 package com.serrano.academically.custom_composables
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,9 +15,9 @@ import com.serrano.academically.utils.SessionSettings
 @Composable
 fun EditSessionMenu(
     sessionSettings: SessionSettings,
-    onDateInputChange: (String) -> Unit,
-    onStartTimeInputChange: (String) -> Unit,
-    onEndTimeInputChange: (String) -> Unit,
+    openDateDialog: () -> Unit,
+    openStartTimeDialog: () -> Unit,
+    openEndTimeDialog: () -> Unit,
     onLocationInputChange: (String) -> Unit,
     onButtonClick: () -> Unit,
     buttonText: String,
@@ -27,36 +28,30 @@ fun EditSessionMenu(
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(15.dp)
     )
-    CustomInputField(
-        inputName = "Date",
-        input = sessionSettings.date,
-        onInputChange = onDateInputChange,
-        modifier = Modifier.padding(15.dp),
-        supportingText = "Should be in dd/MM/yyyy format"
+    DateTimeBox(
+        text = sessionSettings.date,
+        action = openDateDialog,
+        modifier = Modifier.padding(15.dp)
     )
     Text(
         text = "Start Time",
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(15.dp)
     )
-    CustomInputField(
-        inputName = "Start Time",
-        input = sessionSettings.startTime,
-        onInputChange = onStartTimeInputChange,
-        modifier = Modifier.padding(15.dp),
-        supportingText = "Should be in hh:mm AM/PM format"
+    DateTimeBox(
+        text = sessionSettings.startTime,
+        action = openStartTimeDialog,
+        modifier = Modifier.padding(15.dp)
     )
     Text(
         text = "End Time",
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(15.dp)
     )
-    CustomInputField(
-        inputName = "End Time",
-        input = sessionSettings.endTime,
-        onInputChange = onEndTimeInputChange,
-        modifier = Modifier.padding(15.dp),
-        supportingText = "Should be in hh:mm AM/PM format"
+    DateTimeBox(
+        text = sessionSettings.endTime,
+        action = openEndTimeDialog,
+        modifier = Modifier.padding(15.dp)
     )
     Text(
         text = "Location",

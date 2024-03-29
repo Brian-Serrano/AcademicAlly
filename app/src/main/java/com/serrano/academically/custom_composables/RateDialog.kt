@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,33 +31,35 @@ fun RateDialog(
     onStarClick: (Int) -> Unit
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
-        Column(
-            modifier = Modifier
-                .size(300.dp, 300.dp)
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.onBackground),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(20.dp),
-                color = MaterialTheme.colorScheme.background
-            )
-            RatingBar(
-                rating = star.toFloat(),
+        SelectionContainer {
+            Column(
                 modifier = Modifier
-                    .padding(20.dp)
-                    .height(45.dp),
-                onStarClick = onStarClick
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+                    .size(300.dp, 300.dp)
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.onBackground),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                BlackButton(text = buttonOneText, action = onCancelClick)
-                BlackButton(text = buttonTwoText, action = onConfirmClick)
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(20.dp),
+                    color = MaterialTheme.colorScheme.background
+                )
+                RatingBar(
+                    rating = star.toFloat(),
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .height(45.dp),
+                    onStarClick = onStarClick
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    BlackButton(text = buttonOneText, action = onCancelClick)
+                    BlackButton(text = buttonTwoText, action = onConfirmClick)
+                }
             }
         }
     }

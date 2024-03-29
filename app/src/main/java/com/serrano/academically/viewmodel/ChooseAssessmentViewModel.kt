@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -24,17 +25,12 @@ import javax.inject.Inject
 @HiltViewModel
 class ChooseAssessmentViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _searchInfo = MutableStateFlow(SearchInfo())
     val searchInfo: StateFlow<SearchInfo> = _searchInfo.asStateFlow()
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
 
     private val _courses = MutableStateFlow<List<Course2>>(emptyList())
     val courses: StateFlow<List<Course2>> = _courses.asStateFlow()
@@ -64,7 +60,7 @@ class ChooseAssessmentViewModel @Inject constructor(
 
                 if (coursesCache != null && currentUserCache != null) {
                     _courses.value = coursesCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                     _isAuthorized.value = Utils.checkToken(userCacheRepository.userDataStore.data.first().authToken)
                 } else {
                     callApi()
@@ -74,15 +70,15 @@ class ChooseAssessmentViewModel @Inject constructor(
 
                 updateHistory()
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(context: Context) {
+    fun refreshData() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
@@ -95,10 +91,10 @@ class ChooseAssessmentViewModel @Inject constructor(
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -107,7 +103,7 @@ class ChooseAssessmentViewModel @Inject constructor(
         when (val courses = academicallyApi.getCourses()) {
             is OptionalCurrentUser.CurrentUserData -> {
                 _courses.value = courses.data!!
-                _drawerData.value = courses.currentUser!!
+                mutableDrawerData.value = courses.currentUser!!
                 _isAuthorized.value = true
 
                 ActivityCacheManager.chooseAssessment = courses.data
@@ -117,7 +113,7 @@ class ChooseAssessmentViewModel @Inject constructor(
                 _courses.value = courses.data!!
 
                 ActivityCacheManager.chooseAssessment = courses.data
-                ActivityCacheManager.currentUser = _drawerData.value
+                ActivityCacheManager.currentUser = mutableDrawerData.value
             }
             is OptionalCurrentUser.Error -> throw IllegalArgumentException(courses.error)
         }
@@ -126,7 +122,7 @@ class ChooseAssessmentViewModel @Inject constructor(
     fun search(searchQuery: String) {
         viewModelScope.launch {
             try {
-                _processState.value = ProcessState.Loading
+                mutableProcessState.value = ProcessState.Loading
 
                 if (searchQuery.isEmpty()) {
                     _coursesRender.value = _courses.value
@@ -138,9 +134,9 @@ class ChooseAssessmentViewModel @Inject constructor(
 
                 updateHistory()
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }

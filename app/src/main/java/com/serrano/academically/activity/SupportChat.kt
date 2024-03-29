@@ -31,6 +31,7 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.viewmodel.SupportChatViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +46,7 @@ fun SupportChat(
     supportChatViewModel: SupportChatViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        supportChatViewModel.getData(context)
+        supportChatViewModel.getData()
     }
 
     val user by supportChatViewModel.drawerData.collectAsState()
@@ -56,7 +57,7 @@ fun SupportChat(
     val hasSentMessage by supportChatViewModel.hasSentMessage.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { supportChatViewModel.refreshData(context) }
+    val onRefresh = { supportChatViewModel.refreshData() }
 
     val initialMessages = listOf(
         "Please provide enough information and proof about the user that do inappropriate things",
@@ -92,7 +93,7 @@ fun SupportChat(
                 topBarText = "SUPPORT CHAT",
                 navController = navController,
                 context = context,
-                selected = "Support"
+                selected = Routes.SUPPORT
             ) { values ->
                 Box(
                     modifier = Modifier
@@ -173,7 +174,7 @@ fun SupportChat(
                                     inputName = "Send Message",
                                     input = message,
                                     onInputChange = { supportChatViewModel.updateMessage(it) },
-                                    onMessageSend = { supportChatViewModel.sendSupportMessage(it, user.id, context) },
+                                    onMessageSend = { supportChatViewModel.sendSupportMessage(it, user.id) },
                                     modifier = Modifier.padding(horizontal = 10.dp)
                                 )
                             }

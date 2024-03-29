@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.serrano.academically.R
 import com.serrano.academically.custom_composables.MainButton
+import com.serrano.academically.utils.Routes
 
 @Composable
 fun Main(navController: NavController) {
@@ -75,20 +76,20 @@ fun Main(navController: NavController) {
                 )
                 MainButton(
                     text = "AS A STUDENT",
-                    route = "Login/STUDENT",
+                    route = "${Routes.LOGIN}/STUDENT",
                     color = MaterialTheme.colorScheme.secondary,
                     navController = navController
                 )
                 MainButton(
                     text = "AS A TUTOR",
-                    route = "Login/TUTOR",
+                    route = "${Routes.LOGIN}/TUTOR",
                     color = MaterialTheme.colorScheme.primary,
                     navController = navController
                 )
                 Text(
                     text = "Not quite sure? Let us help you!",
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.clickable { navController.navigate("ChooseAssessment") }
+                    modifier = Modifier.clickable { navController.navigate(Routes.CHOOSE_ASSESSMENT) }
                 )
             }
         }

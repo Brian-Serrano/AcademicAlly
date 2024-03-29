@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,9 +26,16 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
+import com.serrano.academically.custom_composables.DateTimePickerDialog
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.viewmodel.CreateSessionViewModel
 import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 @Composable
 fun CreateSession(
@@ -39,7 +47,7 @@ fun CreateSession(
     createSessionViewModel: CreateSessionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        createSessionViewModel.getData(messageId, context)
+        createSessionViewModel.getData(messageId)
     }
 
     val user by createSessionViewModel.drawerData.collectAsState()
@@ -50,7 +58,7 @@ fun CreateSession(
     val isRefreshLoading by createSessionViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { createSessionViewModel.refreshData(messageId, context) }
+    val onRefresh = { createSessionViewModel.refreshData(messageId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -79,59 +87,134 @@ fun CreateSession(
                 topBarText = "CREATE SESSION",
                 navController = navController,
                 context = context,
-                selected = "Notifications"
+                selected = Routes.NOTIFICATIONS
             ) { values ->
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.primary)
                         .padding(values)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.Center
                 ) {
-                    CustomCard {
-                        EditSessionMenu(
-                            sessionSettings = sessionSettings,
-                            onDateInputChange = {
-                                createSessionViewModel.updateSessionSettings(
-                                    sessionSettings.copy(date = it)
-                                )
-                            },
-                            onStartTimeInputChange = {
-                                createSessionViewModel.updateSessionSettings(
-                                    sessionSettings.copy(startTime = it)
-                                )
-                            },
-                            onEndTimeInputChange = {
-                                createSessionViewModel.updateSessionSettings(
-                                    sessionSettings.copy(endTime = it)
-                                )
-                            },
-                            onLocationInputChange = {
-                                createSessionViewModel.updateSessionSettings(
-                                    sessionSettings.copy(location = it)
-                                )
-                            },
-                            onButtonClick = {
-                                createSessionViewModel.createSession(
-                                    settings = sessionSettings,
-                                    message = message,
-                                    navigate = {
-                                        Toast.makeText(
-                                            context,
-                                            "Session Created and Student Accepted!",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        navController.popBackStack()
-                                        navController.popBackStack()
-                                    },
-                                    context = context
-                                )
-                            },
-                            buttonText = "Create Session",
-                            enabled = enabled
-                        )
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CustomCard {
+                            EditSessionMenu(
+                                sessionSettings = sessionSettings,
+                                openDateDialog = {
+                                    createSessionViewModel.updateSessionSettings(
+                                        sessionSettings.copy(
+                                            datePickerEnabled = true,
+                                            dialogDate = try {
+                                                LocalDate.parse(
+                                                    sessionSettings.date,
+                                                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalDate.now()
+                                            }
+                                        )
+                                    )
+                                },
+                                openStartTimeDialog = {
+                                    createSessionViewModel.updateSessionSettings(
+                                        sessionSettings.copy(
+                                            timePickerEnabled = true,
+                                            dialogTime = try {
+                                                LocalTime.parse(
+                                                    sessionSettings.startTime,
+                                                    DateTimeFormatter.ofPattern("hh:mm a")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalTime.now()
+                                            },
+                                            isStartTime = true
+                                        )
+                                    )
+                                },
+                                openEndTimeDialog = {
+                                    createSessionViewModel.updateSessionSettings(
+                                        sessionSettings.copy(
+                                            timePickerEnabled = true,
+                                            dialogTime = try {
+                                                LocalTime.parse(
+                                                    sessionSettings.endTime,
+                                                    DateTimeFormatter.ofPattern("hh:mm a")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalTime.now()
+                                            },
+                                            isStartTime = false
+                                        )
+                                    )
+                                },
+                                onLocationInputChange = {
+                                    createSessionViewModel.updateSessionSettings(
+                                        sessionSettings.copy(location = it)
+                                    )
+                                },
+                                onButtonClick = {
+                                    createSessionViewModel.createSession(
+                                        settings = sessionSettings,
+                                        message = message,
+                                        navigate = {
+                                            Toast.makeText(
+                                                context,
+                                                "Session Created and Student Accepted!",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            navController.popBackStack()
+                                            navController.popBackStack()
+                                        }
+                                    )
+                                },
+                                buttonText = "Create Session",
+                                enabled = enabled
+                            )
+                        }
                     }
+                    DateTimePickerDialog(
+                        date = sessionSettings.dialogDate,
+                        time = sessionSettings.dialogTime,
+                        datePickerEnabled = sessionSettings.datePickerEnabled,
+                        timePickerEnabled = sessionSettings.timePickerEnabled,
+                        updateDateDialog = {
+                            createSessionViewModel.updateSessionSettings(
+                                sessionSettings.copy(datePickerEnabled = it)
+                            )
+                        },
+                        updateTimeDialog = {
+                            createSessionViewModel.updateSessionSettings(
+                                sessionSettings.copy(timePickerEnabled = it)
+                            )
+                        },
+                        selectDate = {
+                            createSessionViewModel.updateSessionSettings(
+                                sessionSettings.copy(
+                                    date = String.format("%02d/%02d/%04d", it.dayOfMonth, it.monthValue, it.year),
+                                    datePickerEnabled = false
+                                )
+                            )
+                        },
+                        selectTime = {
+                            if (sessionSettings.isStartTime) {
+                                createSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(
+                                        startTime = Utils.toMilitaryTime(it.hour, it.minute),
+                                        timePickerEnabled = false
+                                    )
+                                )
+                            } else {
+                                createSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(
+                                        endTime = Utils.toMilitaryTime(it.hour, it.minute),
+                                        timePickerEnabled = false
+                                    )
+                                )
+                            }
+                        }
+                    )
                 }
             }
         }

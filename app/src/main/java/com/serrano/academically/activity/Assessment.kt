@@ -18,6 +18,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AssessmentViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -46,12 +47,12 @@ fun Assessment(
     val isRefreshLoading by assessmentViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { assessmentViewModel.refreshData(courseId, items.toInt(), type, context) }
+    val onRefresh = { assessmentViewModel.refreshData(courseId, items.toInt(), type) }
 
     val focusManager = LocalFocusManager.current
 
     val navigate = { score: Int, it: Int, role: String ->
-        navController.navigate("AssessmentResult/$score/$it/$role/$isAuthorized") {
+        navController.navigate("${Routes.ASSESSMENT_RESULT}/$score/$it/$role/$isAuthorized") {
             popUpTo(navController.graph.id) {
                 inclusive = false
             }
@@ -82,8 +83,7 @@ fun Assessment(
                         type,
                         courseId
                     ),
-                    navigate = navigate,
-                    context = context
+                    navigate = navigate
                 )
             } else {
                 assessmentViewModel.saveResultToPreferences(
@@ -93,7 +93,6 @@ fun Assessment(
                         type,
                         courseId
                     ),
-                    context = context,
                     navigate = navigate
                 )
             }
@@ -127,7 +126,7 @@ fun Assessment(
                     user = user,
                     navController = navController,
                     context = context,
-                    selected = "Assessment"
+                    selected = Routes.ASSESSMENT
                 ) {
                     Scaffold(
                         topBar = TopBar(

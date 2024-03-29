@@ -50,6 +50,7 @@ import com.serrano.academically.custom_composables.ScheduleBlueCard
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.NotificationsViewModel
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
@@ -64,7 +65,7 @@ fun Notifications(
     notificationsViewModel: NotificationsViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        notificationsViewModel.getData(context)
+        notificationsViewModel.getData()
     }
 
     val user by notificationsViewModel.drawerData.collectAsState()
@@ -84,7 +85,7 @@ fun Notifications(
                 navController = navController
             ) {
                 ErrorComposable(navController, it, p.message, swipeRefreshState) {
-                    notificationsViewModel.refreshData(context)
+                    notificationsViewModel.refreshData()
                 }
             }
         }
@@ -106,7 +107,7 @@ fun Notifications(
                 topBarText = "Notifications",
                 navController = navController,
                 context = context,
-                selected = "Notifications"
+                selected = Routes.NOTIFICATIONS
             ) { values ->
                 val unseen = listOf(
                     message.count { !it.tutorViewed },
@@ -141,14 +142,14 @@ fun Notifications(
                     )
                     SwipeRefresh(
                         state = swipeRefreshState,
-                        onRefresh = { notificationsViewModel.refreshPage(context) },
+                        onRefresh = { notificationsViewModel.refreshPage() },
                         refreshTriggerDistance = 50.dp
                     ) {
                         when (tabIndex) {
                             0 -> Requests(
                                 messages = message,
                                 badgeAvailability = badgeAvailability[tabIndex],
-                                onClick = { navController.navigate("AboutStudent/$it") }
+                                onClick = { navController.navigate("${Routes.ABOUT_STUDENT}/$it") }
                             )
 
                             1 -> Sessions(
@@ -160,7 +161,7 @@ fun Notifications(
                                     )
                                 },
                                 badgeAvailability = badgeAvailability[tabIndex],
-                                onClick = { navController.navigate("AboutSession/$it") }
+                                onClick = { navController.navigate("${Routes.ABOUT_SESSION}/$it") }
                             )
 
                             2 -> Assignments(
@@ -168,7 +169,7 @@ fun Notifications(
                                 badgeAvailability = badgeAvailability[tabIndex],
                                 onClick = {
                                     if (user.role == "STUDENT") {
-                                        navController.navigate("Assignment/$it")
+                                        navController.navigate("${Routes.ASSIGNMENT}/$it")
                                     }
                                 }
                             )

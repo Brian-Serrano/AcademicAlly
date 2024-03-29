@@ -4,7 +4,10 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 sealed class ProcessState {
     data object Loading : ProcessState()
@@ -14,126 +17,135 @@ sealed class ProcessState {
 
 sealed class AssessmentType {
     data class MultipleChoiceFields(
-        var id: Int,
-        var question: String,
-        var choices: List<String>,
-        var answer: DropDownState
+        val id: Int,
+        val question: String,
+        val choices: List<String>,
+        val answer: DropDownState
     ) : AssessmentType()
 
     data class IdentificationFields(
-        var id: Int,
-        var question: String,
-        var answer: String
+        val id: Int,
+        val question: String,
+        val answer: String
     ) : AssessmentType()
 
     data class TrueOrFalseFields(
-        var id: Int,
-        var question: String,
-        var answer: DropDownState
+        val id: Int,
+        val question: String,
+        val answer: DropDownState
     ) : AssessmentType()
 }
 
 data class AboutText(
-    var title: String,
-    var description: String
+    val title: String,
+    val description: String
 )
 
 data class DashboardIcons(
-    var route: String,
-    var name: String,
-    var icon: ImageVector
+    val route: String,
+    val name: String,
+    val icon: ImageVector
 )
 
 data class LoginInput(
-    var email: String = "",
-    var password: String = "",
-    var error: String = "",
-    var remember: Boolean = false,
-    var passwordVisibility: Boolean = false
+    val email: String = "",
+    val password: String = "",
+    val error: String = "",
+    val remember: Boolean = false,
+    val passwordVisibility: Boolean = false
 )
 
 data class SignupInput(
-    var name: String = "",
-    var email: String = "",
-    var password: String = "",
-    var confirmPassword: String = "",
-    var error: String = "",
-    var passwordVisibility: Boolean = false,
-    var confirmPasswordVisibility: Boolean = false
+    val name: String = "",
+    val email: String = "",
+    val password: String = "",
+    val confirmPassword: String = "",
+    val error: String = "",
+    val passwordVisibility: Boolean = false,
+    val confirmPasswordVisibility: Boolean = false
 )
 
 data class PatternAssessmentState(
-    var dialogOpen: Boolean = false,
-    var primaryPattern: AboutText = AboutText("", ""),
-    var secondaryPattern: AboutText = AboutText("", "")
+    val dialogOpen: Boolean = false,
+    val primaryPattern: AboutText = AboutText("", ""),
+    val secondaryPattern: AboutText = AboutText("", "")
 )
 
 data class SearchInfo(
-    var searchQuery: String = "",
-    var isActive: Boolean = false,
-    var history: List<String> = emptyList()
+    val searchQuery: String = "",
+    val isActive: Boolean = false,
+    val history: List<String> = emptyList()
 )
 
 data class AssessmentResult(
-    var score: Int,
-    var items: Int,
-    var evaluator: Double,
-    var courseId: Int,
-    var eligibility: String
+    val score: Int,
+    val items: Int,
+    val evaluator: Double,
+    val courseId: Int,
+    val eligibility: String
 )
 
 data class DropDownState(
-    var dropDownItems: List<String>,
-    var selected: String,
-    var expanded: Boolean
+    val dropDownItems: List<String>,
+    val selected: String,
+    val expanded: Boolean
 )
 
 data class SessionSettings(
-    var date: String = "",
-    var startTime: String = "",
-    var endTime: String = "",
-    var location: String = "",
-    var error: String = ""
+    val date: String = "",
+    val startTime: String = "",
+    val endTime: String = "",
+    val location: String = "",
+    val error: String = "",
+    val datePickerEnabled: Boolean = false,
+    val timePickerEnabled: Boolean = false,
+    val dialogDate: LocalDate = LocalDate.now(),
+    val dialogTime: LocalTime = LocalTime.now(),
+    val isStartTime: Boolean = true
 )
 
 data class DeadlineField(
-    var date: String = "",
-    var time: String = "",
-    var error: String = ""
+    val date: String = "",
+    val time: String = "",
+    val error: String = "",
+    val datePickerEnabled: Boolean = false,
+    val timePickerEnabled: Boolean = false,
+    val dialogDate: LocalDate = LocalDate.now(),
+    val dialogTime: LocalTime = LocalTime.now()
 )
 
 data class RateDialogStates(
-    var userId: Int = 0,
-    var sessionId: Int = 0,
-    var name: String = "",
-    var star: Int = 0
+    val userId: Int = 0,
+    val sessionId: Int = 0,
+    val name: String = "",
+    val star: Int = 0
 )
 
 data class ManageAccountFields(
-    var name: String = "",
-    var degree: String = "",
-    var age: String = "",
-    var address: String = "",
-    var contactNumber: String = "",
-    var summary: String = "",
-    var educationalBackground: String = "",
-    var freeTutoringTime: String = "",
-    var errorMessage: String = "",
-    var isError: Boolean = false
+    val name: String = "",
+    val degree: String = "",
+    val age: String = "",
+    val address: String = "",
+    val contactNumber: String = "",
+    val summary: String = "",
+    val educationalBackground: String = "",
+    val freeTutoringTime: String = "",
+    val errorMessage: String = "",
+    val isError: Boolean = false
 )
 
 data class PasswordFields(
-    var currentPassword: String = "",
-    var newPassword: String = "",
-    var confirmPassword: String = "",
-    var errorMessage: String = "",
-    var isError: Boolean = false
+    val currentPassword: String = "",
+    val newPassword: String = "",
+    val confirmPassword: String = "",
+    val errorMessage: String = "",
+    val isError: Boolean = false
 )
 
 data class FilterDialogStates(
-    var id: Int,
-    var courseName: String,
-    var isEnabled: Boolean
+    val id: Int,
+    val courseName: String,
+    val isEnabled: Boolean
 )
 
 data class ChartState(
@@ -147,4 +159,10 @@ data class ChartData(
     val text: String,
     val value: State<Float>,
     val color: Color
+)
+
+data class DrawerItem(
+    val name: String,
+    val icon: ImageVector,
+    val action: suspend () -> Unit
 )

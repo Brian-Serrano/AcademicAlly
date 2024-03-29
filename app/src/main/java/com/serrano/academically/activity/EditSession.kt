@@ -33,9 +33,16 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.RateDialog
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
+import com.serrano.academically.custom_composables.DateTimePickerDialog
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.viewmodel.EditSessionViewModel
 import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 @Composable
 fun EditSession(
@@ -47,7 +54,7 @@ fun EditSession(
     editSessionViewModel: EditSessionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        editSessionViewModel.getData(sessionId, context)
+        editSessionViewModel.getData(sessionId)
     }
 
     val user by editSessionViewModel.drawerData.collectAsState()
@@ -60,7 +67,7 @@ fun EditSession(
     val isRefreshLoading by editSessionViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { editSessionViewModel.refreshData(sessionId, context) }
+    val onRefresh = { editSessionViewModel.refreshData(sessionId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -89,7 +96,7 @@ fun EditSession(
                 topBarText = "EDIT SESSION",
                 navController = navController,
                 context = context,
-                selected = "Notifications"
+                selected = Routes.NOTIFICATIONS
             ) { values ->
                 Box(
                     modifier = Modifier
@@ -116,19 +123,51 @@ fun EditSession(
                             }
                             EditSessionMenu(
                                 sessionSettings = sessionSettings,
-                                onDateInputChange = {
+                                openDateDialog = {
                                     editSessionViewModel.updateSessionSettings(
-                                        sessionSettings.copy(date = it)
+                                        sessionSettings.copy(
+                                            datePickerEnabled = true,
+                                            dialogDate = try {
+                                                LocalDate.parse(
+                                                    sessionSettings.date,
+                                                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalDate.now()
+                                            }
+                                        )
                                     )
                                 },
-                                onStartTimeInputChange = {
+                                openStartTimeDialog = {
                                     editSessionViewModel.updateSessionSettings(
-                                        sessionSettings.copy(startTime = it)
+                                        sessionSettings.copy(
+                                            timePickerEnabled = true,
+                                            dialogTime = try {
+                                                LocalTime.parse(
+                                                    sessionSettings.startTime,
+                                                    DateTimeFormatter.ofPattern("hh:mm a")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalTime.now()
+                                            },
+                                            isStartTime = true
+                                        )
                                     )
                                 },
-                                onEndTimeInputChange = {
+                                openEndTimeDialog = {
                                     editSessionViewModel.updateSessionSettings(
-                                        sessionSettings.copy(endTime = it)
+                                        sessionSettings.copy(
+                                            timePickerEnabled = true,
+                                            dialogTime = try {
+                                                LocalTime.parse(
+                                                    sessionSettings.endTime,
+                                                    DateTimeFormatter.ofPattern("hh:mm a")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalTime.now()
+                                            },
+                                            isStartTime = false
+                                        )
                                     )
                                 },
                                 onLocationInputChange = {
@@ -138,7 +177,6 @@ fun EditSession(
                                 },
                                 onButtonClick = {
                                     editSessionViewModel.updateSession(
-                                        context = context,
                                         settings = sessionSettings,
                                         sessionId = sessionId,
                                         navigate = {
@@ -191,11 +229,11 @@ fun EditSession(
                             onDismissRequest = { editSessionViewModel.toggleRateDialog(false) },
                             onConfirmClick = {
                                 editSessionViewModel.toggleRateDialog(false)
-                                navController.navigate("AssignmentOption/$sessionId/${rateDialogStates.star}")
+                                navController.navigate("${Routes.ASSIGNMENT_OPTION}/$sessionId/${rateDialogStates.star}")
                             },
                             onCancelClick = {
                                 editSessionViewModel.toggleRateDialog(false)
-                                navController.navigate("AssignmentOption/$sessionId/0")
+                                navController.navigate("${Routes.ASSIGNMENT_OPTION}/$sessionId/0")
                             },
                             onStarClick = {
                                 editSessionViewModel.updateRateDialogStates(
@@ -204,6 +242,47 @@ fun EditSession(
                             }
                         )
                     }
+                    DateTimePickerDialog(
+                        date = sessionSettings.dialogDate,
+                        time = sessionSettings.dialogTime,
+                        datePickerEnabled = sessionSettings.datePickerEnabled,
+                        timePickerEnabled = sessionSettings.timePickerEnabled,
+                        updateDateDialog = {
+                            editSessionViewModel.updateSessionSettings(
+                                sessionSettings.copy(datePickerEnabled = it)
+                            )
+                        },
+                        updateTimeDialog = {
+                            editSessionViewModel.updateSessionSettings(
+                                sessionSettings.copy(timePickerEnabled = it)
+                            )
+                        },
+                        selectDate = {
+                            editSessionViewModel.updateSessionSettings(
+                                sessionSettings.copy(
+                                    date = String.format("%02d/%02d/%04d", it.dayOfMonth, it.monthValue, it.year),
+                                    datePickerEnabled = false
+                                )
+                            )
+                        },
+                        selectTime = {
+                            if (sessionSettings.isStartTime) {
+                                editSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(
+                                        startTime = Utils.toMilitaryTime(it.hour, it.minute),
+                                        timePickerEnabled = false
+                                    )
+                                )
+                            } else {
+                                editSessionViewModel.updateSessionSettings(
+                                    sessionSettings.copy(
+                                        endTime = Utils.toMilitaryTime(it.hour, it.minute),
+                                        timePickerEnabled = false
+                                    )
+                                )
+                            }
+                        }
+                    )
                 }
             }
         }

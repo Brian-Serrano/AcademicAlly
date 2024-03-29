@@ -39,6 +39,7 @@ import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ChartData
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AnalyticsViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -51,7 +52,7 @@ fun Analytics(
     analyticsViewModel: AnalyticsViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        analyticsViewModel.getData(context)
+        analyticsViewModel.getData()
     }
 
     val user by analyticsViewModel.drawerData.collectAsState()
@@ -63,7 +64,7 @@ fun Analytics(
     val isRefreshLoading by analyticsViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { analyticsViewModel.refreshData(context) }
+    val onRefresh = { analyticsViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -148,7 +149,7 @@ fun Analytics(
                 topBarText = "ANALYTICS",
                 navController = navController,
                 context = context,
-                selected = "Analytics"
+                selected = Routes.ANALYTICS
             ) { values ->
                 SwipeRefresh(
                     state = swipeRefreshState,

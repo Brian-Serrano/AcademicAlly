@@ -19,6 +19,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AssignmentViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -32,7 +33,7 @@ fun Assignment(
     assignmentViewModel: AssignmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        assignmentViewModel.getData(assignmentId, context)
+        assignmentViewModel.getData(assignmentId)
     }
 
     val process by assignmentViewModel.processState.collectAsState()
@@ -45,7 +46,7 @@ fun Assignment(
     val isRefreshLoading by assignmentViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { assignmentViewModel.refreshData(assignmentId, context) }
+    val onRefresh = { assignmentViewModel.refreshData(assignmentId) }
 
     val focusManager = LocalFocusManager.current
 
@@ -71,7 +72,6 @@ fun Assignment(
                     assignment.type
                 ),
                 assignmentId = assignmentId,
-                context = context,
                 navigate = {
                     Toast.makeText(
                         context,
@@ -111,7 +111,7 @@ fun Assignment(
                 topBarText = "ASSIGNMENT",
                 navController = navController,
                 context = context,
-                selected = "Assessment"
+                selected = Routes.ASSESSMENT
             ) { paddingValues ->
                 AssessmentMenu(
                     items = assessmentData.size.toString(),
@@ -129,5 +129,4 @@ fun Assignment(
             }
         }
     }
-
 }

@@ -41,6 +41,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.ProfileViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -55,7 +56,7 @@ fun Profile(
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        profileViewModel.getData(otherId, context)
+        profileViewModel.getData(otherId)
     }
 
     val user by profileViewModel.drawerData.collectAsState()
@@ -65,7 +66,7 @@ fun Profile(
     val isRefreshLoading by profileViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { profileViewModel.refreshData(otherId, context) }
+    val onRefresh = { profileViewModel.refreshData(otherId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -94,7 +95,7 @@ fun Profile(
                 topBarText = "",
                 navController = navController,
                 context = context,
-                selected = "Profile"
+                selected = Routes.DASHBOARD
             ) { values ->
                 SwipeRefresh(
                     state = swipeRefreshState,
@@ -216,7 +217,7 @@ fun Profile(
                                 ) {
                                     BlackButton(
                                         text = "CONTACT TUTOR",
-                                        action = { navController.navigate("MessageTutor/$otherId") },
+                                        action = { navController.navigate("${Routes.MESSAGE_TUTOR}/$otherId") },
                                         modifier = Modifier.padding(20.dp),
                                         style = MaterialTheme.typography.labelMedium
                                     )

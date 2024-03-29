@@ -46,6 +46,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AboutTutorViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -59,7 +60,7 @@ fun AboutTutor(
     aboutTutorViewModel: AboutTutorViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        aboutTutorViewModel.getData(tutorId, context)
+        aboutTutorViewModel.getData(tutorId)
     }
 
     val user by aboutTutorViewModel.drawerData.collectAsState()
@@ -68,7 +69,7 @@ fun AboutTutor(
     val isRefreshLoading by aboutTutorViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { aboutTutorViewModel.refreshData(tutorId, context) }
+    val onRefresh = { aboutTutorViewModel.refreshData(tutorId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -101,7 +102,7 @@ fun AboutTutor(
                 topBarText = "ABOUT ${tutor.name}",
                 navController = navController,
                 context = context,
-                selected = "FindTutor"
+                selected = Routes.FIND_TUTOR
             ) { values ->
                 SwipeRefresh(
                     state = swipeRefreshState,
@@ -127,7 +128,7 @@ fun AboutTutor(
                                             .clip(RoundedCornerShape(40.dp))
                                     )
                                     Column {
-                                        Box(modifier = Modifier.clickable { navController.navigate("Profile/${tutor.userId}") }) {
+                                        Box(modifier = Modifier.clickable { navController.navigate("${Routes.PROFILE}/${tutor.userId}") }) {
                                             Text(
                                                 text = tutor.name,
                                                 style = MaterialTheme.typography.labelMedium,
@@ -161,7 +162,7 @@ fun AboutTutor(
                                     )
                                     BlackButton(
                                         text = "CONTACT",
-                                        action = { navController.navigate("MessageTutor/${tutor.userId}") },
+                                        action = { navController.navigate("${Routes.MESSAGE_TUTOR}/${tutor.userId}") },
                                         style = MaterialTheme.typography.labelMedium,
                                         modifier = Modifier
                                             .width(200.dp)

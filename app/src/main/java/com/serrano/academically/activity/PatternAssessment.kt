@@ -36,6 +36,7 @@ import com.serrano.academically.custom_composables.ErrorComposable
 import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.PatternAssessmentViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -48,7 +49,7 @@ fun PatternAssessment(
     patternAssessmentViewModel: PatternAssessmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        patternAssessmentViewModel.getData(context)
+        patternAssessmentViewModel.getData()
     }
     
     val process by patternAssessmentViewModel.processState.collectAsState()
@@ -61,7 +62,7 @@ fun PatternAssessment(
     val patternAssessment by patternAssessmentViewModel.patternAssessment.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { patternAssessmentViewModel.refreshData(context) }
+    val onRefresh = { patternAssessmentViewModel.refreshData() }
 
     val onBackButtonClick = {
         if (item > 0) {
@@ -70,7 +71,7 @@ fun PatternAssessment(
     }
 
     val navigate = {
-        navController.navigate("Dashboard") {
+        navController.navigate(Routes.DASHBOARD) {
             popUpTo(navController.graph.id) {
                 inclusive = false
             }
@@ -81,7 +82,7 @@ fun PatternAssessment(
         if (item < assessmentData.size - 1) {
             patternAssessmentViewModel.moveItem(true)
         } else {
-            patternAssessmentViewModel.sendAnswer(context)
+            patternAssessmentViewModel.sendAnswer()
         }
     }
     
@@ -112,7 +113,7 @@ fun PatternAssessment(
                 topBarText = "PATTERN ASSESSMENT",
                 navController = navController,
                 context = context,
-                selected = "Assessment"
+                selected = Routes.ASSESSMENT
             ) { paddingValues ->
                 AssessmentMenu(
                     items = assessmentData.size.toString(),

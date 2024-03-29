@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -25,14 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class PatternAssessmentViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-): ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+): BaseViewModel(application) {
 
     private val _item = MutableStateFlow(0)
     val item: StateFlow<Int> = _item.asStateFlow()
@@ -63,7 +59,7 @@ class PatternAssessmentViewModel @Inject constructor(
         _assessmentAnswers.value = assessmentAnswers.value.mapIndexed { idx, ans -> if (idx == index) answer else ans }
     }
 
-    fun getData(context: Context) {
+    fun getData() {
         viewModelScope.launch {
             try {
                 val patternAssessmentCache = ActivityCacheManager.patternAssessment
@@ -71,35 +67,35 @@ class PatternAssessmentViewModel @Inject constructor(
 
                 if (patternAssessmentCache != null && currentUserCache != null) {
                     _assessmentData.value = patternAssessmentCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(context)
+                    callApi()
                 }
 
                 refreshFields()
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(context: Context) {
+    fun refreshData() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(context)
+                callApi()
 
                 refreshFields()
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -111,13 +107,13 @@ class PatternAssessmentViewModel @Inject constructor(
         _assessmentAnswers.value = List(_assessmentState.value.size) { "" }
     }
 
-    private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi() {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         when (val assessmentData = academicallyApi.getLearningPatternAssessment()) {
             is WithCurrentUser.Success -> {
                 _assessmentData.value = assessmentData.data!!
-                _drawerData.value = assessmentData.currentUser!!
+                mutableDrawerData.value = assessmentData.currentUser!!
 
                 ActivityCacheManager.patternAssessment = assessmentData.data
                 ActivityCacheManager.currentUser = assessmentData.currentUser
@@ -126,12 +122,12 @@ class PatternAssessmentViewModel @Inject constructor(
         }
     }
 
-    fun sendAnswer(context: Context) {
+    fun sendAnswer() {
         viewModelScope.launch {
             try {
                 _nextButtonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 val result = _assessmentAnswers.value.mapIndexed { idx, ans ->
                     when (ans) {
@@ -172,7 +168,7 @@ class PatternAssessmentViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 _nextButtonEnabled.value = true
-                Toast.makeText(context, "Something went wrong saving your assessment.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Something went wrong saving your assessment.", Toast.LENGTH_LONG).show()
             }
         }
     }

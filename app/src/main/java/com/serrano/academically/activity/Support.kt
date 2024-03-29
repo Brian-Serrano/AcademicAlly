@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.ui.theme.AcademicAllyPrototypeTheme
 import com.serrano.academically.utils.AboutText
+import com.serrano.academically.utils.Routes
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -47,7 +48,7 @@ fun Support(navController: NavController) {
             LazyColumn {
                 items(topics.size) {
                     Column(
-                        modifier = Modifier.clickable { navController.navigate("SupportChat/$it") }
+                        modifier = Modifier.clickable { navController.navigate("${Routes.SUPPORT_CHAT}/$it") }
                     ) {
                         Text(
                             text = topics[it].title,

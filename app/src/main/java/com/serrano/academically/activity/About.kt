@@ -32,6 +32,7 @@ import com.serrano.academically.custom_composables.HorizontalPagerIndicator
 import com.serrano.academically.custom_composables.MainButton
 import com.serrano.academically.ui.theme.AcademicAllyPrototypeTheme
 import com.serrano.academically.utils.AboutText
+import com.serrano.academically.utils.Routes
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -131,7 +132,7 @@ fun About(navController: NavController) {
                 Box(modifier = Modifier.padding(bottom = 20.dp)) {
                     MainButton(
                         text = "SIGN IN",
-                        route = "Main",
+                        route = Routes.MAIN,
                         color = MaterialTheme.colorScheme.primary,
                         navController = navController
                     )

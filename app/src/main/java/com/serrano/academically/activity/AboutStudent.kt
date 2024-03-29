@@ -41,6 +41,7 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.viewmodel.AboutStudentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -55,7 +56,7 @@ fun AboutStudent(
     aboutStudentViewModel: AboutStudentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        aboutStudentViewModel.getData(messageId, context)
+        aboutStudentViewModel.getData(messageId)
     }
 
     val message by aboutStudentViewModel.message.collectAsState()
@@ -65,7 +66,7 @@ fun AboutStudent(
     val isRefreshLoading by aboutStudentViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { aboutStudentViewModel.refreshData(messageId, context) }
+    val onRefresh = { aboutStudentViewModel.refreshData(messageId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -94,7 +95,7 @@ fun AboutStudent(
                 topBarText = "ABOUT ${message.name}",
                 navController = navController,
                 context = context,
-                selected = "Notifications"
+                selected = Routes.NOTIFICATIONS
             ) {
                 SwipeRefresh(
                     state = swipeRefreshState,
@@ -122,7 +123,7 @@ fun AboutStudent(
                                     Column {
                                         Box(
                                             modifier = Modifier
-                                                .clickable { navController.navigate("Profile/${message.userId}") }
+                                                .clickable { navController.navigate("${Routes.PROFILE}/${message.userId}") }
                                         ) {
                                             Text(
                                                 text = message.name,
@@ -142,7 +143,7 @@ fun AboutStudent(
                                         BlackButton(
                                             text = "ACCEPT",
                                             action = {
-                                                navController.navigate("CreateSession/$messageId")
+                                                navController.navigate("${Routes.CREATE_SESSION}/$messageId")
                                             },
                                             style = MaterialTheme.typography.labelMedium,
                                             modifier = Modifier
@@ -156,7 +157,6 @@ fun AboutStudent(
                                                     studentId = message.studentId,
                                                     tutorId = message.tutorId,
                                                     messageId = messageId,
-                                                    context = context,
                                                     navigate = {
                                                         Toast.makeText(
                                                             context,

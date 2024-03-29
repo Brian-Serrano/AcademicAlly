@@ -41,6 +41,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.SimpleProgressIndicatorWithAnim
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AchievementsViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -53,7 +54,7 @@ fun Achievements(
     achievementsViewModel: AchievementsViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        achievementsViewModel.getData(context)
+        achievementsViewModel.getData()
     }
 
     val user by achievementsViewModel.drawerData.collectAsState()
@@ -62,7 +63,7 @@ fun Achievements(
     val isRefreshLoading by achievementsViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { achievementsViewModel.refreshData(context) }
+    val onRefresh = { achievementsViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -91,7 +92,7 @@ fun Achievements(
                 topBarText = "Achievements",
                 navController = navController,
                 context = context,
-                selected = "Badge"
+                selected = Routes.ACHIEVEMENTS
             ) { values ->
                 Box(
                     modifier = Modifier

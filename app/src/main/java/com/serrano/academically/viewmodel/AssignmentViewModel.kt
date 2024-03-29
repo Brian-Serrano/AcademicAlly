@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -25,14 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AssignmentViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _assignment = MutableStateFlow(Assignment())
     val assignment: StateFlow<Assignment> = _assignment.asStateFlow()
@@ -60,7 +56,7 @@ class AssignmentViewModel @Inject constructor(
         _assessmentAnswers.value = _assessmentAnswers.value.mapIndexed { idx, ans -> if (idx == index) answer else ans }
     }
 
-    fun getData(assignmentId: Int, context: Context) {
+    fun getData(assignmentId: Int) {
         viewModelScope.launch {
             try {
                 val assignmentCache = ActivityCacheManager.assignment[assignmentId]
@@ -68,28 +64,28 @@ class AssignmentViewModel @Inject constructor(
 
                 if (assignmentCache != null && currentUserCache != null) {
                     _assignment.value = assignmentCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(assignmentId, context)
+                    callApi(assignmentId)
                 }
 
                 _assessmentData.value = mapAssignmentData(_assignment.value.data, _assignment.value.type)
 
                 _assessmentAnswers.value = List(_assessmentData.value.size) { "" }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(assignmentId: Int, context: Context) {
+    fun refreshData(assignmentId: Int) {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(assignmentId, context)
+                callApi(assignmentId)
 
                 _assessmentData.value = mapAssignmentData(_assignment.value.data, _assignment.value.type)
 
@@ -97,16 +93,16 @@ class AssignmentViewModel @Inject constructor(
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(assignmentId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi(assignmentId: Int) {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         val response = when (val assignment = academicallyApi.getAssignment(assignmentId)) {
             is WithCurrentUser.Success -> assignment
@@ -114,23 +110,18 @@ class AssignmentViewModel @Inject constructor(
         }
 
         _assignment.value = response.data!!
-        _drawerData.value = response.currentUser!!
+        mutableDrawerData.value = response.currentUser!!
 
         ActivityCacheManager.assignment[assignmentId] = response.data
         ActivityCacheManager.currentUser = response.currentUser
     }
 
-    fun completeAssignment(
-        score: Int,
-        assignmentId: Int,
-        context: Context,
-        navigate: (Int) -> Unit
-    ) {
+    fun completeAssignment(score: Int, assignmentId: Int, navigate: (Int) -> Unit) {
         viewModelScope.launch {
             try {
                 _nextButtonEnabled.value = false
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 val apiResponse = academicallyApi.completeAssignment(AssignmentBody(assignmentId, score))
                 Utils.showToast(
@@ -138,7 +129,7 @@ class AssignmentViewModel @Inject constructor(
                         is NoCurrentUser.Success -> apiResponse.data!!
                         is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
                     },
-                    context
+                    getApplication()
                 )
 
                 ActivityCacheManager.assignment.remove(assignmentId)
@@ -150,7 +141,7 @@ class AssignmentViewModel @Inject constructor(
                 navigate(score)
             } catch (e: Exception) {
                 _nextButtonEnabled.value = true
-                Toast.makeText(context, "Something went wrong", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Something went wrong", Toast.LENGTH_LONG).show()
             }
         }
     }

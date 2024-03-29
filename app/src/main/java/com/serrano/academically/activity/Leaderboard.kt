@@ -41,6 +41,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.LeaderboardViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -53,7 +54,7 @@ fun Leaderboard(
     leaderboardViewModel: LeaderboardViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        leaderboardViewModel.getData(context)
+        leaderboardViewModel.getData()
     }
 
     val user by leaderboardViewModel.drawerData.collectAsState()
@@ -62,7 +63,7 @@ fun Leaderboard(
     val isRefreshLoading by leaderboardViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { leaderboardViewModel.refreshData(context) }
+    val onRefresh = { leaderboardViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -91,7 +92,7 @@ fun Leaderboard(
                 topBarText = "Leaderboard",
                 navController = navController,
                 context = context,
-                selected = "Leaderboard"
+                selected = Routes.LEADERBOARD
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -118,7 +119,7 @@ fun Leaderboard(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(horizontal = 30.dp)
-                                            .clickable { navController.navigate("Profile/${leaderboard[it].id}") },
+                                            .clickable { navController.navigate("${Routes.PROFILE}/${leaderboard[it].id}") },
                                         horizontalArrangement = Arrangement.SpaceEvenly,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {

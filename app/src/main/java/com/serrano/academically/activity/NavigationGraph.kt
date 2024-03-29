@@ -8,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.serrano.academically.utils.Routes
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -17,30 +18,30 @@ fun NavigationGraph(
     drawerState: DrawerState,
     context: Context
 ) {
-    NavHost(navController = navController, startDestination = "Splash") {
-        composable(route = "Splash") {
+    NavHost(navController = navController, startDestination = Routes.SPLASH) {
+        composable(route = Routes.SPLASH) {
             Splash(navController, context)
         }
-        composable(route = "Main") {
+        composable(route = Routes.MAIN) {
             Main(navController)
         }
-        composable(route = "About") {
+        composable(route = Routes.ABOUT) {
             About(navController)
         }
         composable(
-            route = "Signup/{user}",
+            route = "${Routes.SIGNUP}/{user}",
             arguments = listOf(navArgument("user") { type = NavType.StringType })
         ) {
             Signup(navController, it.arguments?.getString("user") ?: "STUDENT", context)
         }
         composable(
-            route = "Login/{user}",
+            route = "${Routes.LOGIN}/{user}",
             arguments = listOf(navArgument("user") { type = NavType.StringType })
         ) {
             Login(navController, it.arguments?.getString("user") ?: "STUDENT", context)
         }
         composable(
-            route = "Assessment/{courseId}/{items}/{type}",
+            route = "${Routes.ASSESSMENT}/{courseId}/{items}/{type}",
             arguments = listOf(
                 navArgument("courseId") { type = NavType.IntType },
                 navArgument("items") { type = NavType.StringType },
@@ -57,17 +58,17 @@ fun NavigationGraph(
                 navController = navController
             )
         }
-        composable(route = "ChooseAssessment") {
+        composable(route = Routes.CHOOSE_ASSESSMENT) {
             ChooseAssessment(scope, drawerState, context, navController)
         }
         composable(
-            route = "AssessmentOption/{courseId}",
+            route = "${Routes.ASSESSMENT_OPTION}/{courseId}",
             arguments = listOf(navArgument("courseId") { type = NavType.IntType })
         ) {
             AssessmentOption(scope, drawerState, context, it.arguments?.getInt("courseId") ?: 0, navController)
         }
         composable(
-            route = "AssessmentResult/{score}/{items}/{eligibility}/{isAuthorized}",
+            route = "${Routes.ASSESSMENT_RESULT}/{score}/{items}/{eligibility}/{isAuthorized}",
             arguments = listOf(
                 navArgument("score") { type = NavType.IntType },
                 navArgument("items") { type = NavType.IntType },
@@ -83,75 +84,74 @@ fun NavigationGraph(
                 navController = navController
             )
         }
-        composable(route = "Dashboard") {
+        composable(route = Routes.DASHBOARD) {
             Dashboard(scope, drawerState, navController, context)
         }
-        composable(route = "CoursesMenu") {
+        composable(route = Routes.COURSES_MENU) {
             CoursesMenu(scope, drawerState, context, navController)
         }
-        composable(route = "FindTutor") {
+        composable(route = Routes.FIND_TUTOR) {
             FindTutor(scope, drawerState, navController, context)
         }
-        composable(route = "Notifications") {
+        composable(route = Routes.NOTIFICATIONS) {
             Notifications(scope, drawerState, navController, context)
         }
         composable(
-            route = "Profile/{otherId}",
+            route = "${Routes.PROFILE}/{otherId}",
             arguments = listOf(navArgument("otherId") { type = NavType.IntType })
         ) {
             Profile(scope, drawerState, it.arguments?.getInt("otherId") ?: 0, navController, context)
         }
-        composable(route = "Leaderboard") {
+        composable(route = Routes.LEADERBOARD) {
             Leaderboard(scope, drawerState, navController, context)
         }
-        composable(route = "Analytics") {
+        composable(route = Routes.ANALYTICS) {
             Analytics(scope, drawerState, navController, context)
         }
         composable(
-            route = "MessageTutor/{tutorId}",
+            route = "${Routes.MESSAGE_TUTOR}/{tutorId}",
             arguments = listOf(navArgument("tutorId") { type = NavType.IntType })
         ) {
             MessageTutor(scope, drawerState, context, navController, it.arguments?.getInt("tutorId") ?: 0)
         }
         composable(
-            route = "CreateSession/{messageId}",
+            route = "${Routes.CREATE_SESSION}/{messageId}",
             arguments = listOf(navArgument("messageId") { type = NavType.IntType })
         ) {
             CreateSession(scope, drawerState, context, navController, it.arguments?.getInt("messageId") ?: 0)
         }
         composable(
-            route = "EditSession/{sessionId}",
+            route = "${Routes.EDIT_SESSION}/{sessionId}",
             arguments = listOf(navArgument("sessionId") { type = NavType.IntType })
         ) {
             EditSession(scope, drawerState, context, navController, it.arguments?.getInt("sessionId") ?: 0)
         }
         composable(
-            route = "AboutSession/{sessionId}",
+            route = "${Routes.ABOUT_SESSION}/{sessionId}",
             arguments = listOf(navArgument("sessionId") { type = NavType.IntType })
         ) {
             AboutSession(scope, drawerState, it.arguments?.getInt("sessionId") ?: 0, navController, context)
         }
         composable(
-            route = "AboutStudent/{messageId}",
+            route = "${Routes.ABOUT_STUDENT}/{messageId}",
             arguments = listOf(navArgument("messageId") { type = NavType.IntType })
         ) {
             AboutStudent(scope, drawerState, it.arguments?.getInt("messageId") ?: 0, navController, context)
         }
         composable(
-            route = "AboutTutor/{tutorId}",
+            route = "${Routes.ABOUT_TUTOR}/{tutorId}",
             arguments = listOf(navArgument("tutorId") { type = NavType.IntType })
         ) {
-            AboutTutor(scope, drawerState, it.arguments?.getInt("tutorId") ?: 0, navController, context
-            )
+            AboutTutor(scope, drawerState, it.arguments?.getInt("tutorId") ?: 0, navController, context)
         }
-        composable(route = "Account") {
+        composable(route = Routes.ACCOUNT) {
             Account(scope, drawerState, navController, context)
         }
-        composable(route = "Achievements") {
+        composable(route = Routes.ACHIEVEMENTS) {
             Achievements(scope, drawerState, navController, context)
         }
         composable(
-            route = "AssignmentOption/{sessionId}/{rate}",
+            route = "${Routes.ASSIGNMENT_OPTION}/{sessionId}/{rate}",
             arguments = listOf(
                 navArgument("sessionId") { type = NavType.IntType },
                 navArgument("rate") { type = NavType.IntType }
@@ -167,7 +167,7 @@ fun NavigationGraph(
             )
         }
         composable(
-            route = "CreateAssignment/{sessionId}/{items}/{type}/{deadline}/{rate}",
+            route = "${Routes.CREATE_ASSIGNMENT}/{sessionId}/{items}/{type}/{deadline}/{rate}",
             arguments = listOf(
                 navArgument("sessionId") { type = NavType.IntType },
                 navArgument("items") { type = NavType.StringType },
@@ -189,22 +189,22 @@ fun NavigationGraph(
             )
         }
         composable(
-            route = "Assignment/{assignmentId}",
+            route = "${Routes.ASSIGNMENT}/{assignmentId}",
             arguments = listOf(navArgument("assignmentId") { type = NavType.IntType })
         ) {
             Assignment(scope, drawerState, context, navController, it.arguments?.getInt("assignmentId") ?: 0)
         }
-        composable(route = "Archive") {
+        composable(route = Routes.ARCHIVE) {
             Archive(scope, drawerState, context, navController)
         }
-        composable(route = "PatternAssessment") {
+        composable(route = Routes.PATTERN_ASSESSMENT) {
             PatternAssessment(scope, drawerState, context, navController)
         }
-        composable(route = "Support") {
+        composable(route = Routes.SUPPORT) {
             Support(navController)
         }
         composable(
-            route = "SupportChat/{topicId}",
+            route = "${Routes.SUPPORT_CHAT}/{topicId}",
             arguments = listOf(navArgument("topicId") { type = NavType.IntType })
         ) {
             SupportChat(scope, drawerState, navController, context, it.arguments?.getInt("topicId") ?: 0)

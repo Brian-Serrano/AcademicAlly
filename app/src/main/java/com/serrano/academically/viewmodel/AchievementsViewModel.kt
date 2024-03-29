@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -23,14 +24,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AchievementsViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _achievements = MutableStateFlow(AchievementWrapper())
     val achievements: StateFlow<AchievementWrapper> = _achievements.asStateFlow()
@@ -38,7 +34,7 @@ class AchievementsViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(context: Context) {
+    fun getData() {
         viewModelScope.launch {
             try {
                 val achievementsCache = ActivityCacheManager.achievements
@@ -46,37 +42,37 @@ class AchievementsViewModel @Inject constructor(
 
                 if (achievementsCache != null && currentUserCache != null) {
                     _achievements.value = achievementsCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(context)
+                    callApi()
                 }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(context: Context) {
+    fun refreshData() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(context)
+                callApi()
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi() {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         val response = when (val achievements = academicallyApi.getAchievements()) {
             is WithCurrentUser.Success -> achievements
@@ -84,7 +80,7 @@ class AchievementsViewModel @Inject constructor(
         }
 
         _achievements.value = response.data!!
-        _drawerData.value = response.currentUser!!
+        mutableDrawerData.value = response.currentUser!!
 
         ActivityCacheManager.achievements = response.data
         ActivityCacheManager.currentUser = response.currentUser

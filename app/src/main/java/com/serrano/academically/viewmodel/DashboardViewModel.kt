@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -23,14 +24,9 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _dashboard = MutableStateFlow(Dashboard())
     val dashboard: StateFlow<Dashboard> = _dashboard.asStateFlow()
@@ -41,7 +37,7 @@ class DashboardViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(context: Context, navigate: () -> Unit) {
+    fun getData(navigate: () -> Unit) {
         viewModelScope.launch {
             try {
                 ActivityCacheManager.profile = null
@@ -51,41 +47,41 @@ class DashboardViewModel @Inject constructor(
 
                 if (dashboardCache != null && currentUserCache != null) {
                     _dashboard.value = dashboardCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(context)
+                    callApi()
                 }
 
-                if (_drawerData.value.primaryLearning == "NA" || _drawerData.value.secondaryLearning == "NA") {
+                if (mutableDrawerData.value.primaryLearning == "NA" || mutableDrawerData.value.secondaryLearning == "NA") {
                     navigate()
                 }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(context: Context) {
+    fun refreshData() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(context)
+                callApi()
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi() {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         val response = when (val dashboard = academicallyApi.getDashboardData()) {
             is WithCurrentUser.Success -> dashboard
@@ -93,7 +89,7 @@ class DashboardViewModel @Inject constructor(
         }
 
         _dashboard.value = response.data!!
-        _drawerData.value = response.currentUser!!
+        mutableDrawerData.value = response.currentUser!!
 
         ActivityCacheManager.dashboard = response.data
         ActivityCacheManager.currentUser = response.currentUser

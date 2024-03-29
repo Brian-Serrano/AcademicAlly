@@ -33,6 +33,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AssessmentOptionViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -57,19 +58,16 @@ fun AssessmentOption(
     val isRefreshLoading by assessmentOptionViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { assessmentOptionViewModel.refreshData(courseId, context) }
+    val onRefresh = { assessmentOptionViewModel.refreshData(courseId) }
 
     val onClick = {
-        assessmentOptionViewModel.saveAssessmentType(
-            context = context,
-            navigate = { item, type ->
-                navController.navigate("Assessment/$courseId/$item/$type") {
-                    popUpTo(navController.graph.id) {
-                        inclusive = false
-                    }
+        assessmentOptionViewModel.saveAssessmentType { item, type ->
+            navController.navigate("${Routes.ASSESSMENT}/$courseId/$item/$type") {
+                popUpTo(navController.graph.id) {
+                    inclusive = false
                 }
             }
-        )
+        }
     }
 
     when (val p = process) {
@@ -99,7 +97,7 @@ fun AssessmentOption(
                     user = user,
                     navController = navController,
                     context = context,
-                    selected = "Assessment"
+                    selected = Routes.ASSESSMENT
                 ) {
                     Scaffold(
                         topBar = TopBar(

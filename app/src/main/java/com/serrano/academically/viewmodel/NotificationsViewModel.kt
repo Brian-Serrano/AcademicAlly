@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -25,14 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _tabIndex = MutableStateFlow(0)
     val tabIndex: StateFlow<Int> = _tabIndex.asStateFlow()
@@ -49,21 +45,21 @@ class NotificationsViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(context: Context) {
+    fun getData() {
         viewModelScope.launch {
             try {
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 val currentUserCache = ActivityCacheManager.currentUser
 
                 if (currentUserCache != null) {
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    _drawerData.value = when (val drawerData = academicallyApi.getCurrentUser()) {
+                    mutableDrawerData.value = when (val drawerData = academicallyApi.getCurrentUser()) {
                         is NoCurrentUser.Success -> drawerData.data!!
                         is NoCurrentUser.Error -> throw IllegalArgumentException(drawerData.error)
                     }
-                    ActivityCacheManager.currentUser = _drawerData.value
+                    ActivityCacheManager.currentUser = mutableDrawerData.value
                 }
 
                 val messagesCache = ActivityCacheManager.notificationsMessages
@@ -90,36 +86,36 @@ class NotificationsViewModel @Inject constructor(
                     getAssignmentsFromApi()
                 }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshPage(context: Context) {
+    fun refreshPage() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(context)
+                callApi()
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    fun refreshData(context: Context) {
+    fun refreshData() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 getMessagesFromApi()
                 getSessionsFromApi()
@@ -128,13 +124,13 @@ class NotificationsViewModel @Inject constructor(
                 _isRefreshLoading.value = false
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi() {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         when (_tabIndex.value) {
             0 -> getMessagesFromApi()

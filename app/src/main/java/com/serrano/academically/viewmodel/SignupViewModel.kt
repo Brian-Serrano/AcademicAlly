@@ -1,6 +1,8 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serrano.academically.api.AcademicallyApi
@@ -21,8 +23,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SignupViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : AndroidViewModel(application) {
 
     private val _signupInput = MutableStateFlow(SignupInput())
     val signupInput: StateFlow<SignupInput> = _signupInput.asStateFlow()
@@ -30,13 +33,7 @@ class SignupViewModel @Inject constructor(
     private val _buttonEnabled = MutableStateFlow(true)
     val buttonEnabled: StateFlow<Boolean> = _buttonEnabled.asStateFlow()
 
-    fun signup(
-        context: Context,
-        role: String,
-        si: SignupInput,
-        navigate: () -> Unit,
-        error: (String) -> Unit
-    ) {
+    fun signup(role: String, si: SignupInput, navigate: () -> Unit, error: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 _buttonEnabled.value = false
@@ -64,7 +61,7 @@ class SignupViewModel @Inject constructor(
                 )
                 when (response) {
                     is AuthenticationResponse.SuccessResponse -> {
-                        Utils.showToast(response.achievements, context)
+                        Utils.showToast(response.achievements, getApplication())
                         userCacheRepository.clearAssessmentResultData()
                         userCacheRepository.updateDataByLoggingIn(false, response.token, si.email, si.password, role)
                         updateInput(si.copy(name = "", email = "", password = "", confirmPassword = "", error = ""))

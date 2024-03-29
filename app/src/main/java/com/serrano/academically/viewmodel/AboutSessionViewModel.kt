@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -22,22 +23,17 @@ import javax.inject.Inject
 @HiltViewModel
 class AboutSessionViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _session = MutableStateFlow(Session())
     val session: StateFlow<Session> = _session.asStateFlow()
 
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
-
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(sessionId: Int, context: Context) {
+    fun getData(sessionId: Int) {
         viewModelScope.launch {
             try {
                 ActivityCacheManager.profile = null
@@ -47,37 +43,37 @@ class AboutSessionViewModel @Inject constructor(
 
                 if (sessionCache != null && currentUserCache != null) {
                     _session.value = sessionCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(sessionId, context)
+                    callApi(sessionId)
                 }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(sessionId: Int, context: Context) {
+    fun refreshData(sessionId: Int) {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(sessionId, context)
+                callApi(sessionId)
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(sessionId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi(sessionId: Int) {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         val response = when (val session = academicallyApi.getSession(sessionId)) {
             is WithCurrentUser.Success -> session
@@ -85,7 +81,7 @@ class AboutSessionViewModel @Inject constructor(
         }
 
         _session.value = response.data!!
-        _drawerData.value = response.currentUser!!
+        mutableDrawerData.value = response.currentUser!!
 
         ActivityCacheManager.aboutSession[sessionId] = response.data
         ActivityCacheManager.currentUser = response.currentUser

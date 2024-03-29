@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Assessment
@@ -38,6 +39,8 @@ import androidx.navigation.NavController
 import com.serrano.academically.activity.userDataStore
 import com.serrano.academically.api.DrawerData
 import com.serrano.academically.utils.ActivityCacheManager
+import com.serrano.academically.utils.DrawerItem
+import com.serrano.academically.utils.Routes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -52,16 +55,44 @@ fun Drawer(
     content: @Composable () -> Unit
 ) {
     val items = listOf(
-        Icons.Default.Dashboard,
-        Icons.Default.Leaderboard,
-        Icons.Default.Analytics,
-        Icons.Default.Assessment,
-        Icons.Default.Notifications,
-        Icons.Default.Badge,
-        Icons.Default.ManageAccounts,
-        Icons.Default.Archive,
-        Icons.Default.Support,
-        Icons.Default.Logout
+        DrawerItem(Routes.DASHBOARD, Icons.Default.Dashboard) {
+            navController.navigate(Routes.DASHBOARD)
+        },
+        DrawerItem(Routes.LEADERBOARD, Icons.Default.Leaderboard) {
+            navController.navigate(Routes.LEADERBOARD)
+        },
+        DrawerItem(Routes.ANALYTICS, Icons.Default.Analytics) {
+            navController.navigate(Routes.ANALYTICS)
+        },
+        DrawerItem(Routes.ASSESSMENT, Icons.Default.Assessment) {
+            navController.navigate(Routes.CHOOSE_ASSESSMENT)
+        },
+        DrawerItem(Routes.NOTIFICATIONS, Icons.Default.Notifications) {
+            navController.navigate(Routes.NOTIFICATIONS)
+        },
+        DrawerItem(Routes.ACHIEVEMENTS, Icons.Default.Badge) {
+            navController.navigate(Routes.ACHIEVEMENTS)
+        },
+        DrawerItem(Routes.ACCOUNT, Icons.Default.ManageAccounts) {
+            navController.navigate(Routes.ACCOUNT)
+        },
+        DrawerItem(Routes.ARCHIVE, Icons.Default.Archive) {
+            navController.navigate(Routes.ARCHIVE)
+        },
+        DrawerItem(Routes.SUPPORT, Icons.Default.Support) {
+            navController.navigate(Routes.SUPPORT)
+        },
+        DrawerItem("Log Out", Icons.AutoMirrored.Filled.Logout) {
+            context.userDataStore.updateData {
+                it.copy(authToken = "", role = "")
+            }
+            ActivityCacheManager.clearCache()
+            navController.navigate(Routes.MAIN) {
+                popUpTo(navController.graph.id) {
+                    inclusive = false
+                }
+            }
+        }
     )
     SelectionContainer {
         ModalNavigationDrawer(
@@ -106,44 +137,21 @@ fun Drawer(
                         NavigationDrawerItem(
                             icon = {
                                 Icon(
-                                    imageVector = item,
+                                    imageVector = item.icon,
                                     contentDescription = null
                                 )
                             },
                             label = {
                                 Text(
-                                    text = item.name.substring("Filled.".length),
+                                    text = item.name,
                                     style = MaterialTheme.typography.labelMedium
                                 )
                             },
-                            selected = item.name.substring("Filled.".length) == selected,
+                            selected = item.name == selected,
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    when (item.name.substring("Filled.".length)) {
-                                        "Dashboard" -> navController.navigate("Dashboard")
-                                        "Leaderboard" -> navController.navigate("Leaderboard")
-                                        "Analytics" -> navController.navigate("Analytics")
-                                        "Assessment" -> navController.navigate("ChooseAssessment")
-                                        "Notifications" -> navController.navigate("Notifications")
-                                        "Badge" -> navController.navigate("Achievements")
-                                        "ManageAccounts" -> navController.navigate("Account")
-                                        "Archive" -> navController.navigate("Archive")
-                                        "Support" -> navController.navigate("Support")
-                                        "Logout" -> {
-                                            context.userDataStore.updateData {
-                                                it.copy(authToken = "", role = "")
-                                            }
-                                            ActivityCacheManager.clearCache()
-                                            navController.navigate("Main") {
-                                                popUpTo(navController.graph.id) {
-                                                    inclusive = false
-                                                }
-                                            }
-                                        }
-
-                                        else -> navController.navigate("Dashboard")
-                                    }
+                                    item.action()
                                 }
                             },
                             modifier = Modifier.padding(

@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -31,14 +32,9 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateAssignmentViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _session = MutableStateFlow(SessionForAssignment())
     val session: StateFlow<SessionForAssignment> = _session.asStateFlow()
@@ -55,7 +51,7 @@ class CreateAssignmentViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(sessionId: Int, items: Int, type: String, context: Context) {
+    fun getData(sessionId: Int, items: Int, type: String) {
         viewModelScope.launch {
             try {
                 val sessionCache = ActivityCacheManager.createAssignment[sessionId]
@@ -63,46 +59,46 @@ class CreateAssignmentViewModel @Inject constructor(
 
                 if (sessionCache != null && currentUserCache != null) {
                     _session.value = sessionCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                 } else {
-                    callApi(sessionId, context)
+                    callApi(sessionId)
                 }
 
                 refreshQuizFields(items, type)
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(sessionId: Int, items: Int, type: String, context: Context) {
+    fun refreshData(sessionId: Int, items: Int, type: String) {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(sessionId, context)
+                callApi(sessionId)
 
                 refreshQuizFields(items, type)
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private suspend fun callApi(sessionId: Int, context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi(sessionId: Int) {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         when (val session = academicallyApi.getSessionForAssignment(sessionId)) {
             is WithCurrentUser.Success -> {
                 _session.value = session.data!!
-                _drawerData.value = session.currentUser!!
+                mutableDrawerData.value = session.currentUser!!
 
                 ActivityCacheManager.createAssignment[sessionId] = session.data
                 ActivityCacheManager.currentUser = session.currentUser
@@ -160,7 +156,6 @@ class CreateAssignmentViewModel @Inject constructor(
         type: String,
         deadLine: LocalDateTime,
         navigate: () -> Unit,
-        context: Context,
         assessment: List<AssessmentType>,
         name: String
     ) {
@@ -169,7 +164,7 @@ class CreateAssignmentViewModel @Inject constructor(
                 val validationResult = validateAssignment(assessment)
                 if (validationResult.all { it }) {
 
-                    Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                    Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                     val apiResponse = academicallyApi.completeSessionAndCreateAssignment(
                         CreateAssignmentBody(
@@ -189,7 +184,7 @@ class CreateAssignmentViewModel @Inject constructor(
                             is NoCurrentUser.Success -> apiResponse.data!!
                             is NoCurrentUser.Error -> throw IllegalArgumentException(apiResponse.error)
                         },
-                        context
+                        getApplication()
                     )
 
                     ActivityCacheManager.createAssignment.remove(session.sessionId)
@@ -206,13 +201,13 @@ class CreateAssignmentViewModel @Inject constructor(
                     }
                         .filterIndexed { idx, _ -> !validationResult[idx] }
                     Toast.makeText(
-                        context,
+                        getApplication(),
                         "Invalid input in ${itemsInvalid.joinToString(", ")}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Something went wrong", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Something went wrong", Toast.LENGTH_LONG).show()
             }
         }
     }

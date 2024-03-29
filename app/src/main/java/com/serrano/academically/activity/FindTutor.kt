@@ -48,6 +48,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.FindTutorViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -60,7 +61,7 @@ fun FindTutor(
     findTutorViewModel: FindTutorViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        findTutorViewModel.getData(context)
+        findTutorViewModel.getData()
     }
 
     val search by findTutorViewModel.searchInfo.collectAsState()
@@ -72,7 +73,7 @@ fun FindTutor(
     val isRefreshLoading by findTutorViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { findTutorViewModel.refreshData(context) }
+    val onRefresh = { findTutorViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -101,7 +102,7 @@ fun FindTutor(
                 topBarText = "SEARCH TUTORS",
                 navController = navController,
                 context = context,
-                selected = "FindTutor"
+                selected = Routes.DASHBOARD
             ) { values ->
                 Box(
                     modifier = Modifier
@@ -136,7 +137,7 @@ fun FindTutor(
                                             isActive = false
                                         )
                                     )
-                                    findTutorViewModel.updateMenu(filterState, it, context)
+                                    findTutorViewModel.updateMenu(filterState, it)
                                 },
                                 onActiveChange = {
                                     findTutorViewModel.updateSearch(
@@ -225,7 +226,7 @@ fun FindTutor(
                                                     )
                                                     BlackButton(
                                                         text = "VIEW TUTOR",
-                                                        action = { navController.navigate("AboutTutor/${it.tutorId}") },
+                                                        action = { navController.navigate("${Routes.ABOUT_TUTOR}/${it.tutorId}") },
                                                         style = MaterialTheme.typography.labelMedium,
                                                         modifier = Modifier.padding(10.dp)
                                                     )
@@ -251,8 +252,7 @@ fun FindTutor(
                         FilterDialog(
                             courseNames = filterState,
                             search = search,
-                            findTutorViewModel = findTutorViewModel,
-                            context = context
+                            findTutorViewModel = findTutorViewModel
                         )
                     }
                 }

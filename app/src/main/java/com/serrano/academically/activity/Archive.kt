@@ -64,6 +64,7 @@ import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
 import com.serrano.academically.utils.RateDialogStates
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.ArchiveViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -77,7 +78,7 @@ fun Archive(
     archiveViewModel: ArchiveViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        archiveViewModel.getData(context)
+        archiveViewModel.getData()
     }
 
     val rejectedMessages by archiveViewModel.rejectedMessages.collectAsState()
@@ -104,7 +105,7 @@ fun Archive(
                 navController = navController
             ) {
                 ErrorComposable(navController, it, p.message, swipeRefreshState) {
-                    archiveViewModel.refreshData(context)
+                    archiveViewModel.refreshData()
                 }
             }
         }
@@ -125,7 +126,7 @@ fun Archive(
                 user = user,
                 navController = navController,
                 context = context,
-                selected = "Archive"
+                selected = Routes.ARCHIVE
             ) {
                 Scaffold(
                     topBar = TopBar(
@@ -207,7 +208,7 @@ fun Archive(
                                                 isActive = false
                                             )
                                         )
-                                        archiveViewModel.search(it, context)
+                                        archiveViewModel.search(it)
                                     },
                                     onActiveChange = {
                                         archiveViewModel.updateSearch(
@@ -227,7 +228,7 @@ fun Archive(
                             }
                             SwipeRefresh(
                                 state = swipeRefreshState,
-                                onRefresh = { archiveViewModel.refreshPage(search.searchQuery, context) },
+                                onRefresh = { archiveViewModel.refreshPage(search.searchQuery) },
                                 refreshTriggerDistance = 50.dp
                             ) {
                                 when (tabIndex) {
@@ -274,7 +275,7 @@ fun Archive(
                                 onDismissRequest = { archiveViewModel.toggleDialog(false) },
                                 onConfirmClick = {
                                     archiveViewModel.toggleDialog(false)
-                                    archiveViewModel.rateUser(rating, context)
+                                    archiveViewModel.rateUser(rating)
                                 },
                                 onCancelClick = { archiveViewModel.toggleDialog(false) },
                                 onStarClick = { archiveViewModel.updateRatingDialog(rating.copy(star = it)) }

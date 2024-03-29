@@ -41,6 +41,7 @@ import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.AssessmentType
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.CreateAssignmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDateTime
@@ -59,7 +60,7 @@ fun CreateAssignment(
     createAssignmentViewModel: CreateAssignmentViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        createAssignmentViewModel.getData(sessionId, items.toInt(), type, context)
+        createAssignmentViewModel.getData(sessionId, items.toInt(), type)
     }
 
     val process by createAssignmentViewModel.processState.collectAsState()
@@ -71,7 +72,7 @@ fun CreateAssignment(
     val isRefreshLoading by createAssignmentViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { createAssignmentViewModel.refreshData(sessionId, items.toInt(), type, context) }
+    val onRefresh = { createAssignmentViewModel.refreshData(sessionId, items.toInt(), type) }
 
     val onBackButtonClick = {
         if (item > 0) {
@@ -121,7 +122,7 @@ fun CreateAssignment(
                 topBarText = "EDIT ASSIGNMENT",
                 navController = navController,
                 context = context,
-                selected = "Assessment"
+                selected = Routes.ASSESSMENT
             ) { paddingValues ->
                 Box(
                     modifier = Modifier
@@ -232,7 +233,6 @@ fun CreateAssignment(
                                         navController.popBackStack()
                                         navController.popBackStack()
                                     },
-                                    context = context,
                                     assessment = assessmentFields,
                                     name = user.name
                                 )

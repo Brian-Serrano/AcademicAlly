@@ -55,15 +55,6 @@ fun DashboardTopBar(
                 )
             },
             navigationIcon = {
-                IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ShortText,
-                        contentDescription = null,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-            },
-            actions = {
                 IconButton(onClick = onIconClick) {
                     Image(
                         bitmap = image,
@@ -71,6 +62,15 @@ fun DashboardTopBar(
                         modifier = Modifier
                             .size(30.dp)
                             .clip(RoundedCornerShape(15.dp))
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ShortText,
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp)
                     )
                 }
             },

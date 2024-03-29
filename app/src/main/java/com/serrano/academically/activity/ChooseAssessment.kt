@@ -34,6 +34,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.TopBar
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.utils.SearchInfo
 import com.serrano.academically.viewmodel.ChooseAssessmentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +59,7 @@ fun ChooseAssessment(
     val isRefreshLoading by chooseAssessmentViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { chooseAssessmentViewModel.refreshData(context) }
+    val onRefresh = { chooseAssessmentViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -87,7 +88,7 @@ fun ChooseAssessment(
                     user = user,
                     navController = navController,
                     context = context,
-                    selected = "Assessment"
+                    selected = Routes.ASSESSMENT
                 ) {
                     Scaffold(
                         topBar = TopBar(
@@ -182,7 +183,7 @@ fun ChooseAssessmentMenu(
                     )
                     BlackButton(
                         text = "SELECT",
-                        action = { navController.navigate("AssessmentOption/${it.id}") },
+                        action = { navController.navigate("${Routes.ASSESSMENT_OPTION}/${it.id}") },
                         modifier = Modifier.padding(20.dp)
                     )
                 }

@@ -26,6 +26,7 @@ import androidx.navigation.NavOptionsBuilder
 import com.serrano.academically.R
 import com.serrano.academically.custom_composables.CircularProgressBar
 import com.serrano.academically.custom_composables.GreenButton
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AssessmentResultViewModel
 
 @Composable
@@ -92,7 +93,7 @@ fun AssessmentResult(
             if (isAuthorized) {
                 GreenButton(
                     action = {
-                        navController.navigate("Dashboard", navBuilder)
+                        navController.navigate(Routes.DASHBOARD, navBuilder)
                     },
                     text = "CONTINUE",
                     style = MaterialTheme.typography.titleMedium,
@@ -100,7 +101,7 @@ fun AssessmentResult(
             } else {
                 GreenButton(
                     action = {
-                        navController.navigate("Signup/STUDENT", navBuilder)
+                        navController.navigate("${Routes.SIGNUP}/STUDENT", navBuilder)
                     },
                     text = "STUDENT",
                     style = MaterialTheme.typography.titleMedium,
@@ -108,7 +109,7 @@ fun AssessmentResult(
                 )
                 GreenButton(
                     action = {
-                        navController.navigate("Signup/TUTOR", navBuilder)
+                        navController.navigate("${Routes.SIGNUP}/TUTOR", navBuilder)
                     },
                     text = "TUTOR",
                     style = MaterialTheme.typography.titleMedium,

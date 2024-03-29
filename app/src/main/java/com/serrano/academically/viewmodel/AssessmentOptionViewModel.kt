@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -24,14 +25,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AssessmentOptionViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
-
-    private val _drawerData = MutableStateFlow(DrawerData())
-    val drawerData: StateFlow<DrawerData> = _drawerData.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _course = MutableStateFlow(Course())
     val course: StateFlow<Course> = _course.asStateFlow()
@@ -53,20 +49,20 @@ class AssessmentOptionViewModel @Inject constructor(
 
                 if (courseCache != null && currentUserCache != null) {
                     _course.value = courseCache
-                    _drawerData.value = currentUserCache
+                    mutableDrawerData.value = currentUserCache
                     _isAuthorized.value = Utils.checkToken(userCacheRepository.userDataStore.data.first().authToken)
                 } else {
                     callApi(courseId)
                 }
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(courseId: Int, context: Context) {
+    fun refreshData(courseId: Int) {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
@@ -75,10 +71,10 @@ class AssessmentOptionViewModel @Inject constructor(
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -87,7 +83,7 @@ class AssessmentOptionViewModel @Inject constructor(
         when (val course = academicallyApi.getCourseNameAndDesc(courseId)) {
             is OptionalCurrentUser.CurrentUserData -> {
                 _course.value = course.data!!
-                _drawerData.value = course.currentUser!!
+                mutableDrawerData.value = course.currentUser!!
                 _isAuthorized.value = true
 
                 ActivityCacheManager.assessmentOption[courseId] = course.data
@@ -97,13 +93,13 @@ class AssessmentOptionViewModel @Inject constructor(
                 _course.value = course.data!!
 
                 ActivityCacheManager.assessmentOption[courseId] = course.data
-                ActivityCacheManager.currentUser = _drawerData.value
+                ActivityCacheManager.currentUser = mutableDrawerData.value
             }
             is OptionalCurrentUser.Error -> throw IllegalArgumentException(course.error)
         }
     }
 
-    fun saveAssessmentType(context: Context, navigate: (String, String) -> Unit) {
+    fun saveAssessmentType(navigate: (String, String) -> Unit) {
         viewModelScope.launch {
             try {
                 _startButtonEnabled.value = false
@@ -125,7 +121,7 @@ class AssessmentOptionViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _startButtonEnabled.value = true
-                Toast.makeText(context, "Something went wrong", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Something went wrong", Toast.LENGTH_LONG).show()
             }
         }
     }

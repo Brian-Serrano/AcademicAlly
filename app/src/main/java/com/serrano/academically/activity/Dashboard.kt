@@ -56,6 +56,7 @@ import com.serrano.academically.ui.theme.montserrat
 import com.serrano.academically.utils.DashboardIcons
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.DashboardViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -68,8 +69,8 @@ fun Dashboard(
     dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        dashboardViewModel.getData(context) {
-            navController.navigate("PatternAssessment")
+        dashboardViewModel.getData {
+            navController.navigate(Routes.PATTERN_ASSESSMENT)
         }
     }
 
@@ -80,7 +81,7 @@ fun Dashboard(
     val isRefreshLoading by dashboardViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { dashboardViewModel.refreshData(context) }
+    val onRefresh = { dashboardViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -97,14 +98,14 @@ fun Dashboard(
 
         is ProcessState.Success -> {
             val icons = if (user.role == "STUDENT") arrayOf(
-                DashboardIcons("Leaderboard", "Leaderboard", Icons.Filled.Leaderboard),
-                DashboardIcons("Analytics", "Analytics", Icons.Filled.Analytics),
-                DashboardIcons("FindTutor", "Find Tutor", Icons.Filled.PersonSearch),
-                DashboardIcons("Notifications", "Notifications", Icons.Filled.BrowseGallery)
+                DashboardIcons(Routes.LEADERBOARD, "Leaderboard", Icons.Filled.Leaderboard),
+                DashboardIcons(Routes.ANALYTICS, "Analytics", Icons.Filled.Analytics),
+                DashboardIcons(Routes.FIND_TUTOR, "Find Tutor", Icons.Filled.PersonSearch),
+                DashboardIcons(Routes.NOTIFICATIONS, "Notifications", Icons.Filled.BrowseGallery)
             ) else arrayOf(
-                DashboardIcons("Leaderboard", "Leaderboard", Icons.Filled.Leaderboard),
-                DashboardIcons("Analytics", "Analytics", Icons.Filled.Analytics),
-                DashboardIcons("Notifications", "Notifications", Icons.Filled.BrowseGallery)
+                DashboardIcons(Routes.LEADERBOARD, "Leaderboard", Icons.Filled.Leaderboard),
+                DashboardIcons(Routes.ANALYTICS, "Analytics", Icons.Filled.Analytics),
+                DashboardIcons(Routes.NOTIFICATIONS, "Notifications", Icons.Filled.BrowseGallery)
             )
 
             LaunchedEffect(Unit) {
@@ -117,13 +118,13 @@ fun Dashboard(
                 user = user,
                 navController = navController,
                 context = context,
-                selected = "Dashboard"
+                selected = Routes.DASHBOARD
             ) {
                 Scaffold(
                     topBar = DashboardTopBar(
                         scope = scope,
                         drawerState = drawerState,
-                        onIconClick = { navController.navigate("Profile/${user.id}") },
+                        onIconClick = { navController.navigate("${Routes.PROFILE}/${user.id}") },
                         image = Utils.convertToImage(dashboard.image)
                     )
                 ) { values ->
@@ -266,7 +267,7 @@ fun Dashboard(
                                         ) {
                                             BlackButton(
                                                 text = "SHOW ALL COURSES",
-                                                action = { navController.navigate("CoursesMenu") },
+                                                action = { navController.navigate(Routes.COURSES_MENU) },
                                                 modifier = Modifier.padding(20.dp),
                                                 style = MaterialTheme.typography.labelMedium
                                             )

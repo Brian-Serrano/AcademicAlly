@@ -1,5 +1,6 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
@@ -32,11 +33,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
-
-    private val _processState = MutableStateFlow<ProcessState>(ProcessState.Loading)
-    val processState: StateFlow<ProcessState> = _processState.asStateFlow()
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : BaseViewModel(application) {
 
     private val _userData = MutableStateFlow(Info())
     val userData: StateFlow<Info> = _userData.asStateFlow()
@@ -59,7 +58,7 @@ class AccountViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
-    fun getData(context: Context) {
+    fun getData() {
         viewModelScope.launch {
             try {
                 val accountCache = ActivityCacheManager.account
@@ -67,33 +66,33 @@ class AccountViewModel @Inject constructor(
                 if (accountCache != null) {
                     _userData.value = accountCache
                 } else {
-                    callApi(context)
+                    callApi()
                 }
 
                 refreshFields()
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                _processState.value = ProcessState.Error(e.message ?: "")
+                mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }
     }
 
-    fun refreshData(context: Context) {
+    fun refreshData() {
         viewModelScope.launch {
             try {
                 _isRefreshLoading.value = true
 
-                callApi(context)
+                callApi()
 
                 refreshFields()
 
                 _isRefreshLoading.value = false
 
-                _processState.value = ProcessState.Success
+                mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
                 _isRefreshLoading.value = false
-                Toast.makeText(context, "Failed to refresh data.", Toast.LENGTH_LONG).show()
+                Toast.makeText(getApplication(), "Failed to refresh data.", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -115,8 +114,8 @@ class AccountViewModel @Inject constructor(
         _selectedImage.value = Utils.convertToImage(_userData.value.image)
     }
 
-    private suspend fun callApi(context: Context) {
-        Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+    private suspend fun callApi() {
+        Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
         val response = when (val userData = academicallyApi.getInfo()) {
             is NoCurrentUser.Success -> userData
@@ -126,9 +125,9 @@ class AccountViewModel @Inject constructor(
         ActivityCacheManager.account = response.data
     }
 
-    fun selectImage(uri: Uri?, context: Context) {
+    fun selectImage(uri: Uri?) {
         if (uri != null) {
-            _selectedImage.value = Utils.convertToImage(uri, context)
+            _selectedImage.value = Utils.convertToImage(uri, getApplication())
         }
     }
 
@@ -148,12 +147,12 @@ class AccountViewModel @Inject constructor(
         _passwordFields.value = newPasswordField
     }
 
-    fun saveInfo(context: Context, accountFields: ManageAccountFields, showMessage: (Validation) -> Unit) {
+    fun saveInfo(accountFields: ManageAccountFields, showMessage: (Validation) -> Unit) {
         viewModelScope.launch {
             try {
                 toggleButtons(0, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 val response = academicallyApi.updateInfo(
                     InfoBody(
@@ -185,12 +184,12 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun savePassword(context: Context, passwordFields: PasswordFields, showMessage: (Validation) -> Unit) {
+    fun savePassword(passwordFields: PasswordFields, showMessage: (Validation) -> Unit) {
         viewModelScope.launch {
             try {
                 toggleButtons(1, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 val response = academicallyApi.updatePassword(
                     PasswordBody(
@@ -216,12 +215,12 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun switchRole(context: Context, newRole: String, navigate: (String) -> Unit) {
+    fun switchRole(newRole: String, navigate: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 toggleButtons(2, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 academicallyApi.switchRole()
 
@@ -239,16 +238,17 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun uploadImage(imageBitmap: ImageBitmap, showMessage: (Validation) -> Unit, context: Context) {
+    fun uploadImage(imageBitmap: ImageBitmap, showMessage: (Validation) -> Unit) {
         viewModelScope.launch {
             try {
                 toggleButtons(3, false)
 
-                Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
-                val file = Utils.bitmapToFile(imageBitmap, context)
+                val file = Utils.bitmapToFile(imageBitmap, getApplication())
                 val imagePart = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody("image/*".toMediaTypeOrNull()))
                 academicallyApi.uploadImage(imagePart)
+                if (file.exists()) file.delete()
 
                 ActivityCacheManager.account = null
 

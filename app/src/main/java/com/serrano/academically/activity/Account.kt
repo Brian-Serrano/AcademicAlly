@@ -46,6 +46,7 @@ import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ManageAccountFields
 import com.serrano.academically.utils.PasswordFields
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AccountViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -59,7 +60,7 @@ fun Account(
     accountViewModel: AccountViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        accountViewModel.getData(context)
+        accountViewModel.getData()
     }
 
     val user by accountViewModel.userData.collectAsState()
@@ -72,7 +73,7 @@ fun Account(
     val isRefreshLoading by accountViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { accountViewModel.refreshData(context) }
+    val onRefresh = { accountViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -101,7 +102,7 @@ fun Account(
                 topBarText = "Manage Account",
                 navController = navController,
                 context = context,
-                selected = "ManageAccounts"
+                selected = Routes.ACCOUNT
             ) { paddingValues ->
                 Column(
                     modifier = Modifier
@@ -135,29 +136,16 @@ fun Account(
                                     verticalArrangement = Arrangement.spacedBy(15.dp)
                                 ) {
                                     when (tabIndex) {
-                                        0 -> Info(
-                                            buttonsEnabled[0],
-                                            buttonsEnabled[3],
-                                            accountFields,
-                                            selectedImage,
-                                            context,
-                                            accountViewModel
-                                        )
+                                        0 -> Info(buttonsEnabled[0], buttonsEnabled[3], accountFields, selectedImage, accountViewModel)
 
-                                        1 -> Password(
-                                            context,
-                                            buttonsEnabled[1],
-                                            passwordFields,
-                                            accountViewModel
-                                        )
+                                        1 -> Password(buttonsEnabled[1], passwordFields, accountViewModel)
 
                                         2 -> More(buttonsEnabled[2]) {
                                             accountViewModel.switchRole(
-                                                context = context,
                                                 newRole = if (user.role == "STUDENT") "TUTOR" else "STUDENT",
                                                 navigate = {
                                                     Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                                                    navController.navigate("Dashboard") {
+                                                    navController.navigate(Routes.DASHBOARD) {
                                                         popUpTo(navController.graph.id) {
                                                             inclusive = false
                                                         }
@@ -182,12 +170,11 @@ fun Info(
     uploadEnabled: Boolean,
     accountFields: ManageAccountFields,
     selectedImage: ImageBitmap,
-    context: Context,
     accountViewModel: AccountViewModel
 ) {
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { accountViewModel.selectImage(it, context) }
+        onResult = { accountViewModel.selectImage(it) }
     )
 
     Row(
@@ -229,8 +216,7 @@ fun Info(
                                     isError = it.isValid
                                 )
                             )
-                        },
-                        context = context
+                        }
                     )
                 },
                 enabled = uploadEnabled
@@ -350,7 +336,6 @@ fun Info(
         text = "SAVE",
         action = {
             accountViewModel.saveInfo(
-                context = context,
                 accountFields = accountFields,
                 showMessage = {
                     accountViewModel.updateAccountFields(
@@ -373,7 +358,6 @@ fun Info(
 
 @Composable
 fun Password(
-    context: Context,
     enabled: Boolean,
     passwordFields: PasswordFields,
     accountViewModel: AccountViewModel
@@ -416,7 +400,6 @@ fun Password(
         text = "SAVE",
         action = {
             accountViewModel.savePassword(
-                context = context,
                 passwordFields = passwordFields,
                 showMessage = {
                     accountViewModel.updatePasswordFields(

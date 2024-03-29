@@ -121,7 +121,7 @@ object Utils {
 
     fun bitmapToFile(imageBitmap: ImageBitmap, context: Context): File {
         val bitmap = imageBitmap.asAndroidBitmap()
-        val file = File(context.filesDir, LocalDateTime.now().toString() + ".png")
+        val file = File(context.cacheDir, LocalDateTime.now().toString() + ".png")
         val outputStream = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream)
         outputStream.flush()

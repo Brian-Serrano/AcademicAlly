@@ -33,6 +33,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.CoursesMenuViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -45,7 +46,7 @@ fun CoursesMenu(
     coursesMenuViewModel: CoursesMenuViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        coursesMenuViewModel.getData(context)
+        coursesMenuViewModel.getData()
     }
 
     val user by coursesMenuViewModel.drawerData.collectAsState()
@@ -54,7 +55,7 @@ fun CoursesMenu(
     val isRefreshLoading by coursesMenuViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { coursesMenuViewModel.refreshData(context) }
+    val onRefresh = { coursesMenuViewModel.refreshData() }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -83,7 +84,7 @@ fun CoursesMenu(
                 topBarText = "COURSES",
                 navController = navController,
                 context = context,
-                selected = "Dashboard"
+                selected = Routes.DASHBOARD
             ) { values ->
                 Box(
                     modifier = Modifier
@@ -131,7 +132,7 @@ fun CoursesMenu(
                                 ) {
                                     BlackButton(
                                         text = "TAKE ASSESSMENT",
-                                        action = { navController.navigate("ChooseAssessment") },
+                                        action = { navController.navigate(Routes.CHOOSE_ASSESSMENT) },
                                         modifier = Modifier.padding(20.dp),
                                         style = MaterialTheme.typography.labelMedium
                                     )

@@ -2,6 +2,7 @@ package com.serrano.academically.activity
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,9 +30,17 @@ import com.serrano.academically.custom_composables.Loading
 import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
+import com.serrano.academically.custom_composables.DateTimeBox
+import com.serrano.academically.custom_composables.DateTimePickerDialog
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
+import com.serrano.academically.utils.Utils
 import com.serrano.academically.viewmodel.AssignmentOptionViewModel
 import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 @Composable
 fun AssignmentOption(
@@ -44,7 +53,7 @@ fun AssignmentOption(
     assignmentOptionViewModel: AssignmentOptionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        assignmentOptionViewModel.getData(sessionId, context)
+        assignmentOptionViewModel.getData(sessionId)
     }
 
     val process by assignmentOptionViewModel.processState.collectAsState()
@@ -56,7 +65,7 @@ fun AssignmentOption(
     val isRefreshLoading by assignmentOptionViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { assignmentOptionViewModel.refreshData(sessionId, context) }
+    val onRefresh = { assignmentOptionViewModel.refreshData(sessionId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -85,138 +94,187 @@ fun AssignmentOption(
                 topBarText = "EDIT ASSIGNMENT",
                 navController = navController,
                 context = context,
-                selected = "Assessment"
+                selected = Routes.ASSESSMENT
             ) { paddingValues ->
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        .background(MaterialTheme.colorScheme.primary)
                         .padding(paddingValues)
-                        .verticalScroll(rememberScrollState())
                 ) {
-                    CustomCard {
-                        Text(
-                            text = "Course: ${session.courseName}",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        HorizontalDivider(thickness = 2.dp)
-                        Text(
-                            text = "Module: ${session.moduleName}",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        HorizontalDivider(thickness = 2.dp)
-                        Text(
-                            text = "If you cancel making assignment, the session will remain uncompleted and the student you rate will be discarded.",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        HorizontalDivider(thickness = 2.dp)
-                        Text(
-                            text = "Items",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        DropDown(
-                            dropDownState = itemsDropdown,
-                            onArrowClick = {
-                                assignmentOptionViewModel.updateItemsDropdown(
-                                    itemsDropdown.copy(expanded = true)
-                                )
-                            },
-                            onDismissRequest = {
-                                assignmentOptionViewModel.updateItemsDropdown(
-                                    itemsDropdown.copy(expanded = false)
-                                )
-                            },
-                            onItemSelect = {
-                                assignmentOptionViewModel.updateItemsDropdown(
-                                    itemsDropdown.copy(selected = it, expanded = false)
-                                )
-                            }
-                        )
-                        HorizontalDivider(thickness = 2.dp)
-                        Text(
-                            text = "Type",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        DropDown(
-                            dropDownState = typeDropdown,
-                            onArrowClick = {
-                                assignmentOptionViewModel.updateTypeDropdown(
-                                    typeDropdown.copy(expanded = true)
-                                )
-                            },
-                            onDismissRequest = {
-                                assignmentOptionViewModel.updateTypeDropdown(
-                                    typeDropdown.copy(expanded = false)
-                                )
-                            },
-                            onItemSelect = {
-                                assignmentOptionViewModel.updateTypeDropdown(
-                                    typeDropdown.copy(selected = it, expanded = false)
-                                )
-                            }
-                        )
-                        HorizontalDivider(thickness = 2.dp)
-                        Text(
-                            text = "Deadline Date",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        CustomInputField(
-                            inputName = "Date",
-                            input = deadline.date,
-                            onInputChange = {
-                                assignmentOptionViewModel.updateDeadline(
-                                    deadline.copy(
-                                        date = it
-                                    )
-                                )
-                            },
-                            modifier = Modifier.padding(10.dp),
-                            supportingText = "Should be in dd/MM/yyyy format"
-                        )
-                        HorizontalDivider(thickness = 2.dp)
-                        Text(
-                            text = "Deadline Time",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        CustomInputField(
-                            inputName = "Time",
-                            input = deadline.time,
-                            onInputChange = {
-                                assignmentOptionViewModel.updateDeadline(
-                                    deadline.copy(
-                                        time = it
-                                    )
-                                )
-                            },
-                            modifier = Modifier.padding(10.dp),
-                            supportingText = "Should be in hh:mm AM/PM format"
-                        )
-                        HorizontalDivider(thickness = 2.dp)
-                        Text(
-                            text = deadline.error,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Row {
-                            GreenButton(
-                                action = {
-                                    assignmentOptionViewModel.validateDeadlineFormatAndNavigate(
-                                        deadlineField = deadline,
-                                        navigate = { navController.navigate("CreateAssignment/$sessionId/${itemsDropdown.selected}/${typeDropdown.selected}/$it/$rate") }
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState())
+                    ) {
+                        CustomCard {
+                            Text(
+                                text = "Course: ${session.courseName}",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            HorizontalDivider(thickness = 2.dp)
+                            Text(
+                                text = "Module: ${session.moduleName}",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            HorizontalDivider(thickness = 2.dp)
+                            Text(
+                                text = "If you cancel making assignment, the session will remain uncompleted and the student you rate will be discarded.",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            HorizontalDivider(thickness = 2.dp)
+                            Text(
+                                text = "Items",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            DropDown(
+                                dropDownState = itemsDropdown,
+                                onArrowClick = {
+                                    assignmentOptionViewModel.updateItemsDropdown(
+                                        itemsDropdown.copy(expanded = true)
                                     )
                                 },
-                                text = "Create Assignment"
+                                onDismissRequest = {
+                                    assignmentOptionViewModel.updateItemsDropdown(
+                                        itemsDropdown.copy(expanded = false)
+                                    )
+                                },
+                                onItemSelect = {
+                                    assignmentOptionViewModel.updateItemsDropdown(
+                                        itemsDropdown.copy(selected = it, expanded = false)
+                                    )
+                                }
                             )
+                            HorizontalDivider(thickness = 2.dp)
+                            Text(
+                                text = "Type",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            DropDown(
+                                dropDownState = typeDropdown,
+                                onArrowClick = {
+                                    assignmentOptionViewModel.updateTypeDropdown(
+                                        typeDropdown.copy(expanded = true)
+                                    )
+                                },
+                                onDismissRequest = {
+                                    assignmentOptionViewModel.updateTypeDropdown(
+                                        typeDropdown.copy(expanded = false)
+                                    )
+                                },
+                                onItemSelect = {
+                                    assignmentOptionViewModel.updateTypeDropdown(
+                                        typeDropdown.copy(selected = it, expanded = false)
+                                    )
+                                }
+                            )
+                            HorizontalDivider(thickness = 2.dp)
+                            Text(
+                                text = "Deadline Date",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            DateTimeBox(
+                                text = deadline.date,
+                                action = {
+                                    assignmentOptionViewModel.updateDeadline(
+                                        deadline.copy(
+                                            datePickerEnabled = true,
+                                            dialogDate = try {
+                                                LocalDate.parse(
+                                                    deadline.date,
+                                                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalDate.now()
+                                            }
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            HorizontalDivider(thickness = 2.dp)
+                            Text(
+                                text = "Deadline Time",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            DateTimeBox(
+                                text = deadline.time,
+                                action = {
+                                    assignmentOptionViewModel.updateDeadline(
+                                        deadline.copy(
+                                            timePickerEnabled = true,
+                                            dialogTime = try {
+                                                LocalTime.parse(
+                                                    deadline.time,
+                                                    DateTimeFormatter.ofPattern("hh:mm a")
+                                                )
+                                            } catch (e: DateTimeParseException) {
+                                                LocalTime.now()
+                                            }
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            HorizontalDivider(thickness = 2.dp)
+                            Text(
+                                text = deadline.error,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            Row {
+                                GreenButton(
+                                    action = {
+                                        assignmentOptionViewModel.validateDeadlineFormatAndNavigate(
+                                            deadlineField = deadline,
+                                            navigate = { navController.navigate("${Routes.CREATE_ASSIGNMENT}/$sessionId/${itemsDropdown.selected}/${typeDropdown.selected}/$it/$rate") }
+                                        )
+                                    },
+                                    text = "Create Assignment"
+                                )
+                            }
                         }
                     }
+                    DateTimePickerDialog(
+                        date = deadline.dialogDate,
+                        time = deadline.dialogTime,
+                        datePickerEnabled = deadline.datePickerEnabled,
+                        timePickerEnabled = deadline.timePickerEnabled,
+                        updateDateDialog = {
+                            assignmentOptionViewModel.updateDeadline(
+                                deadline.copy(
+                                    datePickerEnabled = it
+                                )
+                            )
+                        },
+                        updateTimeDialog = {
+                            assignmentOptionViewModel.updateDeadline(
+                                deadline.copy(
+                                    timePickerEnabled = it
+                                )
+                            )
+                        },
+                        selectDate = {
+                            assignmentOptionViewModel.updateDeadline(
+                                deadline.copy(
+                                    date = String.format("%02d/%02d/%04d", it.dayOfMonth, it.monthValue, it.year),
+                                    datePickerEnabled = false
+                                )
+                            )
+                        },
+                        selectTime = {
+                            assignmentOptionViewModel.updateDeadline(
+                                deadline.copy(
+                                    time = Utils.toMilitaryTime(it.hour, it.minute),
+                                    timePickerEnabled = false
+                                )
+                            )
+                        }
+                    )
                 }
             }
         }

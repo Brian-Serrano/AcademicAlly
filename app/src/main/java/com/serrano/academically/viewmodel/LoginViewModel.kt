@@ -1,6 +1,8 @@
 package com.serrano.academically.viewmodel
 
+import android.app.Application
 import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serrano.academically.api.AcademicallyApi
@@ -23,8 +25,9 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val academicallyApi: AcademicallyApi,
-    private val userCacheRepository: UserCacheRepository
-) : ViewModel() {
+    private val userCacheRepository: UserCacheRepository,
+    application: Application
+) : AndroidViewModel(application) {
 
     private val _loginInput = MutableStateFlow(LoginInput())
     val loginInput: StateFlow<LoginInput> = _loginInput.asStateFlow()
@@ -39,13 +42,7 @@ class LoginViewModel @Inject constructor(
         _loginInput.value = newLoginInput
     }
 
-    fun login(
-        context: Context,
-        role: String,
-        li: LoginInput,
-        navigate: () -> Unit,
-        error: (String) -> Unit
-    ) {
+    fun login(role: String, li: LoginInput, navigate: () -> Unit, error: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 _buttonEnabled.value = false
@@ -69,7 +66,7 @@ class LoginViewModel @Inject constructor(
                 )
                 when (response) {
                     is AuthenticationResponse.SuccessResponse -> {
-                        Utils.showToast(response.achievements, context)
+                        Utils.showToast(response.achievements, getApplication())
                         userCacheRepository.clearAssessmentResultData()
                         userCacheRepository.updateDataByLoggingIn(li.remember, response.token, li.email, li.password, role)
                         updateInput(loginInput.value.copy(email = "", password = "", error = ""))

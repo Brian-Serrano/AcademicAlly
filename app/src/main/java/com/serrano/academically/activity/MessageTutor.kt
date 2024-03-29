@@ -32,6 +32,7 @@ import com.serrano.academically.custom_composables.CustomInputField
 import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.MessageTutorViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -45,7 +46,7 @@ fun MessageTutor(
     messageTutorViewModel: MessageTutorViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        messageTutorViewModel.getData(tutorId, context)
+        messageTutorViewModel.getData(tutorId)
     }
 
     val courses by messageTutorViewModel.coursesDropdown.collectAsState()
@@ -58,7 +59,7 @@ fun MessageTutor(
     val isRefreshLoading by messageTutorViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { messageTutorViewModel.refreshData(tutorId, context) }
+    val onRefresh = { messageTutorViewModel.refreshData(tutorId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -87,7 +88,7 @@ fun MessageTutor(
                 topBarText = "MESSAGE ${tutorCourses.tutorName}",
                 navController = navController,
                 context = context,
-                selected = "FindTutor"
+                selected = Routes.DASHBOARD
             ) { values ->
                 Column(
                     modifier = Modifier
@@ -190,8 +191,7 @@ fun MessageTutor(
                                         navigate = {
                                             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
                                             navController.popBackStack()
-                                        },
-                                        context = context
+                                        }
                                     )
                                 },
                                 modifier = Modifier.padding(15.dp),

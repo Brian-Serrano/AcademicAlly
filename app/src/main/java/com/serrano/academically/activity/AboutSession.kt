@@ -34,6 +34,7 @@ import com.serrano.academically.custom_composables.ScaffoldNoDrawer
 import com.serrano.academically.custom_composables.CustomCard
 import com.serrano.academically.utils.Utils
 import com.serrano.academically.utils.ProcessState
+import com.serrano.academically.utils.Routes
 import com.serrano.academically.viewmodel.AboutSessionViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -47,7 +48,7 @@ fun AboutSession(
     aboutSessionViewModel: AboutSessionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        aboutSessionViewModel.getData(sessionId, context)
+        aboutSessionViewModel.getData(sessionId)
     }
 
     val session by aboutSessionViewModel.session.collectAsState()
@@ -56,7 +57,7 @@ fun AboutSession(
     val isRefreshLoading by aboutSessionViewModel.isRefreshLoading.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
-    val onRefresh = { aboutSessionViewModel.refreshData(sessionId, context) }
+    val onRefresh = { aboutSessionViewModel.refreshData(sessionId) }
 
     when (val p = process) {
         is ProcessState.Error -> {
@@ -85,7 +86,7 @@ fun AboutSession(
                 topBarText = "ABOUT SESSION",
                 navController = navController,
                 context = context,
-                selected = "Notifications"
+                selected = Routes.NOTIFICATIONS
             ) {
                 SwipeRefresh(
                     state = swipeRefreshState,
@@ -108,7 +109,7 @@ fun AboutSession(
                             Box(
                                 modifier = Modifier
                                     .clickable {
-                                        navController.navigate("Profile/${if (user.role == "STUDENT") session.tutorId else session.studentId}")
+                                        navController.navigate("${Routes.PROFILE}/${if (user.role == "STUDENT") session.tutorId else session.studentId}")
                                     }
                             ) {
                                 Text(
@@ -142,7 +143,7 @@ fun AboutSession(
                             ) {
                                 BlackButton(
                                     text = "EDIT",
-                                    action = { navController.navigate("EditSession/$sessionId") },
+                                    action = { navController.navigate("${Routes.EDIT_SESSION}/$sessionId") },
                                     modifier = Modifier.padding(15.dp)
                                 )
                             }

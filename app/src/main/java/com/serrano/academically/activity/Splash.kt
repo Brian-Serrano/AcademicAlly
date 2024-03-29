@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.serrano.academically.R
 import com.serrano.academically.datastore.UserCache
+import com.serrano.academically.utils.Routes
 import kotlinx.coroutines.delay
 
 @Composable
@@ -51,9 +52,9 @@ fun Splash(
         navController.popBackStack()
 
         when {
-            userCache.authToken.isNotEmpty() -> navController.navigate("Dashboard")
-            userCache.isNotFirstTimeUser -> navController.navigate("Main")
-            else -> navController.navigate("About")
+            userCache.authToken.isNotEmpty() -> navController.navigate(Routes.DASHBOARD)
+            userCache.isNotFirstTimeUser -> navController.navigate(Routes.MAIN)
+            else -> navController.navigate(Routes.ABOUT)
         }
     }
 

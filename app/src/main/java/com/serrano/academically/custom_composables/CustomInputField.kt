@@ -19,7 +19,8 @@ fun CustomInputField(
     minLines: Int = 1,
     maxLines: Int = 1,
     supportingText: String = "",
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    readOnly: Boolean = false
 ) {
     TextField(
         value = input,
@@ -46,6 +47,7 @@ fun CustomInputField(
         supportingText = {
             Text(text = supportingText)
         },
-        trailingIcon = trailingIcon
+        trailingIcon = trailingIcon,
+        readOnly = readOnly
     )
 }
