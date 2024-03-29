@@ -124,7 +124,9 @@ fun Dashboard(
                     topBar = DashboardTopBar(
                         scope = scope,
                         drawerState = drawerState,
-                        onIconClick = { navController.navigate("${Routes.PROFILE}/${user.id}") },
+                        onIconClick = {
+                            navController.navigate("${Routes.PROFILE}/${user.id}")
+                        },
                         image = Utils.convertToImage(dashboard.image)
                     )
                 ) { values ->
