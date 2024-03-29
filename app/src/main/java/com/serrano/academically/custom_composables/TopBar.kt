@@ -40,20 +40,8 @@ fun TopBar(
                 )
             },
             navigationIcon = {
-                var enabled by remember {
-                    mutableStateOf(true)
-                }
-
                 IconButton(
-                    onClick = {
-                        scope.launch {
-                            navController.popBackStack()
-                            enabled = false
-                            delay(1000)
-                            enabled = true
-                        }
-                    },
-                    enabled = enabled
+                    onClick = { navController.navigateUp() }
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,

@@ -58,7 +58,7 @@ fun ErrorComposable(
                 )
                 BlackButton(
                     text = "Go back",
-                    action = { navController.popBackStack() },
+                    action = { navController.navigateUp() },
                     modifier = Modifier.padding(10.dp)
                 )
             }
