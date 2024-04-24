@@ -1,16 +1,6 @@
 # AcademicAlly
 Peer-to-Peer tutoring thesis project android application made with Jetpack Compose.
 
-# Tasks (Optional):
-1. Notifications and sound (too hard to implement push notifications)
-2. Truncate long results (might don't want to fetch hundred data at a time but too hard to implement pagination)
-3. Activity cache store in internal storage (no suitable storage from the app use case, room not suitable for unstructured objects, datastore not suitable for complex objects)
-4. Channel (like a forum where users can provide questions and answers on a question and also likes/dislikes)
-5. Assessment question voting (I am not good at every course or even a tutor, question voting might help find the accuracy of question, and will be removed in database if it has less than -4 likes (or 4 dislikes))
-
-# Tasks:
-1. AcademicAlly Admin Dashboard (see AcademicAlly_Admin repository)
-
 # Features:
 1. Assessment
    1. 77 courses to check your knowledge of. BSCS 53 courses, HRS 8 courses, STEM 16 courses

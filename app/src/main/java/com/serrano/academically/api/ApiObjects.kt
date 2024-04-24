@@ -209,7 +209,8 @@ data class LoginBody(
     val email: String,
     val password: String,
     val role: String,
-    val eligibility: String
+    val eligibility: String,
+    val notificationsToken: String
 )
 
 data class Assignment(
@@ -368,7 +369,8 @@ data class SignupBody(
     val rating: Double,
     val score: Int,
     val items: Int,
-    val evaluator: Double
+    val evaluator: Double,
+    val notificationsToken: String
 )
 
 data class DrawerData(
@@ -404,7 +406,8 @@ data class FindTutorData(
     val performance: PerformanceRating,
     val primaryPattern: String,
     val secondaryPattern: String,
-    val image: String
+    val image: String,
+    val isBanned: Boolean
 )
 
 data class SessionArchive(
@@ -466,4 +469,8 @@ data class SupportBody(
     val message: String,
     val fromId: Int,
     val toId: Int
+)
+
+data class NotificationTokenBody(
+    val notificationsToken: String
 )

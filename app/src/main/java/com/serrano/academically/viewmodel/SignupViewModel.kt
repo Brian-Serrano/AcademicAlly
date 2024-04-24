@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import com.serrano.academically.api.AcademicallyApi
 import com.serrano.academically.api.SignupBody
 import com.serrano.academically.api.AuthenticationResponse
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -56,7 +59,8 @@ class SignupViewModel @Inject constructor(
                         if (rating.isNaN()) 0.0 else rating,
                         assessment.score,
                         assessment.items,
-                        assessment.evaluator
+                        assessment.evaluator,
+                        Firebase.messaging.token.await()
                     )
                 )
                 when (response) {

@@ -20,12 +20,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.auth0.jwt.JWT
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import com.serrano.academically.activity.userDataStore
 import com.serrano.academically.api.AcademicallyApi
 import com.serrano.academically.api.AuthenticationResponse
 import com.serrano.academically.api.LoginBody
 import com.serrano.academically.datastore.UserCacheRepository
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -158,7 +161,7 @@ object Utils {
 
         if (checkToken(preferences.authToken)) {
             val authResponse = academicallyApi.login(
-                LoginBody(0, 0.0, 0, preferences.email, preferences.password, preferences.role, "")
+                LoginBody(0, 0.0, 0, preferences.email, preferences.password, preferences.role, "", Firebase.messaging.token.await())
             )
 
             val refreshedToken = when (authResponse) {

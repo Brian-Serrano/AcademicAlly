@@ -22,6 +22,12 @@ class ApiModule {
 
     @Provides
     @Singleton
+    fun provideContext(@ApplicationContext context: Context): Context {
+        return context
+    }
+
+    @Provides
+    @Singleton
     fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(context))
@@ -41,7 +47,7 @@ class ApiModule {
             .create()
 
         return Retrofit.Builder()
-            .baseUrl("https://brianserrano.pythonanywhere.com")
+            .baseUrl("http://10.0.2.2:5000")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()

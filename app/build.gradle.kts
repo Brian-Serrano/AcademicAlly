@@ -4,6 +4,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -58,7 +59,8 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3:1.2.0-beta02")
+    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("com.google.firebase:firebase-messaging:23.4.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -68,8 +70,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Compose
-    implementation("androidx.compose.material:material-icons-extended:1.6.0-rc01")
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.0-rc01")
+    implementation("androidx.compose.material:material-icons-extended:1.6.4")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.4")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.27.0")
 
     // Lifecycle
@@ -79,15 +81,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
     // Navigation
-    implementation("androidx.navigation:navigation-dynamic-features-fragment:2.7.6")
-    androidTestImplementation("androidx.navigation:navigation-testing:2.7.6")
-    implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation("androidx.navigation:navigation-dynamic-features-fragment:2.7.7")
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 
     // Dagger Hilt
-    implementation("com.google.dagger:hilt-android:2.48.1")
+    implementation("com.google.dagger:hilt-android:2.49")
     ksp("com.google.dagger:hilt-android-compiler:2.48.1")
-    ksp("androidx.hilt:hilt-compiler:1.1.0")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Proto Datastore
     implementation("androidx.datastore:datastore:1.0.0")

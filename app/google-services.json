@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "869320376379",
+    "project_id": "academically-411607",
+    "storage_bucket": "academically-411607.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869320376379:android:cfcd8cedef31806c9c9c1e",
+        "android_client_info": {
+          "package_name": "com.serrano.academically"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4TX9GxGPZHY-nzgkoWQ2HXlosasyLO2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

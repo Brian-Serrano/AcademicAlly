@@ -1,12 +1,9 @@
 package com.serrano.academically.viewmodel
 
 import android.app.Application
-import android.content.Context
 import android.widget.Toast
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serrano.academically.api.AcademicallyApi
-import com.serrano.academically.api.DrawerData
 import com.serrano.academically.api.SupportBody
 import com.serrano.academically.api.SupportMessage
 import com.serrano.academically.api.WithCurrentUser
@@ -104,7 +101,7 @@ class SupportChatViewModel @Inject constructor(
                 Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
                 academicallyApi.sendSupportMessage(
-                    SupportBody(message, id, 1)
+                    SupportBody(message, id, 0)
                 )
 
                 callApi()

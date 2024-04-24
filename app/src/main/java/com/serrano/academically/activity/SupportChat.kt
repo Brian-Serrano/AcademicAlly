@@ -113,22 +113,22 @@ fun SupportChat(
                                     .padding(10.dp)
                                     .fillMaxWidth()
                                 ) {
-                                    if (it.fromId == 1) {
+                                    if (it.fromId == 0) {
                                         Text(text = "AcademicAlly Developer", modifier = Modifier.padding(horizontal = 10.dp))
                                     }
                                     Box(
                                         modifier = Modifier
                                             .clip(MaterialTheme.shapes.extraSmall)
-                                            .background(if (it.toId == 1) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant)
+                                            .background(if (it.toId == 0) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant)
                                             .fillMaxWidth(0.8f)
                                             .padding(10.dp)
-                                            .align(if (it.toId == 1) Alignment.End else Alignment.Start)
+                                            .align(if (it.toId == 0) Alignment.End else Alignment.Start)
                                     ) {
                                         Text(
                                             text = it.message,
                                             style = MaterialTheme.typography.labelMedium,
                                             modifier = Modifier.fillMaxWidth(),
-                                            textAlign = if (it.toId == 1) TextAlign.Right else TextAlign.Unspecified
+                                            textAlign = if (it.toId == 0) TextAlign.Right else TextAlign.Unspecified
                                         )
                                     }
 
@@ -139,7 +139,7 @@ fun SupportChat(
                                         modifier = Modifier
                                             .padding(horizontal = 10.dp)
                                             .fillMaxWidth(),
-                                        textAlign = if (it.toId == 1) TextAlign.Right else TextAlign.Unspecified
+                                        textAlign = if (it.toId == 0) TextAlign.Right else TextAlign.Unspecified
                                     )
                                 }
                             }

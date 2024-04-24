@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import com.serrano.academically.api.AcademicallyApi
 import com.serrano.academically.api.AuthenticationResponse
 import com.serrano.academically.api.EmailBody
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,7 +64,8 @@ class LoginViewModel @Inject constructor(
                         li.email,
                         li.password,
                         role,
-                        assessment.eligibility
+                        assessment.eligibility,
+                        Firebase.messaging.token.await()
                     )
                 )
                 when (response) {

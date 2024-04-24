@@ -36,6 +36,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import com.serrano.academically.activity.userDataStore
 import com.serrano.academically.api.DrawerData
 import com.serrano.academically.utils.ActivityCacheManager
@@ -54,33 +55,37 @@ fun Drawer(
     selected: String,
     content: @Composable () -> Unit
 ) {
+    val singleTop: NavOptionsBuilder.() -> Unit = {
+        launchSingleTop = true
+    }
+
     val items = listOf(
         DrawerItem(Routes.DASHBOARD, Icons.Default.Dashboard) {
-            navController.navigate(Routes.DASHBOARD)
+            navController.navigate(Routes.DASHBOARD, singleTop)
         },
         DrawerItem(Routes.LEADERBOARD, Icons.Default.Leaderboard) {
-            navController.navigate(Routes.LEADERBOARD)
+            navController.navigate(Routes.LEADERBOARD, singleTop)
         },
         DrawerItem(Routes.ANALYTICS, Icons.Default.Analytics) {
-            navController.navigate(Routes.ANALYTICS)
+            navController.navigate(Routes.ANALYTICS, singleTop)
         },
         DrawerItem(Routes.ASSESSMENT, Icons.Default.Assessment) {
-            navController.navigate(Routes.CHOOSE_ASSESSMENT)
+            navController.navigate(Routes.CHOOSE_ASSESSMENT, singleTop)
         },
         DrawerItem(Routes.NOTIFICATIONS, Icons.Default.Notifications) {
-            navController.navigate(Routes.NOTIFICATIONS)
+            navController.navigate(Routes.NOTIFICATIONS, singleTop)
         },
         DrawerItem(Routes.ACHIEVEMENTS, Icons.Default.Badge) {
-            navController.navigate(Routes.ACHIEVEMENTS)
+            navController.navigate(Routes.ACHIEVEMENTS, singleTop)
         },
         DrawerItem(Routes.ACCOUNT, Icons.Default.ManageAccounts) {
-            navController.navigate(Routes.ACCOUNT)
+            navController.navigate(Routes.ACCOUNT, singleTop)
         },
         DrawerItem(Routes.ARCHIVE, Icons.Default.Archive) {
-            navController.navigate(Routes.ARCHIVE)
+            navController.navigate(Routes.ARCHIVE, singleTop)
         },
         DrawerItem(Routes.SUPPORT, Icons.Default.Support) {
-            navController.navigate(Routes.SUPPORT)
+            navController.navigate(Routes.SUPPORT, singleTop)
         },
         DrawerItem("Log Out", Icons.AutoMirrored.Filled.Logout) {
             context.userDataStore.updateData {
@@ -91,6 +96,7 @@ fun Drawer(
                 popUpTo(navController.graph.id) {
                     inclusive = false
                 }
+                launchSingleTop = true
             }
         }
     )
