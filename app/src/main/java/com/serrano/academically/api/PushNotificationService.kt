@@ -3,11 +3,13 @@ package com.serrano.academically.api
 import android.content.Context
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.serrano.academically.datastore.UserCache
 import com.serrano.academically.datastore.UserCacheRepository
 import com.serrano.academically.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,8 +25,14 @@ class PushNotificationService: FirebaseMessagingService() {
         super.onNewToken(token)
 
         CoroutineScope(job).launch {
-            Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
-            academicallyApi.updateNotificationsToken(NotificationTokenBody(token))
+            val data = userCacheRepository.userDataStore.data.first()
+            if (data.email.isNotEmpty() && data.password.isNotEmpty() && data.authToken.isNotEmpty()) {
+                if (Utils.checkToken(data.authToken)) {
+                    Utils.checkAuthentication(context, userCacheRepository, academicallyApi)
+                } else {
+                    academicallyApi.updateNotificationsToken(NotificationTokenBody(token))
+                }
+            }
         }
     }
 
