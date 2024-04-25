@@ -72,7 +72,6 @@ class ChooseAssessmentViewModel @Inject constructor(
 
                 mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
-                e.printStackTrace()
                 mutableProcessState.value = ProcessState.Error(e.message ?: "")
             }
         }

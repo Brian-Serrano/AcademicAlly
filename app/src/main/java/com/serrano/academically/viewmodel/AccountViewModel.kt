@@ -257,7 +257,6 @@ class AccountViewModel @Inject constructor(
                 showMessage(Validation(true, "Image Uploaded"))
             } catch (e: Exception) {
                 toggleButtons(3, true)
-                e.printStackTrace()
                 showMessage(Validation(false, "Cannot Upload Image"))
             }
         }

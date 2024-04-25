@@ -1,9 +1,12 @@
 package com.serrano.academically.api
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.serrano.academically.datastore.UserCache
+import com.serrano.academically.R
 import com.serrano.academically.datastore.UserCacheRepository
 import com.serrano.academically.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,6 +36,24 @@ class PushNotificationService: FirebaseMessagingService() {
                     academicallyApi.updateNotificationsToken(NotificationTokenBody(token))
                 }
             }
+        }
+    }
+
+    override fun onMessageReceived(message: RemoteMessage) {
+        super.onMessageReceived(message)
+
+        if (message.notification != null) {
+            val channelId = "academically"
+            val notificationBuilder = NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(R.mipmap.academically_icon_round)
+                .setVibrate(LongArray(5) { 1000 })
+                .setContentTitle(message.notification!!.title)
+                .setContentText(message.notification!!.body)
+
+            val notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationChannel = NotificationChannel(channelId, "academically-push-notification", NotificationManager.IMPORTANCE_HIGH)
+            notificationManager.createNotificationChannel(notificationChannel)
+            notificationManager.notify(0, notificationBuilder.build())
         }
     }
 
