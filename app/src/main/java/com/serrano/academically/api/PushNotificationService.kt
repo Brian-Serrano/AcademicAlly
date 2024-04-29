@@ -42,19 +42,17 @@ class PushNotificationService: FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        if (message.notification != null) {
-            val channelId = "academically"
-            val notificationBuilder = NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(R.mipmap.academically_icon_round)
-                .setVibrate(LongArray(5) { 1000 })
-                .setContentTitle(message.notification!!.title)
-                .setContentText(message.notification!!.body)
+        val channelId = "academically"
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.mipmap.academically_icon_round)
+            .setVibrate(LongArray(5) { 1000 })
+            .setContentTitle(message.data["title"])
+            .setContentText(message.data["body"])
 
-            val notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val notificationChannel = NotificationChannel(channelId, "academically-push-notification", NotificationManager.IMPORTANCE_HIGH)
-            notificationManager.createNotificationChannel(notificationChannel)
-            notificationManager.notify(0, notificationBuilder.build())
-        }
+        val notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationChannel = NotificationChannel(channelId, "academically-push-notification", NotificationManager.IMPORTANCE_HIGH)
+        notificationManager.createNotificationChannel(notificationChannel)
+        notificationManager.notify(0, notificationBuilder.build())
     }
 
     override fun onDestroy() {
