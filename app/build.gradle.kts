@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.serrano.academically"
+    namespace = "thesis.academic.ally"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.serrano.academically"
+        applicationId = "thesis.academic.ally"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

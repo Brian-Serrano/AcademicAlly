@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.serrano.academically.test",
+  "applicationId": "thesis.academic.ally.test",
   "variantName": "debugAndroidTest",
   "elements": [
     {

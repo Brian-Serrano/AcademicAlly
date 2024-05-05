@@ -228,7 +228,7 @@ MERGED from [com.google.android.play:core-common:2.0.2] C:\Users\brian\.gradle\c
 		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:17:9-44
 	android:name
 		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:12:9-35
-activity#com.serrano.academically.activity.MainActivity
+activity#thesis.academic.ally.activity.MainActivity
 ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:24:9-34:20
 	android:screenOrientation
 		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:27:13-49
@@ -248,7 +248,7 @@ category#android.intent.category.LAUNCHER
 ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:32:17-77
 	android:name
 		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:32:27-74
-service#com.serrano.academically.api.PushNotificationService
+service#thesis.academic.ally.api.PushNotificationService
 ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:35:9-41:19
 	android:exported
 		ADDED from C:\Users\brian\AndroidStudioProjects\AcademicAlly\app\src\main\AndroidManifest.xml:37:13-37
@@ -644,7 +644,7 @@ ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-
 		ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
 	android:name
 		ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
-permission#com.serrano.academically.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+permission#thesis.academic.ally.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
 	android:protectionLevel
 		ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
@@ -654,7 +654,7 @@ uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
-uses-permission#com.serrano.academically.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission#thesis.academic.ally.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.12.0] C:\Users\brian\.gradle\caches\transforms-3\caef04fb359d44188c51bddc5ef631cb\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
