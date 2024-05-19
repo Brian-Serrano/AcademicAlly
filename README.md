@@ -27,3 +27,6 @@ Peer-to-Peer tutoring thesis project android application made with Jetpack Compo
 7. Support page, where the users can ask the developer for problems such as toxic users, bugs, data loss and how to use the app.
 8. Forgot Password - In login, the user should only provide the email if he/she don't know the password. And when he/she click the forgot password button, he/she should check his/her mail for a message from academically (it might be in junk or spam), and access the link and input to change the password.
 9. Assessments are not fixed - when the tutors make assignments, the questions are added automatically in a pending assessment database. The pending assessments can be seen by the admin and approve it if he/she wants it. The developer is not good at every course.
+
+## Entity Relationship Diagram
+![ERD](AcademicAlly-ERD.png)
