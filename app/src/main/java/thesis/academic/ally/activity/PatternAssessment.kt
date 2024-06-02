@@ -2,12 +2,19 @@ package thesis.academic.ally.activity
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerState
@@ -21,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,6 +44,8 @@ import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.PatternAssessmentViewModel
 import kotlinx.coroutines.CoroutineScope
+import thesis.academic.ally.ui.theme.AcademicAllyPrototypeTheme
+import thesis.academic.ally.utils.AboutText
 
 @Composable
 fun PatternAssessment(
@@ -60,6 +70,7 @@ fun PatternAssessment(
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
     val onRefresh = { patternAssessmentViewModel.refreshData() }
+    val dialogScroll = rememberScrollState()
 
     val onBackButtonClick = {
         if (item > 0) {
@@ -131,23 +142,54 @@ fun PatternAssessment(
                             .fillMaxSize()
                             .background(Color(0x55000000))
                     )
-                    Dialog(onDismissRequest = navigate) {
+                    Dialog(onDismissRequest = {}) {
                         Column(
                             modifier = Modifier
                                 .size(300.dp, 400.dp)
                                 .clip(MaterialTheme.shapes.small)
-                                .background(MaterialTheme.colorScheme.onBackground)
-                                .verticalScroll(rememberScrollState()),
+                                .background(MaterialTheme.colorScheme.onBackground),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text(
-                                text = "Learning Pattern Assessment Complete! You are ${patternAssessment.primaryPattern.title} and ${patternAssessment.secondaryPattern.title}.\n\n${patternAssessment.primaryPattern.description}.\n\n${patternAssessment.secondaryPattern.description}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(20.dp),
-                                color = MaterialTheme.colorScheme.background
-                            )
-                            BlackButton(text = "Proceed", action = navigate, modifier = Modifier.padding(10.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight()
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .verticalScroll(dialogScroll)
+                                ) {
+                                    Text(
+                                        text = "Learning Pattern Assessment Complete! You are ${
+                                            patternAssessment.primaryPattern.title
+                                        } and ${
+                                            patternAssessment.secondaryPattern.title
+                                        }.\n\n${
+                                            patternAssessment.primaryPattern.description
+                                        }.\n\n${
+                                            patternAssessment.secondaryPattern.description
+                                        }",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(20.dp),
+                                        color = MaterialTheme.colorScheme.background
+                                    )
+                                    BlackButton(text = "Proceed", action = navigate, modifier = Modifier.padding(10.dp))
+                                }
+                                val scrollHeight = (400f / dialogScroll.maxValue) * 400f
+                                Box(
+                                    modifier = Modifier
+                                        .width(5.dp)
+                                        .height(scrollHeight.dp)
+                                        .offset(
+                                            0.dp,
+                                            ((dialogScroll.value * ((400f - scrollHeight) / dialogScroll.maxValue))).dp
+                                        )
+                                        .background(Color.DarkGray)
+                                )
+                            }
                         }
                     }
                 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +18,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -47,6 +54,7 @@ import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.FindTutorViewModel
 import kotlinx.coroutines.CoroutineScope
+import thesis.academic.ally.ui.theme.AcademicAllyPrototypeTheme
 
 @Composable
 fun FindTutor(
@@ -166,14 +174,23 @@ fun FindTutor(
                                                 val avgRating = Utils.roundRating(it.coursesAndRatings.map { it.courseRating }.average())
                                                 val performance = Utils.roundRating((if (it.performance.rateNumber > 0) it.performance.rating / it.performance.rateNumber else 0.0) * 5)
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Image(
-                                                        bitmap = Utils.convertToImage(it.image),
-                                                        contentDescription = null,
-                                                        modifier = Modifier
-                                                            .padding(10.dp)
-                                                            .size(80.dp)
-                                                            .clip(RoundedCornerShape(40.dp))
-                                                    )
+                                                    BadgedBox(badge = {
+                                                        Badge(
+                                                            modifier = Modifier
+                                                                .size(20.dp)
+                                                                .offset((-30).dp, (65).dp),
+                                                            containerColor = if (it.isAvailable) Color.Green else Color.Red
+                                                        )
+                                                    }) {
+                                                        Image(
+                                                            bitmap = Utils.convertToImage(it.image),
+                                                            contentDescription = null,
+                                                            modifier = Modifier
+                                                                .padding(10.dp)
+                                                                .size(80.dp)
+                                                                .clip(RoundedCornerShape(40.dp))
+                                                        )
+                                                    }
                                                     Column {
                                                         Text(
                                                             text = "Name: ${it.tutorName}",
@@ -253,6 +270,30 @@ fun FindTutor(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun FTPrev() {
+    AcademicAllyPrototypeTheme {
+        BadgedBox(badge = {
+            Badge(
+                modifier = Modifier
+                    .size(20.dp)
+                    .offset((-30).dp, (65).dp),
+                containerColor = Color.Green
+            )
+        }) {
+            Icon(
+                imageVector = Icons.Filled.AccountCircle,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(40.dp))
+            )
         }
     }
 }

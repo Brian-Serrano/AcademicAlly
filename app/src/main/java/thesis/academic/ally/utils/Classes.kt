@@ -129,7 +129,7 @@ data class ManageAccountFields(
     val contactNumber: String = "",
     val summary: String = "",
     val educationalBackground: String = "",
-    val freeTutoringTime: String = "",
+    val freeTutoringTime: List<TutorAvailabilityData> = emptyList(),
     val errorMessage: String = "",
     val isError: Boolean = false
 )
@@ -165,4 +165,17 @@ data class DrawerItem(
     val name: String,
     val icon: ImageVector,
     val action: suspend () -> Unit
+)
+
+data class TutorAvailabilityData(
+    val day: String = "Sunday",
+    val from: LocalTime = LocalTime.now(),
+    val to: LocalTime = LocalTime.now()
+)
+
+data class AccountDialogState(
+    val time: LocalTime = LocalTime.now(),
+    val day: Int = 0,
+    val threshold: Int = 0,
+    val dialogOpen: Boolean = false
 )

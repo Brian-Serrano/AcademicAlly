@@ -144,14 +144,16 @@ fun MultipleChoice(
                 Text(
                     text = choices[idx],
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(all = 10.dp)
+                    modifier = Modifier.padding(all = 10.dp),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Text(
                     text = itemContent[idx + 2],
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier
                         .padding(all = 10.dp)
-                        .weight(1f)
+                        .weight(1f),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 if (choices[idx] == answer) {
                     Icon(
@@ -220,7 +222,8 @@ fun TrueOrFalse(
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier
                         .padding(all = 10.dp)
-                        .weight(1f)
+                        .weight(1f),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 if (choices[idx] == answer) {
                     Icon(

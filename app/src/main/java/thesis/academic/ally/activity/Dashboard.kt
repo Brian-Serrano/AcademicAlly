@@ -139,7 +139,7 @@ fun Dashboard(
                             text = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                        color = MaterialTheme.colorScheme.onBackground
                                     )
                                 ) {
                                     append("Good Morning, ")

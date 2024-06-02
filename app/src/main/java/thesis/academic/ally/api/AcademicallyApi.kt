@@ -39,7 +39,7 @@ interface AcademicallyApi {
     suspend fun updatePassword(@Body passwordBody: PasswordBody): NoCurrentUser<Validation>
 
     @POST("/user_routes/switch_role")
-    suspend fun switchRole(): NoCurrentUser<Success>
+    suspend fun switchRole(): NoCurrentUser<Validation>
 
     @GET("/user_routes/get_achievements")
     suspend fun getAchievements(): WithCurrentUser<AchievementWrapper>

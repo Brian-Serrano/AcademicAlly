@@ -191,13 +191,7 @@ fun Login(
                                 }
                             },
                             error = {
-                                loginViewModel.updateInput(
-                                    loginInput.copy(
-                                        email = "",
-                                        password = "",
-                                        error = it
-                                    )
-                                )
+                                loginViewModel.updateInput(loginInput.copy(error = it))
                             }
                         )
                     },

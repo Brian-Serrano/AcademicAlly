@@ -161,15 +161,7 @@ fun Signup(
                                 }
                             },
                             error = {
-                                signupViewModel.updateInput(
-                                    signupInput.copy(
-                                        name = "",
-                                        email = "",
-                                        password = "",
-                                        confirmPassword = "",
-                                        error = it
-                                    )
-                                )
+                                signupViewModel.updateInput(signupInput.copy(error = it))
                             }
                         )
                     },

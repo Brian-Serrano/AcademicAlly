@@ -27,8 +27,12 @@ import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
+import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import kotlin.math.max
@@ -37,6 +41,46 @@ import kotlin.random.Random
 
 
 object Utils {
+
+    fun timeEquivalent(t1: LocalTime, t2: LocalTime): Boolean {
+        return t1.hour == t2.hour && t1.minute == t2.minute
+    }
+
+    fun timeFullRange(t1: LocalTime, t2: LocalTime): Boolean {
+        return t1.hour == LocalTime.MIN.hour && t1.minute == LocalTime.MIN.minute && t2.hour == LocalTime.MAX.hour && t2.minute == LocalTime.MAX.minute
+    }
+
+    fun localTimeToString(time: List<TutorAvailabilityData>): String {
+        return time.joinToString("|") { "${toMilitaryTime(it.from.hour, it.from.minute)},${toMilitaryTime(it.to.hour, it.to.minute)}" }
+    }
+
+    fun stringToLocalTime(timeString: String): List<TutorAvailabilityData> {
+        return timeString.split("|").mapIndexed { idx, time ->
+            val dates = time.split(",").map { LocalTime.parse(it, DateTimeFormatter.ofPattern("hh:mm a")) }
+            TutorAvailabilityData(DayOfWeek.of(idx + 1).name, dates[0], dates[1])
+        }
+    }
+
+    fun isTutorAvailable(timeString: String): Boolean {
+        return stringToLocalTime(timeString)
+            .mapIndexed { idx, data -> Pair(idx, data) }
+            .any {
+                LocalDate.now(Clock.system(ZoneId.of("Asia/Shanghai"))).dayOfWeek.value - 1 == it.first &&
+                        LocalTime.now(Clock.system(ZoneId.of("Asia/Shanghai"))).isAfter(it.second.from) &&
+                        LocalTime.now(Clock.system(ZoneId.of("Asia/Shanghai"))).isBefore(it.second.to) }
+    }
+
+    fun formatTutoringAvailability(freeTutoringTime: String): String {
+        return stringToLocalTime(freeTutoringTime).joinToString("\n") {
+            if (timeEquivalent(it.from, it.to)) {
+                "${it.day}:\nNot Available"
+            } else if (timeFullRange(it.from, it.to)) {
+                "${it.day}:\nAlways Available"
+            } else {
+                "${it.day}:\n${toMilitaryTime(it.from.hour, it.from.minute)} - ${toMilitaryTime(it.to.hour, it.to.minute)}"
+            }
+        }
+    }
 
     fun roundRating(x: Double): Double = round(x * 10.0) / 10.0
 

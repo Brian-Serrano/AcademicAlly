@@ -40,7 +40,9 @@ fun DropDown(
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onArrowClick)
         ) {
             Text(
                 text = dropDownState.selected,
@@ -56,9 +58,7 @@ fun DropDown(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.background,
-                modifier = Modifier
-                    .padding(10.dp)
-                    .clickable(onClick = onArrowClick)
+                modifier = Modifier.padding(10.dp)
             )
         }
         DropdownMenu(

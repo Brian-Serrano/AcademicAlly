@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,8 +19,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,7 +54,13 @@ import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.AccountViewModel
 import kotlinx.coroutines.CoroutineScope
+import thesis.academic.ally.custom_composables.AvailabilityInput
+import thesis.academic.ally.custom_composables.TimePickerDialog
+import thesis.academic.ally.utils.AccountDialogState
+import thesis.academic.ally.utils.TutorAvailabilityData
+import java.time.LocalTime
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Account(
     scope: CoroutineScope,
@@ -71,6 +82,7 @@ fun Account(
     val buttonsEnabled by accountViewModel.buttonsEnabled.collectAsState()
     val selectedImage by accountViewModel.selectedImage.collectAsState()
     val isRefreshLoading by accountViewModel.isRefreshLoading.collectAsState()
+    val dialogState by accountViewModel.accountDialogState.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshLoading)
     val onRefresh = { accountViewModel.refreshData() }
@@ -104,57 +116,123 @@ fun Account(
                 context = context,
                 selected = Routes.ACCOUNT
             ) { paddingValues ->
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .background(MaterialTheme.colorScheme.primary)
+                        .padding(paddingValues)
                 ) {
-                    CustomTab(
-                        tabIndex = tabIndex,
-                        tabs = tabs,
-                        onTabClick = { accountViewModel.updateTabIndex(it) }
-                    )
-                    SwipeRefresh(
-                        state = swipeRefreshState,
-                        onRefresh = onRefresh,
-                        refreshTriggerDistance = 50.dp
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.primary)
-                                .verticalScroll(rememberScrollState()),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        CustomTab(
+                            tabIndex = tabIndex,
+                            tabs = tabs,
+                            onTabClick = { accountViewModel.updateTabIndex(it) }
+                        )
+                        SwipeRefresh(
+                            state = swipeRefreshState,
+                            onRefresh = onRefresh,
+                            refreshTriggerDistance = 50.dp
                         ) {
-                            CustomCard {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(25.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(15.dp)
-                                ) {
-                                    when (tabIndex) {
-                                        0 -> Info(buttonsEnabled[0], buttonsEnabled[3], accountFields, selectedImage, accountViewModel)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.primary)
+                                    .verticalScroll(rememberScrollState()),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CustomCard {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(25.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(15.dp)
+                                    ) {
+                                        when (tabIndex) {
+                                            0 -> Info(buttonsEnabled[0], buttonsEnabled[3], accountFields, selectedImage, accountViewModel)
 
-                                        1 -> Password(buttonsEnabled[1], passwordFields, accountViewModel)
+                                            1 -> Password(buttonsEnabled[1], passwordFields, accountViewModel)
 
-                                        2 -> More(buttonsEnabled[2]) {
-                                            accountViewModel.switchRole(
-                                                newRole = if (user.role == "STUDENT") "TUTOR" else "STUDENT",
-                                                navigate = {
-                                                    Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                                                    navController.navigate(Routes.DASHBOARD) {
-                                                        popUpTo(navController.graph.id) {
-                                                            inclusive = false
+                                            2 -> More(buttonsEnabled[2]) {
+                                                accountViewModel.switchRole(
+                                                    newRole = if (user.role == "STUDENT") "TUTOR" else "STUDENT",
+                                                    navigate = {
+                                                        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                                                        navController.navigate(Routes.DASHBOARD) {
+                                                            popUpTo(navController.graph.id) {
+                                                                inclusive = false
+                                                            }
                                                         }
+                                                    },
+                                                    onError = {
+                                                        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                                                        navController.navigate(Routes.CHOOSE_ASSESSMENT)
                                                     }
-                                                }
-                                            )
+                                                )
+                                            }
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                    if (dialogState.dialogOpen) {
+                        val timePickerState = rememberTimePickerState(
+                            initialHour = dialogState.time.hour,
+                            initialMinute = dialogState.time.minute
+                        )
+                        TimePickerDialog(
+                            onDismissRequest = {
+                                accountViewModel.updateDialogState(dialogState.copy(dialogOpen = false))
+                            },
+                            confirmButton = {
+                                BlackButton(
+                                    text = "OK",
+                                    action = {
+                                        accountViewModel.updateDialogState(dialogState.copy(dialogOpen = false))
+                                        accountViewModel.updateAccountFields(
+                                            accountFields.copy(
+                                                freeTutoringTime = accountFields.freeTutoringTime.mapIndexed { idx, time ->
+                                                    if (idx == dialogState.day) {
+                                                        if (dialogState.threshold == 0) {
+                                                            time.copy(
+                                                                from = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                                                            )
+                                                        } else {
+                                                            time.copy(
+                                                                to = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                                                            )
+                                                        }
+                                                    } else time
+                                                }
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .clip(MaterialTheme.shapes.extraSmall)
+                                    .background(MaterialTheme.colorScheme.tertiary),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                TimePicker(
+                                    state = timePickerState,
+                                    colors = TimePickerDefaults.colors(
+                                        clockDialColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        selectorColor = MaterialTheme.colorScheme.surface,
+                                        containerColor = MaterialTheme.colorScheme.tertiary,
+                                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.surface,
+                                        timeSelectorSelectedContentColor = MaterialTheme.colorScheme.onBackground,
+                                        timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onBackground
+                                    )
+                                )
                             }
                         }
                     }
@@ -313,24 +391,36 @@ fun Info(
         supportingText = "Should be 30-200 characters"
     )
     Text(
-        text = "Free Tutoring Time",
+        text = "Tutoring Availability",
         style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(10.dp)
     )
-    CustomInputField(
-        inputName = "Free Tutoring Time",
-        input = accountFields.freeTutoringTime,
-        onInputChange = {
-            accountViewModel.updateAccountFields(
-                accountFields.copy(
-                    freeTutoringTime = it
+    AvailabilityInput(
+        dates = accountFields.freeTutoringTime,
+        openDialog = { time, day, threshold ->
+            accountViewModel.updateDialogState(
+                AccountDialogState(
+                    time = time,
+                    day = day,
+                    threshold = threshold,
+                    dialogOpen = true
                 )
             )
         },
-        singleLine = false,
-        minLines = 3,
-        maxLines = 5,
-        supportingText = "Should be 15-100 characters"
+        onNotAvailable = { day ->
+            accountViewModel.updateAccountFields(
+                accountFields.copy(
+                    freeTutoringTime = accountFields.freeTutoringTime.mapIndexed { idx, data ->
+                        if (idx == day) {
+                            data.copy(
+                                from = LocalTime.of(0, 0),
+                                to = LocalTime.of(0, 0)
+                            )
+                        } else data
+                    }
+                )
+            )
+        }
     )
     BlackButton(
         text = "SAVE",

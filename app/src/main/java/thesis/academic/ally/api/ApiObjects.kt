@@ -406,6 +406,7 @@ data class FindTutorData(
     val performance: PerformanceRating,
     val primaryPattern: String,
     val secondaryPattern: String,
+    val isAvailable: Boolean,
     val image: String,
     val isBanned: Boolean
 )

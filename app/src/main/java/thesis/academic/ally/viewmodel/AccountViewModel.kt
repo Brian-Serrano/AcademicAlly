@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import thesis.academic.ally.utils.AccountDialogState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,6 +55,9 @@ class AccountViewModel @Inject constructor(
 
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
+
+    private val _accountDialogState = MutableStateFlow(AccountDialogState())
+    val accountDialogState: StateFlow<AccountDialogState> = _accountDialogState.asStateFlow()
 
     fun getData() {
         viewModelScope.launch {
@@ -103,7 +107,7 @@ class AccountViewModel @Inject constructor(
             _userData.value.contactNumber,
             _userData.value.summary,
             _userData.value.educationalBackground,
-            _userData.value.freeTutoringTime,
+            Utils.stringToLocalTime(_userData.value.freeTutoringTime),
             "",
             false
         )
@@ -144,6 +148,10 @@ class AccountViewModel @Inject constructor(
         _passwordFields.value = newPasswordField
     }
 
+    fun updateDialogState(newState: AccountDialogState) {
+        _accountDialogState.value = newState
+    }
+
     fun saveInfo(accountFields: ManageAccountFields, showMessage: (Validation) -> Unit) {
         viewModelScope.launch {
             try {
@@ -160,7 +168,7 @@ class AccountViewModel @Inject constructor(
                         contactNumber = accountFields.contactNumber,
                         summary = accountFields.summary,
                         educationalBackground = accountFields.educationalBackground,
-                        freeTutoringTime = accountFields.freeTutoringTime
+                        freeTutoringTime = Utils.localTimeToString(accountFields.freeTutoringTime)
                     )
                 )
                 val validation = when (response) {
@@ -212,22 +220,27 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun switchRole(newRole: String, navigate: (String) -> Unit) {
+    fun switchRole(newRole: String, navigate: (String) -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 toggleButtons(2, false)
 
                 Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
-                academicallyApi.switchRole()
+                val response = when (val userData = academicallyApi.switchRole()) {
+                    is NoCurrentUser.Success -> userData.data!!
+                    is NoCurrentUser.Error -> throw IllegalArgumentException(userData.error)
+                }
 
-                userCacheRepository.updateRole(newRole)
-
-                ActivityCacheManager.clearCache()
-
-                toggleButtons(2, true)
-
-                navigate("Switch role successful!")
+                if (response.isValid) {
+                    userCacheRepository.updateRole(newRole)
+                    ActivityCacheManager.clearCache()
+                    toggleButtons(2, true)
+                    navigate(response.message)
+                } else {
+                    toggleButtons(2, true)
+                    onError(response.message)
+                }
             } catch (e: Exception) {
                 toggleButtons(2, true)
                 navigate("Failed to switch role")

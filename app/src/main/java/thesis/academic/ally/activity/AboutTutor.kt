@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -125,6 +126,7 @@ fun AboutTutor(
                                             .clip(RoundedCornerShape(40.dp))
                                     )
                                     Column {
+                                        val isTutorAvailable = Utils.isTutorAvailable(tutor.freeTutoringTime)
                                         Box(modifier = Modifier.clickable { navController.navigate("${Routes.PROFILE}/${tutor.userId}") }) {
                                             Text(
                                                 text = tutor.name,
@@ -141,6 +143,12 @@ fun AboutTutor(
                                             text = "Age: ${tutor.age}",
                                             style = MaterialTheme.typography.labelMedium,
                                             modifier = Modifier.padding(10.dp)
+                                        )
+                                        Text(
+                                            text = if (isTutorAvailable) "Available" else "Not Available",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            modifier = Modifier.padding(10.dp),
+                                            color = if (isTutorAvailable) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
                                         )
                                     }
                                 }
@@ -201,7 +209,7 @@ fun AboutTutor(
                         InfoCard(title = "ADDRESS", description = tutor.address)
                         InfoCard(title = "CONTACT NUMBER", description = tutor.contactNumber)
                         InfoCard(title = "EDUCATIONAL BACKGROUND", description = tutor.educationalBackground)
-                        InfoCard(title = "FREE TUTORING TIME", description = tutor.freeTutoringTime)
+                        InfoCard(title = "FREE TUTORING TIME", description = Utils.formatTutoringAvailability(tutor.freeTutoringTime))
                     }
                 }
             }

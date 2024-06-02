@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -41,6 +42,9 @@ import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.ProfileViewModel
 import kotlinx.coroutines.CoroutineScope
+import java.time.Clock
+import java.time.LocalTime
+import java.time.ZoneId
 
 @Composable
 fun Profile(
@@ -112,6 +116,7 @@ fun Profile(
                                     .padding(20.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                val isTutorAvailable = Utils.isTutorAvailable(profile.user.freeTutoringTime)
                                 Image(
                                     bitmap = Utils.convertToImage(profile.user.image),
                                     contentDescription = null,
@@ -124,6 +129,11 @@ fun Profile(
                                     text = profile.user.name,
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSecondary
+                                )
+                                Text(
+                                    text = if (isTutorAvailable) "Available" else "Not Available",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isTutorAvailable) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.error
                                 )
                                 Text(
                                     text = profile.user.email,
@@ -187,7 +197,7 @@ fun Profile(
                                     modifier = Modifier.padding(20.dp)
                                 )
                                 Text(
-                                    text = "Free Tutoring Time: ${profile.user.freeTutoringTime}",
+                                    text = "Free Tutoring Time:\n${Utils.formatTutoringAvailability(profile.user.freeTutoringTime)}",
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.padding(20.dp)
                                 )
