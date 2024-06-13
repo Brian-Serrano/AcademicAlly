@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import thesis.academic.ally.R
@@ -89,7 +91,9 @@ fun Main(navController: NavController) {
                 Text(
                     text = "Not quite sure? Let us help you!",
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.clickable { navController.navigate(Routes.CHOOSE_ASSESSMENT) }
+                    modifier = Modifier.clickable { navController.navigate(Routes.CHOOSE_ASSESSMENT) },
+                    color = Color.Blue,
+                    textDecoration = TextDecoration.Underline
                 )
             }
         }

@@ -273,27 +273,3 @@ fun FindTutor(
         }
     }
 }
-
-@Preview
-@Composable
-fun FTPrev() {
-    AcademicAllyPrototypeTheme {
-        BadgedBox(badge = {
-            Badge(
-                modifier = Modifier
-                    .size(20.dp)
-                    .offset((-30).dp, (65).dp),
-                containerColor = Color.Green
-            )
-        }) {
-            Icon(
-                imageVector = Icons.Filled.AccountCircle,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(10.dp)
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(40.dp))
-            )
-        }
-    }
-}

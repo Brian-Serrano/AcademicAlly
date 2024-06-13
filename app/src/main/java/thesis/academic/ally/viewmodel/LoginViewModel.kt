@@ -107,7 +107,7 @@ class LoginViewModel @Inject constructor(
                     email.isEmpty() -> {
                         error("Provide the email field.")
                     }
-                    !Regex("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}\$").containsMatchIn(email) -> {
+                    !Utils.emailPattern.containsMatchIn(email) -> {
                         error("Email is invalid.")
                     }
                     else -> {

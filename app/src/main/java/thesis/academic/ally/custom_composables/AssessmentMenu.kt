@@ -25,6 +25,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -161,8 +163,8 @@ fun MultipleChoice(
                         contentDescription = null,
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.medium)
-                            .background(color = MaterialTheme.colorScheme.secondaryContainer)
-                            .padding(7.dp)
+                            .padding(7.dp),
+                        tint = Color.White
                     )
                 }
             }
@@ -231,8 +233,8 @@ fun TrueOrFalse(
                         contentDescription = null,
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.medium)
-                            .background(color = MaterialTheme.colorScheme.secondaryContainer)
-                            .padding(7.dp)
+                            .padding(7.dp),
+                        tint = Color.White
                     )
                 }
             }
@@ -256,7 +258,8 @@ fun QuizInfo(name: String, value: String) {
             Text(
                 text = name,
                 style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(start = 10.dp, top = 10.dp)
+                modifier = Modifier.padding(start = 10.dp, top = 10.dp),
+                fontWeight = FontWeight.Bold
             )
             Text(
                 text = value,

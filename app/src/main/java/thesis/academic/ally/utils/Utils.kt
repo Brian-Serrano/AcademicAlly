@@ -42,6 +42,9 @@ import kotlin.random.Random
 
 object Utils {
 
+    val emailPattern = Regex("^[A-Za-z]{5,}\\.[0-9]{6}@laoag.sti.edu.ph\$")
+    val passwordPattern = Regex("\\b(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]{8,}\\b")
+
     fun timeEquivalent(t1: LocalTime, t2: LocalTime): Boolean {
         return t1.hour == t2.hour && t1.minute == t2.minute
     }

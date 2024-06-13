@@ -40,9 +40,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import thesis.academic.ally.R
 import thesis.academic.ally.custom_composables.BlackButton
-import thesis.academic.ally.custom_composables.DiagonalBackground
 import thesis.academic.ally.custom_composables.CustomInputField
+import thesis.academic.ally.custom_composables.DiagonalBackground
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.SignupViewModel
 
 @Composable
@@ -99,14 +100,16 @@ fun Signup(
                     input = signupInput.name,
                     onInputChange = { signupViewModel.updateInput(signupInput.copy(name = it)) },
                     supportingText = "Should be 5-20 characters",
-                    modifier = Modifier.padding(horizontal = 30.dp)
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    isError = signupInput.name.length !in 5..20
                 )
                 CustomInputField(
                     inputName = "Email",
                     input = signupInput.email,
                     onInputChange = { signupViewModel.updateInput(signupInput.copy(email = it)) },
                     supportingText = "Should be 15-40 characters",
-                    modifier = Modifier.padding(horizontal = 30.dp)
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    isError = !Utils.emailPattern.containsMatchIn(signupInput.email)
                 )
                 CustomInputField(
                     inputName = "Password",
@@ -123,7 +126,8 @@ fun Signup(
                                 tint = Color.Black
                             )
                         }
-                    }
+                    },
+                    isError = !Utils.passwordPattern.containsMatchIn(signupInput.password)
                 )
                 CustomInputField(
                     inputName = "Confirm Password",
@@ -139,7 +143,8 @@ fun Signup(
                                 tint = Color.Black
                             )
                         }
-                    }
+                    },
+                    isError = !Utils.passwordPattern.containsMatchIn(signupInput.confirmPassword)
                 )
                 Text(
                     text = signupInput.error,

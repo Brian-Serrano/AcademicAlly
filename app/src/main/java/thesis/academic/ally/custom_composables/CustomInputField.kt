@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
@@ -20,7 +22,8 @@ fun CustomInputField(
     maxLines: Int = 1,
     supportingText: String = "",
     trailingIcon: @Composable (() -> Unit)? = null,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    isError: Boolean = false
 ) {
     TextField(
         value = input,
@@ -45,9 +48,10 @@ fun CustomInputField(
         colors = InputFieldColors(),
         modifier = modifier.fillMaxWidth(),
         supportingText = {
-            Text(text = supportingText)
+            Text(text = supportingText, color = if (isError) Color.Red else Color.Black)
         },
         trailingIcon = trailingIcon,
-        readOnly = readOnly
+        readOnly = readOnly,
+        isError = isError
     )
 }
