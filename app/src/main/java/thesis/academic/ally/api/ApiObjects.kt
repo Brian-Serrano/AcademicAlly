@@ -1,9 +1,5 @@
 package thesis.academic.ally.api
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.RetentionPolicy
-import kotlin.reflect.KClass
-
 
 annotation class Unauthorized
 

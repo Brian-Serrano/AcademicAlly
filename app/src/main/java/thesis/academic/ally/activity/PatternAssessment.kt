@@ -2,7 +2,6 @@ package thesis.academic.ally.activity
 
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,12 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.custom_composables.AssessmentMenu
 import thesis.academic.ally.custom_composables.BlackButton
 import thesis.academic.ally.custom_composables.DrawerAndScaffold
@@ -43,9 +42,6 @@ import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.PatternAssessmentViewModel
-import kotlinx.coroutines.CoroutineScope
-import thesis.academic.ally.ui.theme.AcademicAllyPrototypeTheme
-import thesis.academic.ally.utils.AboutText
 
 @Composable
 fun PatternAssessment(

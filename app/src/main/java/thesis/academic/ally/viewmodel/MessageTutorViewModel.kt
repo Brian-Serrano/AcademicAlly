@@ -3,21 +3,21 @@ package thesis.academic.ally.viewmodel
 import android.app.Application
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import thesis.academic.ally.api.AcademicallyApi
-import thesis.academic.ally.api.WithCurrentUser
-import thesis.academic.ally.api.MessageResponse
-import thesis.academic.ally.api.TutorCourses
-import thesis.academic.ally.api.TutorRequestBody
-import thesis.academic.ally.datastore.UserCacheRepository
-import thesis.academic.ally.utils.ActivityCacheManager
-import thesis.academic.ally.utils.DropDownState
-import thesis.academic.ally.utils.Utils
-import thesis.academic.ally.utils.ProcessState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import thesis.academic.ally.api.AcademicallyApi
+import thesis.academic.ally.api.MessageResponse
+import thesis.academic.ally.api.TutorCourses
+import thesis.academic.ally.api.TutorRequestBody
+import thesis.academic.ally.api.WithCurrentUser
+import thesis.academic.ally.datastore.UserCacheRepository
+import thesis.academic.ally.utils.ActivityCacheManager
+import thesis.academic.ally.utils.DropDownState
+import thesis.academic.ally.utils.ProcessState
+import thesis.academic.ally.utils.Utils
 import javax.inject.Inject
 
 @HiltViewModel

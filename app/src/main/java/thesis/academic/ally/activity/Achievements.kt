@@ -32,16 +32,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.custom_composables.DrawerAndScaffold
 import thesis.academic.ally.custom_composables.ErrorComposable
 import thesis.academic.ally.custom_composables.Loading
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
 import thesis.academic.ally.custom_composables.SimpleProgressIndicatorWithAnim
-import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.AchievementsViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun Achievements(

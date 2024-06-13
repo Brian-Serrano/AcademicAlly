@@ -41,23 +41,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.api.Course
 import thesis.academic.ally.custom_composables.BlackButton
 import thesis.academic.ally.custom_composables.CircularProgressBar
 import thesis.academic.ally.custom_composables.CoursesList
+import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.custom_composables.DashboardTopBar
 import thesis.academic.ally.custom_composables.DashboardTopBarNoDrawer
 import thesis.academic.ally.custom_composables.Drawer
 import thesis.academic.ally.custom_composables.ErrorComposable
 import thesis.academic.ally.custom_composables.Loading
-import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.ui.theme.montserrat
 import thesis.academic.ally.utils.DashboardIcons
-import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.DashboardViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun Dashboard(

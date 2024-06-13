@@ -1,8 +1,5 @@
 package thesis.academic.ally.api
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.google.gson.InstanceCreator
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement

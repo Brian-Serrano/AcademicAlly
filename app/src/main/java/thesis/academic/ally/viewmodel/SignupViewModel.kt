@@ -5,13 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
-import thesis.academic.ally.api.AcademicallyApi
-import thesis.academic.ally.api.SignupBody
-import thesis.academic.ally.api.AuthenticationResponse
-import thesis.academic.ally.datastore.UserCacheRepository
-import thesis.academic.ally.utils.ActivityCacheManager
-import thesis.academic.ally.utils.Utils
-import thesis.academic.ally.utils.SignupInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +12,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import thesis.academic.ally.api.AcademicallyApi
+import thesis.academic.ally.api.AuthenticationResponse
+import thesis.academic.ally.api.SignupBody
+import thesis.academic.ally.datastore.UserCacheRepository
+import thesis.academic.ally.utils.ActivityCacheManager
+import thesis.academic.ally.utils.SignupInput
+import thesis.academic.ally.utils.Utils
 import javax.inject.Inject
 
 @HiltViewModel

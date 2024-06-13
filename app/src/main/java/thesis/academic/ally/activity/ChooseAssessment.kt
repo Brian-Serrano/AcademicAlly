@@ -24,20 +24,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.api.Course2
 import thesis.academic.ally.custom_composables.BlackButton
+import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.custom_composables.CustomSearchBar
 import thesis.academic.ally.custom_composables.Drawer
 import thesis.academic.ally.custom_composables.ErrorComposable
 import thesis.academic.ally.custom_composables.Loading
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
 import thesis.academic.ally.custom_composables.TopBar
-import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.utils.SearchInfo
 import thesis.academic.ally.viewmodel.ChooseAssessmentViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun ChooseAssessment(

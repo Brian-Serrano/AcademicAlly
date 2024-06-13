@@ -18,12 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,13 +31,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.custom_composables.BlackButton
+import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.custom_composables.CustomSearchBar
 import thesis.academic.ally.custom_composables.DrawerAndScaffold
 import thesis.academic.ally.custom_composables.ErrorComposable
@@ -48,13 +46,10 @@ import thesis.academic.ally.custom_composables.FilterDialog
 import thesis.academic.ally.custom_composables.Loading
 import thesis.academic.ally.custom_composables.RatingBar
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
-import thesis.academic.ally.custom_composables.CustomCard
-import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.FindTutorViewModel
-import kotlinx.coroutines.CoroutineScope
-import thesis.academic.ally.ui.theme.AcademicAllyPrototypeTheme
 
 @Composable
 fun FindTutor(

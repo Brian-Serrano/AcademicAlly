@@ -17,13 +17,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import com.auth0.jwt.JWT
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
-import thesis.academic.ally.activity.userDataStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.tasks.await
 import thesis.academic.ally.api.AcademicallyApi
 import thesis.academic.ally.api.AuthenticationResponse
 import thesis.academic.ally.api.LoginBody
 import thesis.academic.ally.datastore.UserCacheRepository
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat

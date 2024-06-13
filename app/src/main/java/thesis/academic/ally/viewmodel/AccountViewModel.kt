@@ -5,18 +5,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
-import thesis.academic.ally.api.AcademicallyApi
-import thesis.academic.ally.api.Info
-import thesis.academic.ally.api.InfoBody
-import thesis.academic.ally.api.PasswordBody
-import thesis.academic.ally.api.NoCurrentUser
-import thesis.academic.ally.api.Validation
-import thesis.academic.ally.datastore.UserCacheRepository
-import thesis.academic.ally.utils.ActivityCacheManager
-import thesis.academic.ally.utils.ManageAccountFields
-import thesis.academic.ally.utils.PasswordFields
-import thesis.academic.ally.utils.ProcessState
-import thesis.academic.ally.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +13,19 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import thesis.academic.ally.api.AcademicallyApi
+import thesis.academic.ally.api.Info
+import thesis.academic.ally.api.InfoBody
+import thesis.academic.ally.api.NoCurrentUser
+import thesis.academic.ally.api.PasswordBody
+import thesis.academic.ally.api.Validation
+import thesis.academic.ally.datastore.UserCacheRepository
 import thesis.academic.ally.utils.AccountDialogState
+import thesis.academic.ally.utils.ActivityCacheManager
+import thesis.academic.ally.utils.ManageAccountFields
+import thesis.academic.ally.utils.PasswordFields
+import thesis.academic.ally.utils.ProcessState
+import thesis.academic.ally.utils.Utils
 import javax.inject.Inject
 
 @HiltViewModel

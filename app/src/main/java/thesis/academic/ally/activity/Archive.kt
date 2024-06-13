@@ -45,11 +45,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.api.AssignmentNotifications
 import thesis.academic.ally.api.MessageNotifications
 import thesis.academic.ally.api.SessionArchive
 import thesis.academic.ally.custom_composables.BlackButton
 import thesis.academic.ally.custom_composables.BottomBar
+import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.custom_composables.CustomSearchBar
 import thesis.academic.ally.custom_composables.CustomTab
 import thesis.academic.ally.custom_composables.Drawer
@@ -58,13 +60,11 @@ import thesis.academic.ally.custom_composables.Loading
 import thesis.academic.ally.custom_composables.RateDialog
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
 import thesis.academic.ally.custom_composables.TopBar
-import thesis.academic.ally.custom_composables.CustomCard
-import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.RateDialogStates
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.ArchiveViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun Archive(

@@ -1,12 +1,12 @@
 package thesis.academic.ally.api
 
 import android.content.Context
-import thesis.academic.ally.activity.userDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import retrofit2.Invocation
+import thesis.academic.ally.activity.userDataStore
 
 class AuthInterceptor(
     private val context: Context,

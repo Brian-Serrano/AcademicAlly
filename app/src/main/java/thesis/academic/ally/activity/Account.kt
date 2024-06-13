@@ -39,25 +39,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.api.DrawerData
+import thesis.academic.ally.custom_composables.AvailabilityInput
 import thesis.academic.ally.custom_composables.BlackButton
+import thesis.academic.ally.custom_composables.CustomCard
+import thesis.academic.ally.custom_composables.CustomInputField
 import thesis.academic.ally.custom_composables.CustomTab
 import thesis.academic.ally.custom_composables.DrawerAndScaffold
 import thesis.academic.ally.custom_composables.ErrorComposable
 import thesis.academic.ally.custom_composables.Loading
-import thesis.academic.ally.custom_composables.CustomInputField
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
-import thesis.academic.ally.custom_composables.CustomCard
+import thesis.academic.ally.custom_composables.TimePickerDialog
+import thesis.academic.ally.utils.AccountDialogState
 import thesis.academic.ally.utils.ManageAccountFields
 import thesis.academic.ally.utils.PasswordFields
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.AccountViewModel
-import kotlinx.coroutines.CoroutineScope
-import thesis.academic.ally.custom_composables.AvailabilityInput
-import thesis.academic.ally.custom_composables.TimePickerDialog
-import thesis.academic.ally.utils.AccountDialogState
-import thesis.academic.ally.utils.TutorAvailabilityData
 import java.time.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)

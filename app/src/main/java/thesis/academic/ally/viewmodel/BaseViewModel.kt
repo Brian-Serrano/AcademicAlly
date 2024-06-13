@@ -2,11 +2,11 @@ package thesis.academic.ally.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import thesis.academic.ally.api.DrawerData
-import thesis.academic.ally.utils.ProcessState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import thesis.academic.ally.api.DrawerData
+import thesis.academic.ally.utils.ProcessState
 
 open class BaseViewModel(application: Application): AndroidViewModel(application) {
 

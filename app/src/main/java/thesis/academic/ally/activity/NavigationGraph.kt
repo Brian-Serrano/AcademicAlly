@@ -8,8 +8,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import thesis.academic.ally.utils.Routes
 import kotlinx.coroutines.CoroutineScope
+import thesis.academic.ally.utils.Routes
 
 @Composable
 fun NavigationGraph(

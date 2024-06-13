@@ -27,23 +27,23 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.custom_composables.ConfirmDialog
+import thesis.academic.ally.custom_composables.CustomCard
+import thesis.academic.ally.custom_composables.CustomInputField
 import thesis.academic.ally.custom_composables.DrawerAndScaffold
 import thesis.academic.ally.custom_composables.DropDown
 import thesis.academic.ally.custom_composables.ErrorComposable
 import thesis.academic.ally.custom_composables.GreenButton
 import thesis.academic.ally.custom_composables.Loading
-import thesis.academic.ally.custom_composables.CustomInputField
 import thesis.academic.ally.custom_composables.QuizInfo
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
 import thesis.academic.ally.custom_composables.SimpleProgressIndicatorWithAnim
-import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.utils.AssessmentType
-import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.CreateAssignmentViewModel
-import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDateTime
 
 @Composable

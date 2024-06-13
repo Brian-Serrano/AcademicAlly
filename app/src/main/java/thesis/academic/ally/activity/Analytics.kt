@@ -25,23 +25,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.api.DrawerData
 import thesis.academic.ally.custom_composables.BarGraph
 import thesis.academic.ally.custom_composables.CoursesRating
+import thesis.academic.ally.custom_composables.CustomCard
+import thesis.academic.ally.custom_composables.DataGroup
 import thesis.academic.ally.custom_composables.DrawerAndScaffold
 import thesis.academic.ally.custom_composables.ErrorComposable
 import thesis.academic.ally.custom_composables.GreenButton
 import thesis.academic.ally.custom_composables.Loading
 import thesis.academic.ally.custom_composables.RatingCard
-import thesis.academic.ally.custom_composables.DataGroup
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
-import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.utils.ChartData
-import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.AnalyticsViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun Analytics(

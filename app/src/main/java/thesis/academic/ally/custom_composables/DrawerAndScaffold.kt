@@ -6,8 +6,8 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import thesis.academic.ally.api.DrawerData
 import kotlinx.coroutines.CoroutineScope
+import thesis.academic.ally.api.DrawerData
 
 @Composable
 fun DrawerAndScaffold(

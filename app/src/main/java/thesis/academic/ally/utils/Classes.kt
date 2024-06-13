@@ -4,9 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 
 sealed class ProcessState {

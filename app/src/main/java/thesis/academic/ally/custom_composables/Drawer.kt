@@ -35,13 +35,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import thesis.academic.ally.activity.userDataStore
 import thesis.academic.ally.api.DrawerData
 import thesis.academic.ally.utils.ActivityCacheManager
 import thesis.academic.ally.utils.DrawerItem
 import thesis.academic.ally.utils.Routes
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 fun Drawer(

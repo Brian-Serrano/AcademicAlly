@@ -42,8 +42,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import thesis.academic.ally.R
 import thesis.academic.ally.custom_composables.BlackButton
-import thesis.academic.ally.custom_composables.DiagonalBackground
 import thesis.academic.ally.custom_composables.CustomInputField
+import thesis.academic.ally.custom_composables.DiagonalBackground
 import thesis.academic.ally.datastore.UserCache
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.LoginViewModel

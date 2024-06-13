@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.custom_composables.AssessmentMenu
 import thesis.academic.ally.custom_composables.Drawer
 import thesis.academic.ally.custom_composables.ErrorComposable
@@ -20,7 +21,6 @@ import thesis.academic.ally.custom_composables.TopBar
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
 import thesis.academic.ally.viewmodel.AssessmentViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun Assessment(

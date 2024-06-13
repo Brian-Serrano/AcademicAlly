@@ -14,10 +14,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.datastore.dataStore
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import thesis.academic.ally.datastore.CryptoManager
 import thesis.academic.ally.datastore.UserCacheSerializer
 import thesis.academic.ally.ui.theme.AcademicAllyPrototypeTheme
-import dagger.hilt.android.AndroidEntryPoint
 
 
 val Context.userDataStore by dataStore("user-cache.json", UserCacheSerializer(CryptoManager()))

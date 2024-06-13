@@ -27,10 +27,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 import thesis.academic.ally.R
 import thesis.academic.ally.datastore.UserCache
 import thesis.academic.ally.utils.Routes
-import kotlinx.coroutines.delay
 
 @Composable
 fun Splash(

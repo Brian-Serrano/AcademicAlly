@@ -26,14 +26,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.CoroutineScope
 import thesis.academic.ally.custom_composables.BlackButton
 import thesis.academic.ally.custom_composables.CoursesRating
+import thesis.academic.ally.custom_composables.CustomCard
 import thesis.academic.ally.custom_composables.DrawerAndScaffold
 import thesis.academic.ally.custom_composables.ErrorComposable
 import thesis.academic.ally.custom_composables.InfoCard
@@ -41,12 +42,10 @@ import thesis.academic.ally.custom_composables.Loading
 import thesis.academic.ally.custom_composables.RatingBar
 import thesis.academic.ally.custom_composables.RatingCard
 import thesis.academic.ally.custom_composables.ScaffoldNoDrawer
-import thesis.academic.ally.custom_composables.CustomCard
-import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.utils.ProcessState
 import thesis.academic.ally.utils.Routes
+import thesis.academic.ally.utils.Utils
 import thesis.academic.ally.viewmodel.AboutTutorViewModel
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun AboutTutor(
