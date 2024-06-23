@@ -125,6 +125,12 @@ object Utils {
         return totalScore
     }
 
+    fun evaluateAssignment(assessmentData: List<List<String>>, assessmentAnswers: List<String>, type: String): Pair<Int, List<Boolean>> {
+        val answerIdx = if (type == "Multiple Choice") 6 else 2
+        val result = assessmentAnswers.mapIndexed { idx, ans -> ans.lowercase() == assessmentData[idx][answerIdx].lowercase() }
+        return Pair(result.count { it }, result)
+    }
+
     fun generateRandomColor(seed: Int): Color {
         val rand = Random(seed)
         return Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256), 255)

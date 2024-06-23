@@ -45,8 +45,18 @@ class AssignmentViewModel @Inject constructor(
     private val _isRefreshLoading = MutableStateFlow(false)
     val isRefreshLoading: StateFlow<Boolean> = _isRefreshLoading.asStateFlow()
 
+    private val _dialogOpen = MutableStateFlow(false)
+    val dialogOpen: StateFlow<Boolean> = _dialogOpen.asStateFlow()
+
+    private val _assessmentResults = MutableStateFlow<List<Boolean>>(emptyList())
+    val assessmentResults: StateFlow<List<Boolean>> = _assessmentResults.asStateFlow()
+
     fun moveItem(isAdd: Boolean) {
         _item.value = item.value + if (isAdd) 1 else -1
+    }
+
+    fun toggleDialog() {
+        _dialogOpen.value = !_dialogOpen.value
     }
 
     fun addAnswer(answer: String, index: Int) {
@@ -69,6 +79,7 @@ class AssignmentViewModel @Inject constructor(
                 _assessmentData.value = mapAssignmentData(_assignment.value.data, _assignment.value.type)
 
                 _assessmentAnswers.value = List(_assessmentData.value.size) { "" }
+                _assessmentResults.value = List(_assessmentData.value.size) { false }
 
                 mutableProcessState.value = ProcessState.Success
             } catch (e: Exception) {
@@ -87,6 +98,7 @@ class AssignmentViewModel @Inject constructor(
                 _assessmentData.value = mapAssignmentData(_assignment.value.data, _assignment.value.type)
 
                 _assessmentAnswers.value = List(_assessmentData.value.size) { "" }
+                _assessmentResults.value = List(_assessmentData.value.size) { false }
 
                 _isRefreshLoading.value = false
 
@@ -113,14 +125,14 @@ class AssignmentViewModel @Inject constructor(
         ActivityCacheManager.currentUser = response.currentUser
     }
 
-    fun completeAssignment(score: Int, assignmentId: Int, navigate: (Int) -> Unit) {
+    fun completeAssignment(score: Pair<Int, List<Boolean>>, assignmentId: Int, openDialog: (Int) -> Unit) {
         viewModelScope.launch {
             try {
                 _nextButtonEnabled.value = false
 
                 Utils.checkAuthentication(getApplication(), userCacheRepository, academicallyApi)
 
-                val apiResponse = academicallyApi.completeAssignment(AssignmentBody(assignmentId, score))
+                val apiResponse = academicallyApi.completeAssignment(AssignmentBody(assignmentId, score.first))
                 Utils.showToast(
                     when (apiResponse) {
                         is NoCurrentUser.Success -> apiResponse.data!!
@@ -129,13 +141,15 @@ class AssignmentViewModel @Inject constructor(
                     getApplication()
                 )
 
+                _assessmentResults.value = score.second
+
                 ActivityCacheManager.assignment.remove(assignmentId)
                 ActivityCacheManager.notificationsAssignments = null
                 ActivityCacheManager.archiveCompletedTasks = null
 
                 _nextButtonEnabled.value = true
 
-                navigate(score)
+                openDialog(score.first)
             } catch (e: Exception) {
                 _nextButtonEnabled.value = true
                 Toast.makeText(getApplication(), "Something went wrong", Toast.LENGTH_LONG).show()

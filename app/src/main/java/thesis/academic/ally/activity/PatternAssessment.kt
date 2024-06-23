@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.MaterialTheme
@@ -139,52 +140,54 @@ fun PatternAssessment(
                             .background(Color(0x55000000))
                     )
                     Dialog(onDismissRequest = {}) {
-                        Column(
-                            modifier = Modifier
-                                .size(300.dp, 400.dp)
-                                .clip(MaterialTheme.shapes.small)
-                                .background(MaterialTheme.colorScheme.onBackground),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Row(
+                        SelectionContainer {
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight()
+                                    .size(300.dp, 400.dp)
+                                    .clip(MaterialTheme.shapes.small)
+                                    .background(MaterialTheme.colorScheme.onBackground),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                Column(
+                                Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .weight(1f)
-                                        .verticalScroll(dialogScroll)
+                                        .fillMaxHeight()
                                 ) {
-                                    Text(
-                                        text = "Learning Pattern Assessment Complete! You are ${
-                                            patternAssessment.primaryPattern.title
-                                        } and ${
-                                            patternAssessment.secondaryPattern.title
-                                        }.\n\n${
-                                            patternAssessment.primaryPattern.description
-                                        }.\n\n${
-                                            patternAssessment.secondaryPattern.description
-                                        }",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(20.dp),
-                                        color = MaterialTheme.colorScheme.background
-                                    )
-                                    BlackButton(text = "Proceed", action = navigate, modifier = Modifier.padding(10.dp))
-                                }
-                                val scrollHeight = (400f / dialogScroll.maxValue) * 400f
-                                Box(
-                                    modifier = Modifier
-                                        .width(5.dp)
-                                        .height(scrollHeight.dp)
-                                        .offset(
-                                            0.dp,
-                                            ((dialogScroll.value * ((400f - scrollHeight) / dialogScroll.maxValue))).dp
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f)
+                                            .verticalScroll(dialogScroll)
+                                    ) {
+                                        Text(
+                                            text = "Learning Pattern Assessment Complete! You are ${
+                                                patternAssessment.primaryPattern.title
+                                            } and ${
+                                                patternAssessment.secondaryPattern.title
+                                            }.\n\n${
+                                                patternAssessment.primaryPattern.description
+                                            }.\n\n${
+                                                patternAssessment.secondaryPattern.description
+                                            }",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.padding(20.dp),
+                                            color = MaterialTheme.colorScheme.background
                                         )
-                                        .background(Color.DarkGray)
-                                )
+                                        BlackButton(text = "Proceed", action = navigate, modifier = Modifier.padding(10.dp))
+                                    }
+                                    val scrollHeight = (400f / dialogScroll.maxValue) * 400f
+                                    Box(
+                                        modifier = Modifier
+                                            .width(5.dp)
+                                            .height(scrollHeight.dp)
+                                            .offset(
+                                                0.dp,
+                                                ((dialogScroll.value * ((400f - scrollHeight) / dialogScroll.maxValue))).dp
+                                            )
+                                            .background(Color.DarkGray)
+                                    )
+                                }
                             }
                         }
                     }
